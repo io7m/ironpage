@@ -16,9 +16,13 @@
 
 package com.io7m.ironpage.tests;
 
+import com.io7m.ironpage.types.resolution.api.SchemaResolvedSet;
+import com.io7m.ironpage.types.resolution.api.SchemaResolvedSetEdge;
 import com.io7m.ironpage.validator.api.SchemaValidationError;
 import com.io7m.ironpage.validator.api.SchemaValidationRequest;
 import com.io7m.ironpage.validator.api.SchemaValidatorProviderType;
+import io.vavr.collection.Vector;
+import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -34,11 +38,18 @@ public abstract class SchemaValidatorContract
   @Test
   public final void testEmpty()
   {
+    final var resolved =
+      SchemaResolvedSet.builder()
+        .setGraph(new DirectedAcyclicGraph<>(SchemaResolvedSetEdge.class))
+        .setSchemas(Vector.empty())
+        .build();
+
     final var validators = this.validators();
     final var validator = validators.create();
 
     final var request =
       SchemaValidationRequest.builder()
+        .setResolvedModules(resolved)
         .build();
 
     final var errors = new ArrayList<SchemaValidationError>();

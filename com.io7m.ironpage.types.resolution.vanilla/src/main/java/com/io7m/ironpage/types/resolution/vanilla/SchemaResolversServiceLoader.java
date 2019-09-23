@@ -26,20 +26,38 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.ServiceLoader;
 
+/**
+ * A schema resolver that takes directories from {@link ServiceLoader}.
+ */
+
 public final class SchemaResolversServiceLoader implements SchemaResolverProviderType
 {
   private final Vector<SchemaDirectoryType> services;
+
+  /**
+   * Construct a resolver provider, loading directories from {@link ServiceLoader}.
+   */
 
   public SchemaResolversServiceLoader()
   {
     this(loadServices());
   }
 
+  /**
+   * Construct a resolver provider, using the given directories.
+   *
+   * @param inServices The directories
+   */
+
   public SchemaResolversServiceLoader(
     final Vector<SchemaDirectoryType> inServices)
   {
     this.services = Objects.requireNonNull(inServices, "services");
   }
+
+  /**
+   * @return A new schema resolver
+   */
 
   public static SchemaResolverProviderType provide()
   {
@@ -61,11 +79,5 @@ public final class SchemaResolversServiceLoader implements SchemaResolverProvide
   public SchemaResolverType createForLocale(final Locale locale)
   {
     return new SchemaResolver(locale, this.services);
-  }
-
-  @Override
-  public SchemaResolverType create()
-  {
-    return new SchemaResolver(Locale.getDefault(), this.services);
   }
 }

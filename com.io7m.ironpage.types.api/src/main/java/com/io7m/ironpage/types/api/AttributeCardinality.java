@@ -45,4 +45,23 @@ public enum AttributeCardinality
    */
 
   CARDINALITY_1_TO_N;
+
+  /**
+   * @return The cardinality value as a simple string
+   */
+
+  public String show()
+  {
+    switch (this) {
+      case CARDINALITY_1:
+        return "[1]";
+      case CARDINALITY_0_TO_1:
+        return "[0 … 1]";
+      case CARDINALITY_0_TO_N:
+        return "[0 … N]";
+      case CARDINALITY_1_TO_N:
+        return "[1 … N]";
+    }
+    throw new IllegalStateException("Unreachable code");
+  }
 }

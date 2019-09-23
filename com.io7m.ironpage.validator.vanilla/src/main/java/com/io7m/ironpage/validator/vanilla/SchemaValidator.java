@@ -17,15 +17,19 @@
 package com.io7m.ironpage.validator.vanilla;
 
 import com.io7m.ironpage.errors.api.ErrorSeverity;
+import com.io7m.ironpage.types.api.AttributeName;
 import com.io7m.ironpage.types.api.AttributeNameQualified;
 import com.io7m.ironpage.types.api.AttributeValueTypedType;
 import com.io7m.ironpage.types.api.AttributeValueUntyped;
+import com.io7m.ironpage.types.api.SchemaAttribute;
+import com.io7m.ironpage.types.api.SchemaDeclaration;
 import com.io7m.ironpage.types.api.SchemaIdentifier;
 import com.io7m.ironpage.types.api.SchemaName;
 import com.io7m.ironpage.validator.api.SchemaValidationError;
 import com.io7m.ironpage.validator.api.SchemaValidationErrorReceiverType;
 import com.io7m.ironpage.validator.api.SchemaValidationRequest;
 import com.io7m.ironpage.validator.api.SchemaValidatorType;
+import io.vavr.collection.Map;
 import io.vavr.collection.Seq;
 import io.vavr.collection.SortedMap;
 import io.vavr.collection.Vector;
@@ -99,6 +103,10 @@ public final class SchemaValidator implements SchemaValidatorType
   {
     final var importsByName = request.importsByName();
 
+    /*
+     * Verify that the schema referred to by the attribute is actually imported.
+     */
+
     final var attributeName = attribute.name();
     final var schemaName = attributeName.schema();
     if (!importsByName.containsKey(schemaName)) {
@@ -106,6 +114,35 @@ public final class SchemaValidator implements SchemaValidatorType
       return Optional.empty();
     }
 
+    /*
+     * Verify that the schema referred to by the attribute exists.
+     */
+
+    final var resolvedModules = request.resolvedModules();
+    final var schemasByName = resolvedModules.schemasByName();
+    if (!schemasByName.containsKey(schemaName)) {
+      this.safeErrorPublish(receiver, this.errorSchemaNotFound(attributeName, schemasByName));
+      return Optional.empty();
+    }
+
+    /*
+     * Verify that the schema actually contains a definition for the attribute.
+     */
+
+    final var schemaDeclaration = schemasByName.get(schemaName).get();
+    final var schemaAttributesByName = schemaDeclaration.attributesByName();
+    final var attributeNameSimple = attributeName.name();
+    if (!schemaAttributesByName.containsKey(attributeNameSimple)) {
+      this.safeErrorPublish(
+        receiver,
+        this.errorSchemaAttributeNotFound(
+          attributeName,
+          schemaDeclaration.identifier(),
+          schemaAttributesByName));
+      return Optional.empty();
+    }
+
+    final var schemaAttribute = schemaAttributesByName.get(attributeNameSimple).get();
     return Optional.empty();
   }
 
@@ -129,14 +166,60 @@ public final class SchemaValidator implements SchemaValidatorType
 
     importsByName.forEach(
       (key, value) -> {
-        final var name = MessageFormat.format(this.localize("schemaNamed"), key.name());
+        final var name = MessageFormat.format(this.localize("schemaImported"), key.name());
         errorAttributes.put(name, value.show());
       });
 
     return SchemaValidationError.builder()
       .setSeverity(ErrorSeverity.SEVERITY_ERROR)
       .setErrorCode(SchemaValidatorType.SCHEMA_NOT_IMPORTED)
+      .setMessage(this.localize("schemaNotImported"))
+      .build();
+  }
+
+  private SchemaValidationError errorSchemaNotFound(
+    final AttributeNameQualified attributeName,
+    final Map<SchemaName, SchemaDeclaration> schemasByName)
+  {
+    final var errorAttributes = new TreeMap<String, String>();
+    errorAttributes.put(this.localize("attribute"), attributeName.name().name());
+
+    schemasByName.forEach(
+      (key, value) -> {
+        final var name = MessageFormat.format(this.localize("schemaAvailable"), key.name());
+        errorAttributes.put(name, value.identifier().show());
+      });
+
+    return SchemaValidationError.builder()
+      .setSeverity(ErrorSeverity.SEVERITY_ERROR)
+      .setErrorCode(SchemaValidatorType.SCHEMA_NOT_FOUND)
       .setMessage(this.localize("schemaNotFound"))
+      .build();
+  }
+
+  private SchemaValidationError errorSchemaAttributeNotFound(
+    final AttributeNameQualified attributeName,
+    final SchemaIdentifier schemaIdentifier,
+    final SortedMap<AttributeName, SchemaAttribute> schemaAttributesByName)
+  {
+    final var errorAttributes = new TreeMap<String, String>();
+    errorAttributes.put(this.localize("attribute"), attributeName.name().name());
+    errorAttributes.put(this.localize("schema"), schemaIdentifier.show());
+
+    final var builder = SchemaValidationError.builder();
+    schemaAttributesByName.forEach(
+      (key, value) -> {
+        builder.addMessageExtras(MessageFormat.format(
+          this.localize("schemaAttributeTyped"),
+          key.name(),
+          value.type().show(),
+          value.cardinality().show()));
+      });
+
+    return builder
+      .setSeverity(ErrorSeverity.SEVERITY_ERROR)
+      .setErrorCode(SchemaValidatorType.SCHEMA_ATTRIBUTE_NOT_FOUND)
+      .setMessage(this.localize("schemaAttributeNotFound"))
       .build();
   }
 

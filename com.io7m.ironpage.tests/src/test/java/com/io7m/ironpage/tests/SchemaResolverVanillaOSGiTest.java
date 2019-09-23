@@ -18,23 +18,30 @@ package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.types.resolution.api.SchemaResolverProviderType;
 import com.io7m.ironpage.types.resolution.spi.SchemaDirectoryType;
-import com.io7m.ironpage.types.resolution.vanilla.SchemaResolversServiceLoader;
+import com.io7m.ironpage.types.resolution.vanilla.SchemaResolversOSGi;
 import io.vavr.collection.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class SchemaResolverVanillaTest extends SchemaResolverContract
+public final class SchemaResolverVanillaOSGiTest extends SchemaResolverContract
 {
   @Override
   protected Logger logger()
   {
-    return LoggerFactory.getLogger(SchemaResolverVanillaTest.class);
+    return LoggerFactory.getLogger(SchemaResolverVanillaOSGiTest.class);
   }
 
   @Override
   protected SchemaResolverProviderType resolvers(
     final Vector<SchemaDirectoryType> directories)
   {
-    return new SchemaResolversServiceLoader(directories);
+    final var resolvers = new SchemaResolversOSGi();
+    for (final var directory : directories) {
+      resolvers.onDirectoryUnavailable(directory);
+      resolvers.onDirectoryAvailable(directory);
+      resolvers.onDirectoryUnavailable(directory);
+      resolvers.onDirectoryAvailable(directory);
+    }
+    return resolvers;
   }
 }

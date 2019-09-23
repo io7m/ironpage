@@ -50,4 +50,17 @@ public interface AttributeTypeNameQualifiedType extends Comparable<AttributeType
       .thenComparing(AttributeTypeNameQualifiedType::type)
       .compare(this, other);
   }
+
+  /**
+   * @return The name as a simple string
+   */
+
+  default String show()
+  {
+    return new StringBuilder(32)
+      .append(this.schema().name())
+      .append(":")
+      .append(this.type().name())
+      .toString();
+  }
 }

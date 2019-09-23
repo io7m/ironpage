@@ -36,6 +36,37 @@ public interface SchemaValidatorType
         .append(":schemaNotImported")
         .toString());
 
+  /**
+   * An attribute refers to a schema that doesn't exist.
+   */
+
+  SchemaValidationErrorCode SCHEMA_NOT_FOUND =
+    SchemaValidationErrorCode.of(
+      new StringBuilder(64)
+        .append(SchemaValidatorType.class.getCanonicalName())
+        .append(":schemaNotFound")
+        .toString());
+
+  /**
+   * An attribute is referenced that does not exist in a schema.
+   */
+
+  SchemaValidationErrorCode SCHEMA_ATTRIBUTE_NOT_FOUND =
+    SchemaValidationErrorCode.of(
+      new StringBuilder(64)
+        .append(SchemaValidatorType.class.getCanonicalName())
+        .append(":schemaAttributeNotFound")
+        .toString());
+
+  /**
+   * Validate the given set of attributes.
+   *
+   * @param request  The requested set of attributes
+   * @param receiver A validation error receiver
+   *
+   * @return The result of resolving attributes
+   */
+
   Seq<AttributeValueTypedType<?>> validate(
     SchemaValidationRequest request,
     SchemaValidationErrorReceiverType receiver);

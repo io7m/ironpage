@@ -30,16 +30,30 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 import java.util.Locale;
 import java.util.Objects;
 
+/**
+ * A schema resolver that takes directories the OSGi service directory.
+ */
+
 @Component(service = SchemaResolverProviderType.class)
 public final class SchemaResolversOSGi implements SchemaResolverProviderType
 {
   private final Object serviceLock = new Object();
-  private Vector<SchemaDirectoryType> services;
+  private Vector<SchemaDirectoryType> services = Vector.empty();
+
+  /**
+   * Construct a resolver provider.
+   */
 
   public SchemaResolversOSGi()
   {
 
   }
+
+  /**
+   * A directory became available.
+   *
+   * @param directory The directory
+   */
 
   @Reference(
     cardinality = ReferenceCardinality.AT_LEAST_ONE,
@@ -56,6 +70,12 @@ public final class SchemaResolversOSGi implements SchemaResolverProviderType
     }
   }
 
+  /**
+   * A directory became unavailable.
+   *
+   * @param directory The directory
+   */
+
   public void onDirectoryUnavailable(
     final SchemaDirectoryType directory)
   {
@@ -70,11 +90,5 @@ public final class SchemaResolversOSGi implements SchemaResolverProviderType
   public SchemaResolverType createForLocale(final Locale locale)
   {
     return new SchemaResolver(locale, this.services);
-  }
-
-  @Override
-  public SchemaResolverType create()
-  {
-    return new SchemaResolver(Locale.getDefault(), this.services);
   }
 }

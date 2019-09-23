@@ -14,19 +14,26 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Document database (Validator API)
- */
+package com.io7m.ironpage.tests;
 
-module com.io7m.ironpage.validator.api
+import com.io7m.ironpage.types.api.SchemaDeclaration;
+import com.io7m.ironpage.types.api.SchemaIdentifier;
+import com.io7m.ironpage.types.resolution.spi.SchemaDirectoryType;
+
+import java.util.Optional;
+
+public final class EmptySchemaDirectory implements SchemaDirectoryType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  public EmptySchemaDirectory()
+  {
 
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.ironpage.types.api;
-  requires transitive com.io7m.ironpage.types.resolution.api;
+  }
 
-  exports com.io7m.ironpage.validator.api;
+  @Override
+  public Optional<SchemaDeclaration> findSchema(
+    final SchemaIdentifier id)
+    throws Exception
+  {
+    return Optional.empty();
+  }
 }

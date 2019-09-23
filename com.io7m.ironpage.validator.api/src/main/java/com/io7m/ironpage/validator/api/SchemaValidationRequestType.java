@@ -20,6 +20,7 @@ import com.io7m.immutables.styles.ImmutablesStyleType;
 import com.io7m.ironpage.types.api.AttributeValueUntyped;
 import com.io7m.ironpage.types.api.SchemaIdentifier;
 import com.io7m.ironpage.types.api.SchemaName;
+import com.io7m.ironpage.types.resolution.api.SchemaResolvedSet;
 import io.vavr.collection.Seq;
 import io.vavr.collection.SortedMap;
 import io.vavr.collection.TreeMap;
@@ -36,6 +37,13 @@ import java.util.HashMap;
 @ImmutablesStyleType
 public interface SchemaValidationRequestType
 {
+  /**
+   * @return The set of resolved modules use to satisfy imports
+   */
+
+  @Value.Parameter
+  SchemaResolvedSet resolvedModules();
+
   /**
    * @return The imported schemas
    */
