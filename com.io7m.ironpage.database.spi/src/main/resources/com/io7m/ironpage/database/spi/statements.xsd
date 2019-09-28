@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="urn:com.io7m.ironpage.database.spi.statements:1:0"
+        xmlns:st="urn:com.io7m.ironpage.database.spi.statements:1:0">
+
+  <element name="statement">
+    <simpleType>
+      <restriction base="string"/>
+    </simpleType>
+  </element>
+
+  <element name="statements">
+    <complexType>
+      <sequence minOccurs="1"
+                maxOccurs="unbounded">
+        <element ref="st:statement"/>
+      </sequence>
+    </complexType>
+  </element>
+
+</schema>

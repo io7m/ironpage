@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<statements xmlns="urn:com.io7m.ironpage.database.spi.statements:1:0">
+  <statement>
+    <![CDATA[
+create schema core
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.schema_version (
+  version_lock      char(1) not null default 'X',
+  version_number    bigint not null,
+
+  constraint check_lock_primary primary key (version_lock),
+  constraint check_lock_locked check (version_lock = 'X')
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.audit (
+  audit_time    timestamp not null,
+  audit_type    varchar(64) not null,
+  audit_arg0    varchar(256) not null,
+  audit_arg1    varchar(256) not null,
+  audit_arg2    varchar(256) not null,
+  audit_arg3    varchar(256) not null
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.users (
+  user_id                    char (36) not null,
+  user_password_algo         varchar (64) not null,
+  user_password_hash         varchar (64) not null,
+  user_password_salt         varchar (64) not null,
+  user_email                 varchar (128) not null,
+  user_display_name          varchar (128) not null,
+  user_locked_reason         varchar (128),
+
+  constraint user_id_key primary key (user_id),
+  constraint user_id_lower check (user_id = lower(user_id)),
+  constraint user_id_nonzero check (user_id != '00000000-0000-0000-0000-000000000000'),
+  constraint user_hash_lower check (user_password_hash = lower(user_password_hash)),
+  constraint user_salt_lower check (user_password_salt = lower(user_password_salt)),
+  constraint user_display_name_unique unique (user_display_name)
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.redactions (
+  redaction_id        bigint generated always as identity not null,
+  redaction_user      char (36) not null,
+  redaction_time      timestamp not null,
+  redaction_reason    varchar (128) not null,
+
+  constraint redaction_id_key primary key (redaction_id),
+  constraint redaction_user foreign key (redaction_user) references core.users (user_id)
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.metadata (
+  meta_id           char (64) not null,
+  meta_data         blob (16M) not null,
+  meta_redaction    bigint,
+
+  constraint meta_id_key primary key (meta_id),
+  constraint meta_id_lower check (meta_id = lower(meta_id)),
+  constraint meta_redaction_reference foreign key (meta_redaction) references core.redactions (redaction_id)
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.data (
+  data_id           char (64) not null,
+  data_data         blob (128M) not null,
+  data_redaction    bigint,
+
+  constraint data_id_key primary key (data_id),
+  constraint data_id_lower check (data_id = lower(data_id)),
+  constraint data_redaction_reference foreign key (data_redaction) references core.redactions (redaction_id)
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.page_revisions (
+  revision_id         bigint generated always as identity not null,
+  revision_meta_id    char (64) not null,
+  revision_data_id    char (64) not null,
+
+  constraint revision_id primary key (revision_id),
+  constraint revision_meta_id_ref foreign key (revision_meta_id) references core.metadata (meta_id),
+  constraint revision_data_id_ref foreign key (revision_data_id) references core.data (data_id)
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+create table core.pages (
+  page_id          char (36) not null,
+  page_revision    bigint not null,
+
+  constraint page_id_key primary key (page_id),
+  constraint page_id_lower check (page_id = lower(page_id)),
+  constraint page_revision_ref foreign key (page_revision) references core.page_revisions (revision_id)
+)
+    ]]>
+  </statement>
+
+  <statement>
+    <![CDATA[
+insert into core.schema_version (version_number) values (0)
+    ]]>
+  </statement>
+</statements>

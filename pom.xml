@@ -24,15 +24,20 @@
   <inceptionYear>2019</inceptionYear>
 
   <modules>
+    <module>com.io7m.ironpage.database.accounts.api</module>
+    <module>com.io7m.ironpage.database.api</module>
+    <module>com.io7m.ironpage.database.core.derby</module>
+    <module>com.io7m.ironpage.database.derby</module>
+    <module>com.io7m.ironpage.database.spi</module>
     <module>com.io7m.ironpage.errors.api</module>
     <module>com.io7m.ironpage.presentable.api</module>
+    <module>com.io7m.ironpage.tests</module>
     <module>com.io7m.ironpage.types.api</module>
+    <module>com.io7m.ironpage.types.resolution.api</module>
+    <module>com.io7m.ironpage.types.resolution.spi</module>
+    <module>com.io7m.ironpage.types.resolution.vanilla</module>
     <module>com.io7m.ironpage.validator.api</module>
     <module>com.io7m.ironpage.validator.vanilla</module>
-    <module>com.io7m.ironpage.tests</module>
-    <module>com.io7m.ironpage.types.resolution.spi</module>
-    <module>com.io7m.ironpage.types.resolution.api</module>
-    <module>com.io7m.ironpage.types.resolution.vanilla</module>
   </modules>
 
   <properties>
@@ -152,7 +157,31 @@
         <artifactId>equalsverifier</artifactId>
         <version>3.1.9</version>
       </dependency>
-
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <version>10.15.1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derbyshared</artifactId>
+        <version>10.15.1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derbytools</artifactId>
+        <version>10.15.1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derbynet</artifactId>
+        <version>10.15.1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>3.0.0</version>
+      </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-api</artifactId>
@@ -162,6 +191,16 @@
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>${com.io7m.junit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jooq</groupId>
+        <artifactId>jooq</artifactId>
+        <version>3.12.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.13</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

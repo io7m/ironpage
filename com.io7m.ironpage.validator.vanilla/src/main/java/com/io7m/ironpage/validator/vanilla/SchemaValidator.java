@@ -143,6 +143,8 @@ public final class SchemaValidator implements SchemaValidatorType
     }
 
     final var schemaAttribute = schemaAttributesByName.get(attributeNameSimple).get();
+
+
     return Optional.empty();
   }
 
