@@ -71,9 +71,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
   private static final Field<String> FIELD_USER_LOCKED_REASON =
     DSL.field(DSL.name("user_locked_reason"), SQLDataType.VARCHAR(128));
   private static final Field<String> FIELD_USER_PASSWORD_HASH =
-    DSL.field(DSL.name("user_password_hash"), SQLDataType.VARCHAR(64));
-  private static final Field<String> FIELD_USER_PASSWORD_SALT =
-    DSL.field(DSL.name("user_password_salt"), SQLDataType.VARCHAR(64));
+    DSL.field(DSL.name("user_password_hash"), SQLDataType.VARCHAR(128));
+  private static final Field<String> FIELD_USER_PASSWORD_PARAMS =
+    DSL.field(DSL.name("user_password_params"), SQLDataType.VARCHAR(256));
   private static final Field<String> FIELD_USER_PASSWORD_ALGO =
     DSL.field(DSL.name("user_password_algo"), SQLDataType.VARCHAR(64));
 
@@ -124,7 +124,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
       final var hash =
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(Hex.decodeHex(record.get(FIELD_USER_PASSWORD_HASH)))
-          .setSalt(Hex.decodeHex(record.get(FIELD_USER_PASSWORD_SALT)))
+          .setParameters(record.get(FIELD_USER_PASSWORD_PARAMS))
           .setAlgorithm(record.get(FIELD_USER_PASSWORD_ALGO))
           .build();
 
@@ -214,7 +214,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
       .set(FIELD_USER_EMAIL, email)
       .set(FIELD_USER_LOCKED_REASON, lockedReason.orElse(null))
       .set(FIELD_USER_PASSWORD_ALGO, password.algorithm())
-      .set(FIELD_USER_PASSWORD_SALT, toHex(password.salt()))
+      .set(FIELD_USER_PASSWORD_PARAMS, password.parameters())
       .set(FIELD_USER_PASSWORD_HASH, toHex(password.hash()))) {
       query.execute();
     } catch (final DataAccessException e) {
@@ -254,7 +254,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
              .set(FIELD_USER_LOCKED_REASON, account.locked().orElse(null))
              .set(FIELD_USER_PASSWORD_ALGO, account.passwordHash().algorithm())
              .set(FIELD_USER_PASSWORD_HASH, toHex(account.passwordHash().hash()))
-             .set(FIELD_USER_PASSWORD_SALT, toHex(account.passwordHash().salt()))
+             .set(FIELD_USER_PASSWORD_PARAMS, account.passwordHash().parameters())
              .where(FIELD_USER_ID.eq(account.id()))) {
       query.execute();
     } catch (final DataAccessException e) {
@@ -329,7 +329,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
       FIELD_USER_ID,
       FIELD_USER_LOCKED_REASON,
       FIELD_USER_PASSWORD_HASH,
-      FIELD_USER_PASSWORD_SALT,
+      FIELD_USER_PASSWORD_PARAMS,
       FIELD_USER_PASSWORD_ALGO)
       .from(TABLE_USERS)
       .where(FIELD_USER_ID.eq(userId))
@@ -375,7 +375,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
         FIELD_USER_ID,
         FIELD_USER_LOCKED_REASON,
         FIELD_USER_PASSWORD_HASH,
-        FIELD_USER_PASSWORD_SALT,
+        FIELD_USER_PASSWORD_PARAMS,
         FIELD_USER_PASSWORD_ALGO)
         .from(TABLE_USERS)
         .where(conditions)

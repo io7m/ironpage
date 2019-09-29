@@ -44,8 +44,11 @@ public interface AccountsDatabasePasswordHashDTOType
   byte[] hash();
 
   /**
-   * @return The password salt
+   * The algorithm-specific password parameters. In the case of PBKDF2, for example, this will
+   * be the salt and the number of iterations.
+   *
+   * @return The password parameters
    */
 
-  byte[] salt();
+  String parameters();
 }

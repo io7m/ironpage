@@ -60,7 +60,7 @@ public abstract class AccountsDatabaseQueriesContract
       "User",
       AccountsDatabasePasswordHashDTO.builder()
         .setHash(new byte[16])
-        .setSalt(new byte[16])
+        .setParameters("params")
         .build(),
       "someone@example.com",
       Optional.empty());
@@ -71,7 +71,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(new byte[16])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.empty());
@@ -99,7 +99,7 @@ public abstract class AccountsDatabaseQueriesContract
       "User 0",
       AccountsDatabasePasswordHashDTO.builder()
         .setHash(new byte[16])
-        .setSalt(new byte[16])
+        .setParameters("params")
         .build(),
       "someone@example.com",
       Optional.empty());
@@ -110,7 +110,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 1",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(new byte[16])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.empty());
@@ -138,7 +138,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(new byte[16])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.empty());
@@ -166,7 +166,7 @@ public abstract class AccountsDatabaseQueriesContract
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(new byte[16])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.empty());
@@ -194,7 +194,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 0",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(new byte[16])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         Optional.empty());
@@ -224,7 +224,7 @@ public abstract class AccountsDatabaseQueriesContract
           .setAlgorithm(
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
           .setHash(new byte[16])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.empty());
@@ -255,7 +255,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 0",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(new byte[128])
-          .setSalt(new byte[16])
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.empty());
@@ -289,7 +289,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -299,7 +299,7 @@ public abstract class AccountsDatabaseQueriesContract
     Assertions.assertEquals("someone@example.com", account.email());
     Assertions.assertEquals("PBKDF2WithHmacSHA256", account.passwordHash().algorithm());
     Assertions.assertArrayEquals(passwordHash, account.passwordHash().hash());
-    Assertions.assertArrayEquals(passwordSalt, account.passwordHash().salt());
+    Assertions.assertEquals("params", account.passwordHash().parameters());
   }
 
   /**
@@ -327,7 +327,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -337,12 +337,10 @@ public abstract class AccountsDatabaseQueriesContract
     Assertions.assertEquals("someone@example.com", account.email());
     Assertions.assertEquals("PBKDF2WithHmacSHA256", account.passwordHash().algorithm());
     Assertions.assertArrayEquals(passwordHash, account.passwordHash().hash());
-    Assertions.assertArrayEquals(passwordSalt, account.passwordHash().salt());
+    Assertions.assertEquals("params", account.passwordHash().parameters());
 
     final var passwordHash2 = new byte[16];
     new SecureRandom().nextBytes(passwordHash2);
-    final var passwordSalt2 = new byte[16];
-    new SecureRandom().nextBytes(passwordSalt2);
 
     final var updatedAccount =
       AccountsDatabaseUserDTO.builder()
@@ -352,7 +350,7 @@ public abstract class AccountsDatabaseQueriesContract
         .setLocked(Optional.empty())
         .setPasswordHash(AccountsDatabasePasswordHashDTO.builder()
                            .setHash(passwordHash2)
-                           .setSalt(passwordSalt2)
+                           .setParameters("params2")
                            .build())
         .build();
 
@@ -385,7 +383,7 @@ public abstract class AccountsDatabaseQueriesContract
         .setLocked(Optional.empty())
         .setPasswordHash(AccountsDatabasePasswordHashDTO.builder()
                            .setHash(passwordHash)
-                           .setSalt(passwordSalt)
+                           .setParameters("params")
                            .build())
         .build();
 
@@ -422,7 +420,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -456,8 +454,6 @@ public abstract class AccountsDatabaseQueriesContract
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
-    final var passwordSalt = new byte[16];
-    new SecureRandom().nextBytes(passwordSalt);
 
     final var account0 =
       queries.accountCreate(
@@ -465,7 +461,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 0",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -476,7 +472,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 1",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -487,7 +483,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 2",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -519,8 +515,6 @@ public abstract class AccountsDatabaseQueriesContract
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
-    final var passwordSalt = new byte[16];
-    new SecureRandom().nextBytes(passwordSalt);
 
     final var account0 =
       queries.accountCreate(
@@ -528,7 +522,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 0",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -539,7 +533,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 1",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -550,7 +544,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 2",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -580,8 +574,6 @@ public abstract class AccountsDatabaseQueriesContract
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
-    final var passwordSalt = new byte[16];
-    new SecureRandom().nextBytes(passwordSalt);
 
     final var account0 =
       queries.accountCreate(
@@ -589,7 +581,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 0",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -600,7 +592,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 1",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone1@example.com",
         Optional.of("Lock reason"));
@@ -611,7 +603,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 2",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -642,8 +634,6 @@ public abstract class AccountsDatabaseQueriesContract
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
-    final var passwordSalt = new byte[16];
-    new SecureRandom().nextBytes(passwordSalt);
 
     final var account0 =
       queries.accountCreate(
@@ -651,7 +641,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 0",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));
@@ -662,7 +652,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 1",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone1@example.com",
         Optional.of("Lock reason"));
@@ -674,7 +664,7 @@ public abstract class AccountsDatabaseQueriesContract
         "User 2",
         AccountsDatabasePasswordHashDTO.builder()
           .setHash(passwordHash)
-          .setSalt(passwordSalt)
+          .setParameters("params")
           .build(),
         "someone@example.com",
         Optional.of("Lock reason"));

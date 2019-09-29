@@ -50,11 +50,11 @@ create table core.audit (
     UUID values (stored here as ASCII due to various limitations in Jooq, Derby,
     and JDBC). Users have hashed passwords used to access their accounts, and
     those values are stored here as a field describing the algorithm (typically
-    PBKDF2WithHmacSHA256), and the hashed value and salt. Users also have
-    email addresses, which do not need to be unique, and display names, which
-    DO need to be unique. User accounts can also be locked (meaning that the
-    user can no longer log in, and a reason must be specified for why the
-    account is locked.
+    PBKDF2WithHmacSHA256), and the hashed value and parameters (such as the
+    salt, and the number of iterations). Users also have email addresses, which
+    do not need to be unique, and display names, which DO need to be unique.
+    User accounts can also be locked (meaning that the user can no longer log
+    in, and a reason must be specified for why the account is locked.
   </comment>
 
   <statement>
@@ -62,8 +62,8 @@ create table core.audit (
 create table core.users (
   user_id               char (36) not null,
   user_password_algo    varchar (64) not null,
-  user_password_hash    varchar (64) not null,
-  user_password_salt    varchar (64) not null,
+  user_password_hash    varchar (128) not null,
+  user_password_params  varchar (256) not null,
   user_email            varchar (128) not null,
   user_display_name     varchar (128) not null,
   user_locked_reason    varchar (128),
@@ -72,7 +72,6 @@ create table core.users (
   constraint user_id_lower check (user_id = lower(user_id)),
   constraint user_id_nonzero check (user_id != '00000000-0000-0000-0000-000000000000'),
   constraint user_hash_lower check (user_password_hash = lower(user_password_hash)),
-  constraint user_salt_lower check (user_password_salt = lower(user_password_salt)),
   constraint user_display_name_unique unique (user_display_name)
 )
     ]]>

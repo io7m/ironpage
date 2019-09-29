@@ -65,7 +65,7 @@ public abstract class PagesDatabaseQueriesContract
         UUID.randomUUID(),
         "User",
         AccountsDatabasePasswordHashDTO.builder()
-          .setSalt((byte) 0x0)
+          .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
         "someone@example.com",
@@ -130,7 +130,7 @@ public abstract class PagesDatabaseQueriesContract
         UUID.randomUUID(),
         "User",
         AccountsDatabasePasswordHashDTO.builder()
-          .setSalt((byte) 0x0)
+          .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
         "someone@example.com",
@@ -198,7 +198,7 @@ public abstract class PagesDatabaseQueriesContract
         UUID.randomUUID(),
         "User",
         AccountsDatabasePasswordHashDTO.builder()
-          .setSalt((byte) 0x0)
+          .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
         "someone@example.com",
@@ -242,7 +242,7 @@ public abstract class PagesDatabaseQueriesContract
         UUID.randomUUID(),
         "User",
         AccountsDatabasePasswordHashDTO.builder()
-          .setSalt((byte) 0x0)
+          .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
         "someone@example.com",
