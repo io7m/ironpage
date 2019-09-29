@@ -14,9 +14,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.ironpage.database.core.derby;
 
+import com.io7m.ironpage.database.audit.api.AuditDatabaseEventDTO;
 import com.io7m.ironpage.database.audit.api.AuditDatabaseQueriesType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
@@ -34,7 +34,9 @@ import org.jooq.impl.SQLDataType;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 final class CoreAuditQueries implements AuditDatabaseQueriesType
 {
@@ -65,6 +67,49 @@ final class CoreAuditQueries implements AuditDatabaseQueriesType
     this.connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
+  }
+
+  private static AuditDatabaseEventDTO eventFromRecord(
+    final Record record)
+  {
+    return AuditDatabaseEventDTO.builder()
+      .setEventType(record.getValue(FIELD_AUDIT_TYPE))
+      .setTime(record.getValue(FIELD_AUDIT_TIME).toInstant())
+      .setArgument0(record.getValue(FIELD_AUDIT_ARG0))
+      .setArgument1(record.getValue(FIELD_AUDIT_ARG1))
+      .setArgument2(record.getValue(FIELD_AUDIT_ARG2))
+      .setArgument3(record.getValue(FIELD_AUDIT_ARG3))
+      .build();
+  }
+
+  @Override
+  public Stream<AuditDatabaseEventDTO> auditEventsDuring(
+    final Instant timeFrom,
+    final Instant timeTo)
+    throws DatabaseException
+  {
+    Objects.requireNonNull(timeFrom, "from");
+    Objects.requireNonNull(timeTo, "to");
+
+    final var tsFrom = Timestamp.from(timeFrom);
+    final var tsTo = Timestamp.from(timeTo);
+
+    try {
+      return this.dslContext.select(
+        FIELD_AUDIT_TYPE,
+        FIELD_AUDIT_TIME,
+        FIELD_AUDIT_ARG0,
+        FIELD_AUDIT_ARG1,
+        FIELD_AUDIT_ARG2,
+        FIELD_AUDIT_ARG3)
+        .from(TABLE_AUDIT)
+        .where(FIELD_AUDIT_TIME.ge(tsFrom), FIELD_AUDIT_TIME.le(tsTo))
+        .orderBy(FIELD_AUDIT_TIME.asc())
+        .fetchStream()
+        .map(CoreAuditQueries::eventFromRecord);
+    } catch (final DataAccessException e) {
+      throw new DatabaseException(ErrorSeverity.SEVERITY_ERROR, e.getLocalizedMessage(), e);
+    }
   }
 
   @Override

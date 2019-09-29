@@ -19,8 +19,9 @@ package com.io7m.ironpage.tests;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseException;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabasePasswordHashDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseSessionDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseUserDTO;
+import com.io7m.ironpage.database.api.DatabaseTransactionType;
+import com.io7m.ironpage.database.audit.api.AuditDatabaseQueriesType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -37,15 +38,18 @@ import static com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesTyp
 import static com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType.ID_ALREADY_USED;
 import static com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType.INVALID_DATA;
 import static com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType.NONEXISTENT;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public abstract class AccountsDatabaseQueriesContract
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(AccountsDatabaseQueriesContract.class);
 
+  protected abstract SettableClock clock();
+
   protected abstract Instant now();
 
-  protected abstract AccountsDatabaseQueriesType queries()
+  protected abstract DatabaseTransactionType transaction()
     throws DatabaseException;
 
   /**
@@ -58,7 +62,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreateDisplayNameUsed()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     queries.accountCreate(
       UUID.randomUUID(),
@@ -96,7 +101,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreateIDUsed()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var id = UUID.randomUUID();
     queries.accountCreate(
@@ -135,7 +141,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreateIdZero()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var ex = Assertions.assertThrows(AccountsDatabaseException.class, () -> {
       queries.accountCreate(
@@ -163,7 +170,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreateDisplayNameLong()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var ex = Assertions.assertThrows(AccountsDatabaseException.class, () -> {
       queries.accountCreate(
@@ -191,7 +199,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreateEmailLong()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var ex = Assertions.assertThrows(AccountsDatabaseException.class, () -> {
       queries.accountCreate(
@@ -219,7 +228,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreatePasswordAlgoLong()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var ex = Assertions.assertThrows(AccountsDatabaseException.class, () -> {
       queries.accountCreate(
@@ -249,7 +259,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreatePasswordHashLong()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var hash = new byte[128];
     new SecureRandom().nextBytes(hash);
@@ -280,7 +291,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountCreate()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var id = UUID.randomUUID();
     final var passwordHash = new byte[16];
@@ -317,7 +329,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountUpdate()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var id = UUID.randomUUID();
 
@@ -361,6 +374,37 @@ public abstract class AccountsDatabaseQueriesContract
 
     final var resulting = queries.accountUpdate(account.id(), updatedAccount);
     Assertions.assertEquals(updatedAccount, resulting);
+
+    final var auditQueries = transaction.queries(AuditDatabaseQueriesType.class);
+    try (var stream = auditQueries.auditEventsDuring(this.now(), this.clock().instant())) {
+      final var events = stream.collect(Collectors.toList());
+      Assertions.assertEquals(5, events.size());
+
+      {
+        final var event = events.remove(0);
+        Assertions.assertEquals("USER_CREATED", event.eventType());
+      }
+
+      {
+        final var event = events.remove(0);
+        Assertions.assertEquals("USER_MODIFIED_DISPLAY_NAME", event.eventType());
+      }
+
+      {
+        final var event = events.remove(0);
+        Assertions.assertEquals("USER_MODIFIED_EMAIL", event.eventType());
+      }
+
+      {
+        final var event = events.remove(0);
+        Assertions.assertEquals("USER_MODIFIED_PASSWORD", event.eventType());
+      }
+
+      {
+        final var event = events.remove(0);
+        Assertions.assertEquals("USER_MODIFIED_LOCKED", event.eventType());
+      }
+    }
   }
 
   /**
@@ -373,7 +417,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountUpdateNonexistent()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -410,7 +455,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountUpdateInvalid()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var id = UUID.randomUUID();
 
@@ -455,7 +501,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountFind()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -516,7 +563,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountFindUser1()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -575,7 +623,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountFindUser0_1()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -635,7 +684,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountFindUserId2()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -695,7 +745,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountSessionUse()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -720,15 +771,15 @@ public abstract class AccountsDatabaseQueriesContract
 
     Assertions.assertEquals(account0.id(), session0.userID());
     Assertions.assertEquals("a", session0.id());
-    Assertions.assertEquals(this.now(), session0.updated());
+    Assertions.assertEquals(this.now().plus(2L, SECONDS), session0.updated());
 
     Assertions.assertEquals(account0.id(), session1.userID());
     Assertions.assertEquals("b", session1.id());
-    Assertions.assertEquals(this.now(), session1.updated());
+    Assertions.assertEquals(this.now().plus(4L, SECONDS), session1.updated());
 
     Assertions.assertEquals(account0.id(), session2.userID());
     Assertions.assertEquals("c", session2.id());
-    Assertions.assertEquals(this.now(), session2.updated());
+    Assertions.assertEquals(this.now().plus(6L, SECONDS), session2.updated());
 
     queries.accountSessionUpdate(session0.id());
     queries.accountSessionUpdate(session1.id());
@@ -759,7 +810,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountSessionNonexistentUser()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var ex0 = Assertions.assertThrows(
       AccountsDatabaseException.class,
@@ -777,7 +829,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountSessionDeleteForUser()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);
@@ -823,7 +876,8 @@ public abstract class AccountsDatabaseQueriesContract
   public final void testAccountSessionCreateDuplicate()
     throws Exception
   {
-    final var queries = this.queries();
+    final var transaction = this.transaction();
+    final var queries = transaction.queries(AccountsDatabaseQueriesType.class);
 
     final var passwordHash = new byte[16];
     new SecureRandom().nextBytes(passwordHash);

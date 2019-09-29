@@ -35,10 +35,14 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+
 public abstract class PagesDatabaseQueriesContract
 {
   private static final Logger LOG =
     LoggerFactory.getLogger(PagesDatabaseQueriesContract.class);
+
+  protected abstract SettableClock clock();
 
   protected abstract Instant now();
 
@@ -266,7 +270,7 @@ public abstract class PagesDatabaseQueriesContract
         .setId(1L)
         .setOwner(account.id())
         .setReason("Redacted for testing")
-        .setTime(this.now())
+        .setTime(this.now().plus(3L, SECONDS))
         .build();
 
     final var blobOpt = queries.pageBlobGet(hash);

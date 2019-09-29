@@ -16,9 +16,9 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
 import com.io7m.ironpage.database.api.DatabaseConnectionType;
 import com.io7m.ironpage.database.api.DatabaseParameters;
+import com.io7m.ironpage.database.api.DatabaseTransactionType;
 import com.io7m.ironpage.database.api.DatabaseType;
 import com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
 import com.io7m.ironpage.database.derby.DatabaseDerbyProvider;
@@ -29,9 +29,9 @@ import org.junit.jupiter.api.BeforeEach;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQueriesContract
 {
@@ -40,7 +40,10 @@ public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQuer
   private Path databasePath;
   private DatabaseType database;
   private DatabaseConnectionType connection;
-  private Clock clock = Clock.fixed(NOW, ZoneId.of("UTC"));
+  private SettableClock clock =
+    new SettableClock(ZoneId.of("UTC"), NOW, (c, instant) -> {
+      c.setTime(instant.plus(1L, ChronoUnit.SECONDS));
+    });
 
   @BeforeEach
   public void testSetupDatabase()
@@ -72,16 +75,21 @@ public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQuer
   }
 
   @Override
+  protected SettableClock clock()
+  {
+    return this.clock;
+  }
+
+  @Override
   protected Instant now()
   {
     return NOW;
   }
 
   @Override
-  protected AccountsDatabaseQueriesType queries()
+  protected DatabaseTransactionType transaction()
     throws DatabaseException
   {
-    return this.connection.beginTransaction()
-      .queries(AccountsDatabaseQueriesType.class);
+    return this.connection.beginTransaction();
   }
 }

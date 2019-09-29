@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 public final class PagesDatabaseQueriesDerbyTest extends PagesDatabaseQueriesContract
 {
@@ -40,7 +41,10 @@ public final class PagesDatabaseQueriesDerbyTest extends PagesDatabaseQueriesCon
   private Path databasePath;
   private DatabaseType database;
   private DatabaseConnectionType connection;
-  private Clock clock = Clock.fixed(NOW, ZoneId.of("UTC"));
+  private SettableClock clock =
+    new SettableClock(ZoneId.of("UTC"), NOW, (c, instant) -> {
+      c.setTime(instant.plus(1L, ChronoUnit.SECONDS));
+    });
 
   @BeforeEach
   public void testSetupDatabase()
@@ -69,6 +73,12 @@ public final class PagesDatabaseQueriesDerbyTest extends PagesDatabaseQueriesCon
   {
     this.connection.close();
     this.database.close();
+  }
+
+  @Override
+  protected SettableClock clock()
+  {
+    return this.clock;
   }
 
   @Override

@@ -19,7 +19,9 @@ package com.io7m.ironpage.database.audit.api;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
 
+import java.time.Instant;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * The queries supported by audit databases.
@@ -27,6 +29,22 @@ import java.util.UUID;
 
 public interface AuditDatabaseQueriesType extends DatabaseQueriesType
 {
+  /**
+   * Retrieve audit events that occurred within the given time range from the database.
+   *
+   * @param timeFrom The lower bound (inclusive) of the time range
+   * @param timeTo   The upper bound (inclusive) of the time range
+   *
+   * @return A stream of events
+   *
+   * @throws DatabaseException On errors
+   */
+
+  Stream<AuditDatabaseEventDTO> auditEventsDuring(
+    Instant timeFrom,
+    Instant timeTo)
+    throws DatabaseException;
+
   /**
    * Log an audit event.
    *
