@@ -19,8 +19,10 @@ package com.io7m.ironpage.database.core.derby;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseException;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabasePasswordHashDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
+import com.io7m.ironpage.database.accounts.api.AccountsDatabaseSessionDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseUserDTO;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
+import com.io7m.jaffirm.core.Invariants;
 import io.vavr.collection.TreeMap;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -40,6 +42,7 @@ import org.jooq.impl.SQLDataType;
 import java.sql.Connection;
 import java.sql.SQLDataException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -54,6 +57,7 @@ import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODI
 import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_EMAIL;
 import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_LOCKED;
 import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_PASSWORD;
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_SESSION_CREATED;
 
 final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 {
@@ -76,6 +80,15 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     DSL.field(DSL.name("user_password_params"), SQLDataType.VARCHAR(256));
   private static final Field<String> FIELD_USER_PASSWORD_ALGO =
     DSL.field(DSL.name("user_password_algo"), SQLDataType.VARCHAR(64));
+
+  private static final Table<Record> TABLE_SESSIONS =
+    DSL.table(DSL.name("core", "sessions"));
+  private static final Field<String> FIELD_SESSION_ID =
+    DSL.field(DSL.name("session_id"), SQLDataType.VARCHAR(36));
+  private static final Field<UUID> FIELD_SESSION_USER_ID =
+    DSL.field(DSL.name("session_user_id"), SQLDataType.UUID);
+  private static final Field<Timestamp> FIELD_SESSION_UPDATED =
+    DSL.field(DSL.name("session_updated"), SQLDataType.TIMESTAMP);
 
   private final Connection connection;
   private final DSLContext dslContext;
@@ -386,4 +399,152 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     }
   }
 
+  @Override
+  public AccountsDatabaseSessionDTO accountSessionCreate(
+    final UUID owner,
+    final String session)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(session, "session");
+
+    final var timestamp = Timestamp.from(this.clock.instant());
+    try (var query =
+           this.dslContext.insertInto(TABLE_SESSIONS)
+             .set(FIELD_SESSION_ID, session)
+             .set(FIELD_SESSION_UPDATED, timestamp)
+             .set(FIELD_SESSION_USER_ID, owner)) {
+      query.execute();
+
+      this.audit.logAuditEvent(USER_SESSION_CREATED, owner, session, "", "");
+
+      return AccountsDatabaseSessionDTO.builder()
+        .setId(session)
+        .setUserID(owner)
+        .setUpdated(timestamp.toInstant())
+        .build();
+    } catch (final DataAccessException e) {
+      final var cause = e.getCause();
+      if (cause instanceof DerbySQLIntegrityConstraintViolationException) {
+        final var constraintViolation = (DerbySQLIntegrityConstraintViolationException) cause;
+        switch (constraintViolation.getConstraintName()) {
+          case "SESSION_USER_REFERENCE": {
+            throw new AccountsDatabaseException(
+              ErrorSeverity.SEVERITY_ERROR,
+              NONEXISTENT,
+              localize("errorUserNonexistent"),
+              cause);
+          }
+          case "SESSION_ID_KEY": {
+            throw new AccountsDatabaseException(
+              ErrorSeverity.SEVERITY_ERROR,
+              ID_ALREADY_USED,
+              localize("errorSessionIDAlreadyUsed"),
+              cause);
+          }
+          default: {
+            break;
+          }
+        }
+      }
+      throw genericDatabaseException(e);
+    }
+  }
+
+  @Override
+  public AccountsDatabaseSessionDTO accountSessionUpdate(
+    final String session)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(session, "session");
+
+    final var userId = this.sessionGet(session);
+    final var timestamp = Timestamp.from(this.clock.instant());
+    try (var query = this.dslContext.update(TABLE_SESSIONS)
+      .set(FIELD_SESSION_UPDATED, timestamp)
+      .where(FIELD_SESSION_ID.eq(session))) {
+      final var updated = query.execute();
+
+      Invariants.checkInvariantV(
+        Integer.valueOf(updated),
+        updated == 1,
+        "Must have updated exactly one row (got %d)",
+        Integer.valueOf(updated));
+
+      return AccountsDatabaseSessionDTO.builder()
+        .setId(session)
+        .setUserID(userId)
+        .setUpdated(timestamp.toInstant())
+        .build();
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+  }
+
+  private UUID sessionGet(final String session)
+    throws AccountsDatabaseException
+  {
+    try (var query =
+           this.dslContext.select(FIELD_SESSION_ID, FIELD_SESSION_USER_ID)
+             .from(TABLE_SESSIONS)
+             .where(FIELD_SESSION_ID.eq(session))) {
+
+      final var rows = query.fetch();
+      if (rows.size() != 1) {
+        throw new AccountsDatabaseException(
+          ErrorSeverity.SEVERITY_ERROR,
+          NONEXISTENT,
+          localize("errorSessionNonexistent"),
+          null,
+          TreeMap.of(localize("sessionID"), session));
+      }
+
+      final var record = rows.get(0);
+      final var userId =
+        record.getValue(FIELD_SESSION_USER_ID);
+      final var sessionReceived =
+        record.getValue(FIELD_SESSION_ID).trim();
+
+      Invariants.checkInvariantV(
+        session,
+        Objects.equals(session, sessionReceived),
+        "Expected session '%s' must match received session '%s'",
+        session,
+        sessionReceived);
+
+      return userId;
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+  }
+
+  @Override
+  public void accountSessionDelete(final String session)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(session, "session");
+
+    try (var query =
+           this.dslContext.deleteFrom(TABLE_SESSIONS)
+             .where(FIELD_SESSION_ID.eq(session))) {
+      query.execute();
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+  }
+
+  @Override
+  public int accountSessionDeleteForUser(final UUID owner)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(owner, "owner");
+
+    try (var query =
+           this.dslContext.deleteFrom(TABLE_SESSIONS)
+             .where(FIELD_SESSION_USER_ID.eq(owner))) {
+      return query.execute();
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+  }
 }

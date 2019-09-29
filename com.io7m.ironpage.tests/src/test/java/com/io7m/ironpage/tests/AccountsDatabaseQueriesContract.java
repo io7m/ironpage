@@ -19,6 +19,7 @@ package com.io7m.ironpage.tests;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseException;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabasePasswordHashDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
+import com.io7m.ironpage.database.accounts.api.AccountsDatabaseSessionDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseUserDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.Assertions;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,7 +40,10 @@ import static com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesTyp
 
 public abstract class AccountsDatabaseQueriesContract
 {
-  private static final Logger LOG = LoggerFactory.getLogger(AccountsDatabaseQueriesContract.class);
+  private static final Logger LOG =
+    LoggerFactory.getLogger(AccountsDatabaseQueriesContract.class);
+
+  protected abstract Instant now();
 
   protected abstract AccountsDatabaseQueriesType queries()
     throws DatabaseException;
@@ -678,5 +683,168 @@ public abstract class AccountsDatabaseQueriesContract
       Assertions.assertEquals(1, accountList.size());
       Assertions.assertEquals(account2, accountList.get(0));
     }
+  }
+
+  /**
+   * Creating, updating, and deleting sessions works.
+   *
+   * @throws Exception If required
+   */
+
+  @Test
+  public final void testAccountSessionUse()
+    throws Exception
+  {
+    final var queries = this.queries();
+
+    final var passwordHash = new byte[16];
+    new SecureRandom().nextBytes(passwordHash);
+
+    final var account0 =
+      queries.accountCreate(
+        UUID.randomUUID(),
+        "User 0",
+        AccountsDatabasePasswordHashDTO.builder()
+          .setHash(passwordHash)
+          .setParameters("params")
+          .build(),
+        "someone@example.com",
+        Optional.of("Lock reason"));
+
+    final var session0 =
+      queries.accountSessionCreate(account0.id(), "a");
+    final var session1 =
+      queries.accountSessionCreate(account0.id(), "b");
+    final var session2 =
+      queries.accountSessionCreate(account0.id(), "c");
+
+    Assertions.assertEquals(account0.id(), session0.userID());
+    Assertions.assertEquals("a", session0.id());
+    Assertions.assertEquals(this.now(), session0.updated());
+
+    Assertions.assertEquals(account0.id(), session1.userID());
+    Assertions.assertEquals("b", session1.id());
+    Assertions.assertEquals(this.now(), session1.updated());
+
+    Assertions.assertEquals(account0.id(), session2.userID());
+    Assertions.assertEquals("c", session2.id());
+    Assertions.assertEquals(this.now(), session2.updated());
+
+    queries.accountSessionUpdate(session0.id());
+    queries.accountSessionUpdate(session1.id());
+    queries.accountSessionUpdate(session2.id());
+
+    queries.accountSessionDelete(session0.id());
+    queries.accountSessionDelete(session1.id());
+    queries.accountSessionDelete(session2.id());
+
+    final var ex0 = Assertions.assertThrows(
+      AccountsDatabaseException.class, () -> queries.accountSessionUpdate(session0.id()));
+    Assertions.assertEquals(NONEXISTENT, ex0.errorCode());
+    final var ex1 = Assertions.assertThrows(
+      AccountsDatabaseException.class, () -> queries.accountSessionUpdate(session1.id()));
+    Assertions.assertEquals(NONEXISTENT, ex1.errorCode());
+    final var ex2 = Assertions.assertThrows(
+      AccountsDatabaseException.class, () -> queries.accountSessionUpdate(session2.id()));
+    Assertions.assertEquals(NONEXISTENT, ex2.errorCode());
+  }
+
+  /**
+   * Creating a session for a nonexistent user fails.
+   *
+   * @throws Exception If required
+   */
+
+  @Test
+  public final void testAccountSessionNonexistentUser()
+    throws Exception
+  {
+    final var queries = this.queries();
+
+    final var ex0 = Assertions.assertThrows(
+      AccountsDatabaseException.class,
+      () -> queries.accountSessionCreate(UUID.randomUUID(), "a"));
+    Assertions.assertEquals(NONEXISTENT, ex0.errorCode());
+  }
+
+  /**
+   * Deleting all sessions for a user works.
+   *
+   * @throws Exception If required
+   */
+
+  @Test
+  public final void testAccountSessionDeleteForUser()
+    throws Exception
+  {
+    final var queries = this.queries();
+
+    final var passwordHash = new byte[16];
+    new SecureRandom().nextBytes(passwordHash);
+
+    final var account0 =
+      queries.accountCreate(
+        UUID.randomUUID(),
+        "User 0",
+        AccountsDatabasePasswordHashDTO.builder()
+          .setHash(passwordHash)
+          .setParameters("params")
+          .build(),
+        "someone@example.com",
+        Optional.of("Lock reason"));
+
+    final var session0 =
+      queries.accountSessionCreate(account0.id(), "a");
+    final var session1 =
+      queries.accountSessionCreate(account0.id(), "b");
+    final var session2 =
+      queries.accountSessionCreate(account0.id(), "c");
+
+    queries.accountSessionDeleteForUser(account0.id());
+
+    final var ex0 = Assertions.assertThrows(
+      AccountsDatabaseException.class, () -> queries.accountSessionUpdate(session0.id()));
+    Assertions.assertEquals(NONEXISTENT, ex0.errorCode());
+    final var ex1 = Assertions.assertThrows(
+      AccountsDatabaseException.class, () -> queries.accountSessionUpdate(session1.id()));
+    Assertions.assertEquals(NONEXISTENT, ex1.errorCode());
+    final var ex2 = Assertions.assertThrows(
+      AccountsDatabaseException.class, () -> queries.accountSessionUpdate(session2.id()));
+    Assertions.assertEquals(NONEXISTENT, ex2.errorCode());
+  }
+
+  /**
+   * Creating a duplicate session fails.
+   *
+   * @throws Exception If required
+   */
+
+  @Test
+  public final void testAccountSessionCreateDuplicate()
+    throws Exception
+  {
+    final var queries = this.queries();
+
+    final var passwordHash = new byte[16];
+    new SecureRandom().nextBytes(passwordHash);
+
+    final var account0 =
+      queries.accountCreate(
+        UUID.randomUUID(),
+        "User 0",
+        AccountsDatabasePasswordHashDTO.builder()
+          .setHash(passwordHash)
+          .setParameters("params")
+          .build(),
+        "someone@example.com",
+        Optional.of("Lock reason"));
+
+    final var session0 =
+      queries.accountSessionCreate(account0.id(), "a");
+
+    final var ex0 = Assertions.assertThrows(
+      AccountsDatabaseException.class,
+      () -> queries.accountSessionCreate(session0.userID(), "a"));
+    Assertions.assertEquals(ID_ALREADY_USED, ex0.errorCode());
   }
 }

@@ -55,12 +55,6 @@ public final class CoreDatabasePartitionProviderDerby extends DatabasePartitionP
   private static final String LANG_SCHEMA_DOES_NOT_EXIST = "42Y07";
   private static final String LANG_TABLE_NOT_FOUND = "42X05";
 
-  @Override
-  protected Logger logger()
-  {
-    return LOG;
-  }
-
   /**
    * Construct a provider.
    */
@@ -84,6 +78,28 @@ public final class CoreDatabasePartitionProviderDerby extends DatabasePartitionP
       new DatabaseQueriesContructorCollection()
         .put(AccountsDatabaseQueriesType.class, CoreAccountsDatabaseQueries::new)
         .put(PagesDatabaseQueriesType.class, CorePagesDatabaseQueries::new));
+  }
+
+  private static DatabaseSchemaRevisionType loadRevision(
+    final Optional<BigInteger> previous,
+    final BigInteger current)
+    throws DatabaseException
+  {
+    final var path =
+      String.format("/com/io7m/ironpage/database/core/derby/schema-%s.xml", current);
+    final var clazz = CoreDatabasePartitionProviderDerby.class;
+    try (var stream = clazz.getResourceAsStream(path)) {
+      final var url = clazz.getResource(path);
+      return DatabaseSchemaRevisionXML.fromStream(previous, current, url.toURI(), stream);
+    } catch (final IOException | URISyntaxException e) {
+      throw new DatabaseException(SEVERITY_ERROR, e.getLocalizedMessage(), e);
+    }
+  }
+
+  @Override
+  protected Logger logger()
+  {
+    return LOG;
   }
 
   @Override
@@ -133,22 +149,6 @@ public final class CoreDatabasePartitionProviderDerby extends DatabasePartitionP
     revisions.put(ZERO, loadRevision(Optional.empty(), ZERO));
     revisions.put(ONE, loadRevision(Optional.of(ZERO), ONE));
     return revisions;
-  }
-
-  private static DatabaseSchemaRevisionType loadRevision(
-    final Optional<BigInteger> previous,
-    final BigInteger current)
-    throws DatabaseException
-  {
-    final var path =
-      String.format("/com/io7m/ironpage/database/core/derby/schema-%s.xml", current);
-    final var clazz = CoreDatabasePartitionProviderDerby.class;
-    try (var stream = clazz.getResourceAsStream(path)) {
-      final var url = clazz.getResource(path);
-      return DatabaseSchemaRevisionXML.fromStream(previous, current, url.toURI(), stream);
-    } catch (final IOException | URISyntaxException e) {
-      throw new DatabaseException(SEVERITY_ERROR, e.getLocalizedMessage(), e);
-    }
   }
 
   @Override

@@ -78,6 +78,34 @@ create table core.users (
   </statement>
 
   <comment>
+    The sessions table stores user sessions. Once a user has successfully
+    authenticated, a session is created and can then be reused repeatedly
+    without the user going through a potentially expensive authentication
+    process each time. The session_updated column is updated each time the
+    session is used.
+  </comment>
+
+  <comment>
+    Session IDs are intended to be randomly generated 36-character
+    Base64-encoded strings. 27 random bytes will produce a 36-character Base64
+    string, so this implies that session IDs provide around 216 bits of
+    security.
+  </comment>
+
+  <statement>
+    <![CDATA[
+create table core.sessions (
+  session_id         char (36) not null,
+  session_user_id    char (36) not null,
+  session_updated    timestamp not null,
+
+  constraint session_id_key primary key (session_id),
+  constraint session_user_reference foreign key (session_user_id) references core.users (user_id)
+)
+    ]]>
+  </statement>
+
+  <comment>
     The redactions table stores a record of when and why a particular blob was
     redacted, and who redacted it.
   </comment>

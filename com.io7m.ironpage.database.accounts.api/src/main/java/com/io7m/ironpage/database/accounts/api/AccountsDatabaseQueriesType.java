@@ -152,4 +152,60 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
     Optional<String> displayName,
     Optional<String> email)
     throws AccountsDatabaseException;
+
+  /**
+   * Create a new session for the given account.
+   *
+   * @param owner   The account ID
+   * @param session The session ID
+   *
+   * @return A new session
+   *
+   * @throws AccountsDatabaseException On errors
+   */
+
+  AccountsDatabaseSessionDTO accountSessionCreate(
+    UUID owner,
+    String session)
+    throws AccountsDatabaseException;
+
+  /**
+   * Update a session.
+   *
+   * @param session The session ID
+   *
+   * @return The updated session
+   *
+   * @throws AccountsDatabaseException On errors
+   */
+
+  AccountsDatabaseSessionDTO accountSessionUpdate(
+    String session)
+    throws AccountsDatabaseException;
+
+  /**
+   * Delete a session.
+   *
+   * @param session The session ID
+   *
+   * @throws AccountsDatabaseException On errors
+   */
+
+  void accountSessionDelete(
+    String session)
+    throws AccountsDatabaseException;
+
+  /**
+   * Delete all sessions for a given user.
+   *
+   * @param owner The user ID
+   *
+   * @return The number of deleted sessions
+   *
+   * @throws AccountsDatabaseException On errors
+   */
+
+  int accountSessionDeleteForUser(
+    UUID owner)
+    throws AccountsDatabaseException;
 }

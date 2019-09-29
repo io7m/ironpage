@@ -14,25 +14,38 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.database.accounts.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
+
+import java.time.Instant;
+import java.util.UUID;
+
 /**
- * Document database (Core Derby implementation)
+ * An accounts database session data transfer object.
  */
 
-module com.io7m.ironpage.database.core.derby
+@Value.Immutable
+@ImmutablesStyleType
+public interface AccountsDatabaseSessionDTOType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.service.component.annotations;
+  /**
+   * @return The session ID
+   */
 
-  requires com.io7m.jaffirm.core;
-  requires org.apache.commons.codec;
-  requires org.apache.derby.commons;
-  requires org.jooq;
-  requires org.slf4j;
+  String id();
 
-  requires transitive com.io7m.ironpage.database.accounts.api;
-  requires transitive com.io7m.ironpage.database.pages.api;
-  requires transitive com.io7m.ironpage.database.spi;
+  /**
+   * @return The user ID
+   */
 
-  provides com.io7m.ironpage.database.spi.DatabasePartitionProviderType
-    with com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
+  UUID userID();
+
+  /**
+   * @return The last updated time
+   */
+
+  Instant updated();
 }

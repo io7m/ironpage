@@ -41,6 +41,12 @@ public enum CoreAuditEventKind
   USER_CREATED,
 
   /**
+   * A user session was created.
+   */
+
+  USER_SESSION_CREATED,
+
+  /**
    * A user's display name was modified.
    */
 

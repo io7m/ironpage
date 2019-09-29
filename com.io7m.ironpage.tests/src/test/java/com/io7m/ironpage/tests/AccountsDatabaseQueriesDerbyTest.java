@@ -72,6 +72,12 @@ public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQuer
   }
 
   @Override
+  protected Instant now()
+  {
+    return NOW;
+  }
+
+  @Override
   protected AccountsDatabaseQueriesType queries()
     throws DatabaseException
   {
