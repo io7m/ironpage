@@ -7,6 +7,13 @@ create schema core
     ]]>
   </statement>
 
+  <comment>
+    The schema version table stores the current version of the database schema.
+    Implementations are expected to query this table on connecting to the
+    database in order to ensure that the calling code is compatible with the
+    tables in the database.
+  </comment>
+
   <statement>
     <![CDATA[
 create table core.schema_version (
@@ -18,6 +25,12 @@ create table core.schema_version (
 )
     ]]>
   </statement>
+
+  <comment>
+    The audit table stores events relative to auditing. The audit_type column
+    stores the type of audit event, and the rest of the columns store the
+    fields of the event.
+  </comment>
 
   <statement>
     <![CDATA[
@@ -31,6 +44,18 @@ create table core.audit (
 )
     ]]>
   </statement>
+
+  <comment>
+    The users table stores user accounts. Users are unambiguously identified by
+    UUID values (stored here as ASCII due to various limitations in Jooq, Derby,
+    and JDBC). Users have hashed passwords used to access their accounts, and
+    those values are stored here as a field describing the algorithm (typically
+    PBKDF2WithHmacSHA256), and the hashed value and salt. Users also have
+    email addresses, which do not need to be unique, and display names, which
+    DO need to be unique. User accounts can also be locked (meaning that the
+    user can no longer log in, and a reason must be specified for why the
+    account is locked.
+  </comment>
 
   <statement>
     <![CDATA[
@@ -53,6 +78,11 @@ create table core.users (
     ]]>
   </statement>
 
+  <comment>
+    The redactions table stores a record of when and why a particular blob was
+    redacted, and who redacted it.
+  </comment>
+
   <statement>
     <![CDATA[
 create table core.redactions (
@@ -66,6 +96,13 @@ create table core.redactions (
 )
     ]]>
   </statement>
+
+  <comment>
+    The blobs table stores opaque (but typed) blobs of data. Blobs are uniquely
+    identified by their SHA-256 hash. Blobs carry an IANA media type, an owner,
+    and a possible redaction (see the redactions table). Blobs that have been
+    redacted have zero-length data fields.
+  </comment>
 
   <statement>
     <![CDATA[
