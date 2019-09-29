@@ -32,15 +32,6 @@ public class PagesDatabaseException extends DatabaseException
   private final PagesDatabaseErrorCode errorCode;
 
   /**
-   * @return The pages database error code
-   */
-
-  public final PagesDatabaseErrorCode errorCode()
-  {
-    return this.errorCode;
-  }
-
-  /**
    * Construct an exception.
    *
    * @param inSeverity      The error severity
@@ -154,5 +145,14 @@ public class PagesDatabaseException extends DatabaseException
   {
     super(inSeverity, message, cause);
     this.errorCode = Objects.requireNonNull(inErrorCode, "errorCode");
+  }
+
+  /**
+   * @return The pages database error code
+   */
+
+  public final PagesDatabaseErrorCode errorCode()
+  {
+    return this.errorCode;
   }
 }

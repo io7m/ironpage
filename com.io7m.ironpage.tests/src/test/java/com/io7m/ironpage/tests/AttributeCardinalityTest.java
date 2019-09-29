@@ -14,15 +14,24 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.tests;
 
-package com.io7m.ironpage.database.spi;
+import com.io7m.ironpage.types.api.AttributeCardinality;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+import org.junit.jupiter.api.Assertions;
 
-import java.sql.Connection;
-import java.time.Clock;
-
-public interface DatabaseQueriesConstructorType<T extends DatabaseQueriesType>
+public final class AttributeCardinalityTest
 {
-  T create(
-    Clock clock,
-    Connection connection);
+  @Property
+  public void testShow(
+    @ForAll final AttributeCardinality cardinality0,
+    @ForAll final AttributeCardinality cardinality1)
+  {
+    if (cardinality0 == cardinality1) {
+      Assertions.assertEquals(cardinality0.show(), cardinality1.show());
+    } else {
+      Assertions.assertNotEquals(cardinality0.show(), cardinality1.show());
+    }
+  }
 }

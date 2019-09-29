@@ -19,6 +19,11 @@ package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.types.api.SchemaName;
 import com.io7m.ironpage.types.api.SchemaNames;
+import net.jqwik.api.Arbitraries;
+import net.jqwik.api.Arbitrary;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+import net.jqwik.api.Provide;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
@@ -29,6 +34,25 @@ import java.util.stream.Stream;
 
 public final class SchemaNamesTest
 {
+  @Property
+  public void testOrdering(
+    @ForAll("probablyValid") final String text0,
+    @ForAll("probablyValid") final String text1)
+  {
+    Assertions.assertEquals(
+      text0.compareTo(text1),
+      SchemaName.of(text0).compareTo(SchemaName.of(text1)));
+  }
+
+  @Provide
+  Arbitrary<String> probablyValid()
+  {
+    return Arbitraries.strings()
+      .withCharRange('a', 'z')
+      .ofMinLength(1)
+      .ofMaxLength(127);
+  }
+
   @Test
   public void testEquals()
   {
@@ -40,10 +64,10 @@ public final class SchemaNamesTest
   @TestFactory
   public Stream<DynamicTest> testValid()
   {
-    return Stream.of("a", "a0", "a_0")
+    return Stream.of("a", "a0", "a_0", "com.example.x")
       .map(text -> {
         return DynamicTest.dynamicTest(
-          "testValid" + text,
+          "testValid: " + text,
           () -> {
             Assertions.assertTrue(SchemaNames.isValidName(text));
             SchemaNames.checkValidName(text);
@@ -58,11 +82,12 @@ public final class SchemaNamesTest
       "",
       "0",
       "A",
+      "1.2",
       "-",
       "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       .map(text -> {
         return DynamicTest.dynamicTest(
-          "testInvalid" + text,
+          "testInvalid: " + text,
           () -> {
             Assertions.assertFalse(SchemaNames.isValidName(text));
             Assertions.assertThrows(IllegalArgumentException.class, () -> {

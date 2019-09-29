@@ -19,13 +19,16 @@ package com.io7m.ironpage.database.core.derby;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseException;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
+import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import io.vavr.collection.TreeMap;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record4;
+import org.jooq.Record5;
 import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.conf.RenderNameStyle;
@@ -38,19 +41,18 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLDataException;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.Clock;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.ResourceBundle;
+import java.util.UUID;
 
 final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
 {
   private static final ResourceBundle RESOURCES =
     ResourceBundle.getBundle("com.io7m.ironpage.database.core.derby.Messages");
-
-  private final Connection connection;
-  private final DSLContext dslContext;
 
   private static final Table<Record> TABLE_BLOBS =
     DSL.table(DSL.name("core", "blobs"));
@@ -62,109 +64,57 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     DSL.field(DSL.name("blob_redaction"), SQLDataType.BIGINT);
   private static final Field<String> FIELD_BLOB_MEDIA_TYPE =
     DSL.field(DSL.name("blob_media_type"), SQLDataType.VARCHAR(128));
+  private static final Field<UUID> FIELD_BLOB_OWNER =
+    DSL.field(DSL.name("blob_owner"), SQLDataType.UUID);
+  private static final Table<Record> TABLE_REDACTIONS =
+    DSL.table(DSL.name("core", "redactions"));
+  private static final Field<UUID> FIELD_REDACTION_USER_ID =
+    DSL.field(DSL.name("redaction_user"), SQLDataType.UUID);
+  private static final Field<Timestamp> FIELD_REDACTION_TIME =
+    DSL.field(DSL.name("redaction_time"), SQLDataType.TIMESTAMP);
+  private static final Field<String> FIELD_REDACTION_REASON =
+    DSL.field(DSL.name("redaction_reason"), SQLDataType.VARCHAR(128));
+  private static final Field<Long> FIELD_REDACTION_ID =
+    DSL.field(DSL.name("redaction_id"), SQLDataType.BIGINT);
+
+  private final Connection connection;
+  private final DSLContext dslContext;
+  private final CoreAuditQueries audit;
+  private final Clock clock;
 
   CorePagesDatabaseQueries(
+    final Clock inClock,
     final Connection inConnection)
   {
+    this.clock = Objects.requireNonNull(inClock, "inClock");
     this.connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
+    this.audit = new CoreAuditQueries(this.clock, this.connection);
   }
 
-  @Override
-  public String pageBlobPut(
-    final String mediaType,
-    final byte[] data)
-    throws PagesDatabaseException
+  private static PagesDatabaseRedactionDTO redactionFromRecord(
+    final Record4<Long, String, Timestamp, UUID> redactionRecord)
   {
-    Objects.requireNonNull(mediaType, "mediaType");
-    Objects.requireNonNull(data, "data");
-
-    final var hash = hashOf(data);
-
-    try (var query =
-           this.dslContext.select(FIELD_BLOB_ID)
-             .from(TABLE_BLOBS)
-             .where(FIELD_BLOB_ID.eq(hash))
-             .limit(1)) {
-      final var count = query.execute();
-      if (count > 0) {
-        throw new PagesDatabaseException(
-          ErrorSeverity.SEVERITY_ERROR,
-          PagesDatabaseQueriesType.DATA_ALREADY_EXISTS,
-          localize("errorPageDataAlreadyExists"),
-          null,
-          TreeMap.of(localize("dataHash"), hash));
-      }
-    } catch (final DataAccessException e) {
-      throw genericDatabaseException(e);
-    }
-
-    try (var query =
-           this.dslContext.insertInto(TABLE_BLOBS)
-             .set(FIELD_BLOB_ID, hash)
-             .set(FIELD_BLOB_DATA, data)
-             .set(FIELD_BLOB_MEDIA_TYPE, mediaType)
-             .set(FIELD_BLOB_REDACTION, (Long) null)) {
-      query.execute();
-    } catch (final DataAccessException e) {
-      final var cause = e.getCause();
-      if (cause instanceof SQLDataException) {
-        final var dataCause = (SQLDataException) cause;
-        if ("22001".equals(dataCause.getSQLState())) {
-          throw new PagesDatabaseException(
-            PagesDatabaseQueriesType.DATA_INVALID,
-            localize("errorPageDataInvalid"),
-            e);
-        }
-      }
-      throw genericDatabaseException(e);
-    }
-
-    return hash;
-  }
-
-  @Override
-  public Optional<PagesDatabaseBlobDTO> pageBlobGet(final String id)
-    throws PagesDatabaseException
-  {
-    Objects.requireNonNull(id, "id");
-
-    try (var query =
-           this.dslContext.select(
-             FIELD_BLOB_ID,
-             FIELD_BLOB_MEDIA_TYPE,
-             FIELD_BLOB_DATA,
-             FIELD_BLOB_REDACTION)
-             .from(TABLE_BLOBS)
-             .where(FIELD_BLOB_ID.eq(id))
-             .limit(1)) {
-      final var results = query.fetch();
-      if (results.isNotEmpty()) {
-        return dataFromRecord(results.get(0));
-      }
-      return Optional.empty();
-    } catch (final DataAccessException e) {
-      throw genericDatabaseException(e);
-    }
+    return PagesDatabaseRedactionDTO.builder()
+      .setId(redactionRecord.getValue(FIELD_REDACTION_ID).longValue())
+      .setOwner(redactionRecord.getValue(FIELD_REDACTION_USER_ID))
+      .setTime(redactionRecord.getValue(FIELD_REDACTION_TIME).toInstant())
+      .setReason(redactionRecord.getValue(FIELD_REDACTION_REASON))
+      .build();
   }
 
   private static Optional<PagesDatabaseBlobDTO> dataFromRecord(
-    final Record4<String, String, byte[], Long> record)
+    final Record5<String, String, byte[], UUID, Long> record,
+    final Optional<PagesDatabaseRedactionDTO> redaction)
   {
-    final OptionalLong redactionOpt;
-    final var redaction = record.get(FIELD_BLOB_REDACTION);
-    if (redaction == null) {
-      redactionOpt = OptionalLong.empty();
-    } else {
-      redactionOpt = OptionalLong.of(redaction.longValue());
-    }
     return Optional.of(
       PagesDatabaseBlobDTO.builder()
         .setId(record.get(FIELD_BLOB_ID))
         .setMediaType(record.get(FIELD_BLOB_MEDIA_TYPE))
-        .setRedaction(redactionOpt)
+        .setRedaction(redaction)
         .setData(record.get(FIELD_BLOB_DATA))
+        .setOwner(record.get(FIELD_BLOB_OWNER))
         .build());
   }
 
@@ -184,6 +134,17 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       e);
   }
 
+  private static PagesDatabaseException genericDatabaseExceptionFormatted(
+    final String resource,
+    final Object... args)
+  {
+    return new PagesDatabaseException(
+      ErrorSeverity.SEVERITY_ERROR,
+      DATABASE_ERROR,
+      MessageFormat.format(localize(resource), args),
+      null);
+  }
+
   private static String hashOf(final byte[] data)
   {
     final MessageDigest digest;
@@ -193,5 +154,218 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       throw new IllegalStateException(e);
     }
     return Hex.encodeHexString(digest.digest(data), true);
+  }
+
+  @Override
+  public String pageBlobPut(
+    final UUID owner,
+    final String mediaType,
+    final byte[] data)
+    throws PagesDatabaseException
+  {
+    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(mediaType, "mediaType");
+    Objects.requireNonNull(data, "data");
+
+    final var hash = hashOf(data);
+    this.checkBlobDoesNotExist(hash);
+
+    try (var query =
+           this.dslContext.insertInto(TABLE_BLOBS)
+             .set(FIELD_BLOB_ID, hash)
+             .set(FIELD_BLOB_DATA, data)
+             .set(FIELD_BLOB_MEDIA_TYPE, mediaType)
+             .set(FIELD_BLOB_OWNER, owner)
+             .set(FIELD_BLOB_REDACTION, (Long) null)) {
+      query.execute();
+    } catch (final DataAccessException e) {
+
+      /*
+       * An integrity violation exception will be raised if the blob refers to a user that
+       * does not exist.
+       */
+
+      final var cause = e.getCause();
+      if (cause instanceof DerbySQLIntegrityConstraintViolationException) {
+        final var integrity = (DerbySQLIntegrityConstraintViolationException) cause;
+        if (Objects.equals(integrity.getConstraintName(), "BLOB_OWNER_REFERENCE")) {
+          throw new PagesDatabaseException(
+            ErrorSeverity.SEVERITY_ERROR,
+            PagesDatabaseQueriesType.DATA_OWNER_NONEXISTENT,
+            localize("errorPageDataOwnerNonexistent"),
+            e,
+            TreeMap.of(localize("userID"), owner.toString()));
+        }
+      }
+
+      /*
+       * A truncation error will occur if the blob is too long.
+       */
+
+      if (cause instanceof SQLDataException) {
+        final var dataCause = (SQLDataException) cause;
+        if ("22001".equals(dataCause.getSQLState())) {
+          throw new PagesDatabaseException(
+            PagesDatabaseQueriesType.DATA_INVALID,
+            localize("errorPageDataInvalid"),
+            e);
+        }
+      }
+      throw genericDatabaseException(e);
+    }
+
+    try {
+      this.audit.logAuditEvent("BLOB_CREATE", owner, hash, "");
+    } catch (final Exception e) {
+      throw genericDatabaseException(e);
+    }
+
+    return hash;
+  }
+
+  private void checkBlobDoesNotExist(
+    final String hash)
+    throws PagesDatabaseException
+  {
+    try (var query =
+           this.dslContext.select(FIELD_BLOB_ID)
+             .from(TABLE_BLOBS)
+             .where(FIELD_BLOB_ID.eq(hash))
+             .limit(1)) {
+      final var count = query.execute();
+      if (count > 0) {
+        throw new PagesDatabaseException(
+          ErrorSeverity.SEVERITY_ERROR,
+          PagesDatabaseQueriesType.DATA_ALREADY_EXISTS,
+          localize("errorPageDataAlreadyExists"),
+          null,
+          TreeMap.of(localize("dataHash"), hash));
+      }
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+  }
+
+  @Override
+  public Optional<PagesDatabaseBlobDTO> pageBlobGet(
+    final String id)
+    throws PagesDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+
+    try (var blobQuery =
+           this.dslContext.select(
+             FIELD_BLOB_ID,
+             FIELD_BLOB_MEDIA_TYPE,
+             FIELD_BLOB_DATA,
+             FIELD_BLOB_OWNER,
+             FIELD_BLOB_REDACTION)
+             .from(TABLE_BLOBS)
+             .where(FIELD_BLOB_ID.eq(id))
+             .limit(1)) {
+      final var blobResults = blobQuery.fetch();
+      Optional<PagesDatabaseRedactionDTO> redaction = Optional.empty();
+      if (blobResults.isNotEmpty()) {
+        final var blobRecord = blobResults.get(0);
+        final var blobRedaction = blobRecord.getValue(FIELD_BLOB_REDACTION);
+        if (blobRedaction != null) {
+          redaction = this.fetchRedaction(blobRedaction);
+        }
+        return dataFromRecord(blobRecord, redaction);
+      }
+      return Optional.empty();
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+  }
+
+  private Optional<PagesDatabaseRedactionDTO> fetchRedaction(final Long id)
+  {
+    try (var redactionQuery =
+           this.dslContext.select(
+             FIELD_REDACTION_ID,
+             FIELD_REDACTION_REASON,
+             FIELD_REDACTION_TIME,
+             FIELD_REDACTION_USER_ID)
+             .from(TABLE_REDACTIONS)
+             .where(FIELD_REDACTION_ID.eq(id))) {
+
+      final var redactionRecord = redactionQuery.fetchOne();
+      return Optional.of(redactionFromRecord(redactionRecord));
+    }
+  }
+
+  @Override
+  public void pageBlobRedact(
+    final UUID owner,
+    final String id,
+    final String reason)
+    throws PagesDatabaseException
+  {
+    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(reason, "reason");
+
+    /*
+     * Add a redaction record.
+     */
+
+    final var timestamp = Timestamp.from(this.clock.instant());
+    try (var query = this.dslContext.insertInto(TABLE_REDACTIONS)
+      .set(FIELD_REDACTION_REASON, reason)
+      .set(FIELD_REDACTION_TIME, timestamp)
+      .set(FIELD_REDACTION_USER_ID, owner)) {
+      final var updates = query.execute();
+      if (updates != 1) {
+        throw genericDatabaseExceptionFormatted(
+          "errorUpdatesUnexpected",
+          Integer.valueOf(1),
+          Integer.valueOf(updates));
+      }
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+
+    /*
+     * Query the redaction record to fetch the ID. Unfortunately this needs to be done
+     * in a separate query because Derby doesn't support any kind of returning INSERT.
+     */
+
+    final Long redaction;
+    try (var query = this.dslContext.select(FIELD_REDACTION_ID)
+      .from(TABLE_REDACTIONS)
+      .where(
+        FIELD_REDACTION_REASON.eq(reason),
+        FIELD_REDACTION_TIME.eq(timestamp),
+        FIELD_REDACTION_USER_ID.eq(owner))
+      .orderBy(FIELD_REDACTION_ID.asc())
+      .limit(1)) {
+      redaction = query.fetchOne().value1();
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
+
+    this.audit.logAuditEvent("BLOB_REDACTION", owner, id, String.valueOf(redaction));
+
+    /*
+     * Zero out the blob and update the blob redaction field.
+     */
+
+    try (var query = this.dslContext.update(TABLE_BLOBS)
+      .set(FIELD_BLOB_DATA, new byte[0])
+      .set(FIELD_BLOB_REDACTION, redaction)
+      .where(FIELD_BLOB_ID.eq(id))) {
+      final var results = query.execute();
+      if (results != 1) {
+        throw new PagesDatabaseException(
+          ErrorSeverity.SEVERITY_ERROR,
+          PagesDatabaseQueriesType.DATA_NONEXISTENT,
+          localize("errorPageDataNonexistent"),
+          null,
+          TreeMap.of(localize("dataHash"), id));
+      }
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
   }
 }

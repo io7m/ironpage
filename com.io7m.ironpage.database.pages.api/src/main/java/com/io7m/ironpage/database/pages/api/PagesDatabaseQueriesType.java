@@ -19,6 +19,7 @@ package com.io7m.ironpage.database.pages.api;
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * The queries supported by pages databases.
@@ -35,6 +36,17 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
       new StringBuilder(64)
         .append(PagesDatabaseQueriesType.class.getCanonicalName())
         .append(":dataAlreadyExists")
+        .toString());
+
+  /**
+   * A referenced piece of data doesn't exist.
+   */
+
+  PagesDatabaseErrorCode DATA_NONEXISTENT =
+    PagesDatabaseErrorCode.of(
+      new StringBuilder(64)
+        .append(PagesDatabaseQueriesType.class.getCanonicalName())
+        .append(":dataNonexistent")
         .toString());
 
   /**
@@ -60,8 +72,20 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
         .toString());
 
   /**
+   * The owner of the page data does not exist.
+   */
+
+  PagesDatabaseErrorCode DATA_OWNER_NONEXISTENT =
+    PagesDatabaseErrorCode.of(
+      new StringBuilder(64)
+        .append(PagesDatabaseQueriesType.class.getCanonicalName())
+        .append(":dataOwnerNonexistent")
+        .toString());
+
+  /**
    * Save the given page blob.
    *
+   * @param owner     The ID of the owner
    * @param mediaType The IANA media type
    * @param data      The data
    *
@@ -72,6 +96,7 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    */
 
   String pageBlobPut(
+    UUID owner,
     String mediaType,
     byte[] data)
     throws PagesDatabaseException;
@@ -88,5 +113,21 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
 
   Optional<PagesDatabaseBlobDTO> pageBlobGet(
     String id)
+    throws PagesDatabaseException;
+
+  /**
+   * Redact the given page blob.
+   *
+   * @param owner  The owner of the redaction
+   * @param id     The blob ID
+   * @param reason The redaction reason
+   *
+   * @throws PagesDatabaseException On database errors
+   */
+
+  void pageBlobRedact(
+    UUID owner,
+    String id,
+    String reason)
     throws PagesDatabaseException;
 }

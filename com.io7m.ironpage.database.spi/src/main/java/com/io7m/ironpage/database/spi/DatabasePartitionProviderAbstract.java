@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -41,13 +42,17 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
 {
   private final ResourceBundle resources;
   private final DatabaseQueriesContructorCollection queryConstructors;
+  private final Clock clock;
   private boolean installedSchemaVersionRetrieved;
   private Optional<BigInteger> installedSchemaVersion;
   private Optional<NavigableMap<BigInteger, DatabaseSchemaRevisionType>> schemaRevisions;
 
   protected <T extends DatabaseQueriesType> DatabasePartitionProviderAbstract(
+    final Clock inClock,
     final DatabaseQueriesContructorCollection inQueryConstructors)
   {
+    this.clock =
+      Objects.requireNonNull(inClock, "clock");
     this.queryConstructors =
       Objects.requireNonNull(inQueryConstructors, "queryConstructors");
 
@@ -207,7 +212,7 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
     throws DatabaseException
   {
     if (this.queryConstructors.has(queriesClass)) {
-      return this.queryConstructors.get(queriesClass).create(connection);
+      return this.queryConstructors.get(queriesClass).create(this.clock, connection);
     }
 
     throw new DatabaseException(

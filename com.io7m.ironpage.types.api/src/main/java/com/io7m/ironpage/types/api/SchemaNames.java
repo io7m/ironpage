@@ -30,7 +30,7 @@ public final class SchemaNames
    */
 
   public static final Pattern VALID_SCHEMA_NAME_PATTERN =
-    Pattern.compile("([a-z][a-z0-9_]*)(?>\\\\.[a-z][a-z0-9_]*)*");
+    Pattern.compile("([a-z][a-z0-9_]*)(\\.[a-z][a-z0-9_]*)*");
 
   private SchemaNames()
   {

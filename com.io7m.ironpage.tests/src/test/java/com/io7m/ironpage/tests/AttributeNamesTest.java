@@ -19,6 +19,11 @@ package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.types.api.AttributeName;
 import com.io7m.ironpage.types.api.AttributeNames;
+import net.jqwik.api.Arbitraries;
+import net.jqwik.api.Arbitrary;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+import net.jqwik.api.Provide;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
@@ -29,6 +34,25 @@ import java.util.stream.Stream;
 
 public final class AttributeNamesTest
 {
+  @Property
+  public void testOrdering(
+    @ForAll("probablyValid") final String text0,
+    @ForAll("probablyValid") final String text1)
+  {
+    Assertions.assertEquals(
+      text0.compareTo(text1),
+      AttributeName.of(text0).compareTo(AttributeName.of(text1)));
+  }
+
+  @Provide
+  Arbitrary<String> probablyValid()
+  {
+    return Arbitraries.strings()
+      .withCharRange('a', 'z')
+      .ofMinLength(1)
+      .ofMaxLength(127);
+  }
+
   @Test
   public void testEquals()
   {

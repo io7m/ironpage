@@ -73,10 +73,12 @@ create table core.blobs (
   blob_id            char (64) not null,
   blob_data          blob (8M) not null,
   blob_media_type    varchar (128) not null,
+  blob_owner         char (36) not null,
   blob_redaction     bigint,
 
   constraint blob_id_key primary key (blob_id),
   constraint blob_id_lower check (blob_id = lower(blob_id)),
+  constraint blob_owner_reference foreign key (blob_owner) references core.users (user_id),
   constraint blob_redaction_reference foreign key (blob_redaction) references core.redactions (redaction_id)
 )
     ]]>

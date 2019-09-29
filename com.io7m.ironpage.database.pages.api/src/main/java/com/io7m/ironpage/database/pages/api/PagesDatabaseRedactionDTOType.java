@@ -14,15 +14,43 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.database.pages.api;
 
-package com.io7m.ironpage.database.spi;
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
 
-import java.sql.Connection;
-import java.time.Clock;
+import java.time.Instant;
+import java.util.UUID;
 
-public interface DatabaseQueriesConstructorType<T extends DatabaseQueriesType>
+/**
+ * A page blob redaction data transfer object.
+ */
+
+@Value.Immutable
+@ImmutablesStyleType
+public interface PagesDatabaseRedactionDTOType
 {
-  T create(
-    Clock clock,
-    Connection connection);
+  /**
+   * @return The user ID that owns the blob
+   */
+
+  UUID owner();
+
+  /**
+   * @return The ID of the redaction
+   */
+
+  long id();
+
+  /**
+   * @return The time of the redaction
+   */
+
+  Instant time();
+
+  /**
+   * @return The reason for the redaction
+   */
+
+  String reason();
 }

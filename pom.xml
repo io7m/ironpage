@@ -199,6 +199,11 @@
         <version>${com.io7m.junit.version}</version>
       </dependency>
       <dependency>
+        <groupId>net.jqwik</groupId>
+        <artifactId>jqwik</artifactId>
+        <version>1.2.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.jooq</groupId>
         <artifactId>jooq</artifactId>
         <version>3.12.1</version>

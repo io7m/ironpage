@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
@@ -30,12 +29,18 @@ import org.junit.jupiter.api.BeforeEach;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQueriesContract
 {
+  private static final Instant NOW = Instant.parse("2000-01-01T00:00:00Z");
+
   private Path databasePath;
   private DatabaseType database;
   private DatabaseConnectionType connection;
+  private Clock clock = Clock.fixed(NOW, ZoneId.of("UTC"));
 
   @BeforeEach
   public void testSetupDatabase()
@@ -45,7 +50,7 @@ public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQuer
     Files.deleteIfExists(this.databasePath);
 
     final var registry = new MutablePartitionProviderRegistry();
-    registry.add(new CoreDatabasePartitionProviderDerby());
+    registry.add(new CoreDatabasePartitionProviderDerby(this.clock));
 
     final var databases = new DatabaseDerbyProvider(registry);
     final var parameters =

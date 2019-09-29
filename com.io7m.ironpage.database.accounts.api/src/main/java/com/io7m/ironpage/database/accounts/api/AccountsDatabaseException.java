@@ -32,15 +32,6 @@ public class AccountsDatabaseException extends DatabaseException
   private final AccountsDatabaseErrorCode errorCode;
 
   /**
-   * @return The accounts database error code
-   */
-
-  public final AccountsDatabaseErrorCode errorCode()
-  {
-    return this.errorCode;
-  }
-
-  /**
    * Construct an exception.
    *
    * @param inSeverity      The error severity
@@ -154,5 +145,14 @@ public class AccountsDatabaseException extends DatabaseException
   {
     super(inSeverity, message, cause);
     this.errorCode = Objects.requireNonNull(inErrorCode, "errorCode");
+  }
+
+  /**
+   * @return The accounts database error code
+   */
+
+  public final AccountsDatabaseErrorCode errorCode()
+  {
+    return this.errorCode;
   }
 }

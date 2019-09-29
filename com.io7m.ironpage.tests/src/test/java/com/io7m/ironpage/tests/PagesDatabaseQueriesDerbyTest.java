@@ -14,15 +14,14 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.database.api.DatabaseConnectionType;
 import com.io7m.ironpage.database.api.DatabaseParameters;
+import com.io7m.ironpage.database.api.DatabaseTransactionType;
 import com.io7m.ironpage.database.api.DatabaseType;
 import com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
 import com.io7m.ironpage.database.derby.DatabaseDerbyProvider;
-import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +29,18 @@ import org.junit.jupiter.api.BeforeEach;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 
 public final class PagesDatabaseQueriesDerbyTest extends PagesDatabaseQueriesContract
 {
+  private static final Instant NOW = Instant.parse("2000-01-01T00:00:00Z");
+
   private Path databasePath;
   private DatabaseType database;
   private DatabaseConnectionType connection;
+  private Clock clock = Clock.fixed(NOW, ZoneId.of("UTC"));
 
   @BeforeEach
   public void testSetupDatabase()
@@ -45,7 +50,7 @@ public final class PagesDatabaseQueriesDerbyTest extends PagesDatabaseQueriesCon
     Files.deleteIfExists(this.databasePath);
 
     final var registry = new MutablePartitionProviderRegistry();
-    registry.add(new CoreDatabasePartitionProviderDerby());
+    registry.add(new CoreDatabasePartitionProviderDerby(this.clock));
 
     final var databases = new DatabaseDerbyProvider(registry);
     final var parameters =
@@ -67,10 +72,15 @@ public final class PagesDatabaseQueriesDerbyTest extends PagesDatabaseQueriesCon
   }
 
   @Override
-  protected PagesDatabaseQueriesType queries()
+  protected Instant now()
+  {
+    return NOW;
+  }
+
+  @Override
+  protected DatabaseTransactionType transaction()
     throws DatabaseException
   {
-    return this.connection.beginTransaction()
-      .queries(PagesDatabaseQueriesType.class);
+    return this.connection.beginTransaction();
   }
 }

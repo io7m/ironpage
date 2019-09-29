@@ -19,18 +19,17 @@ package com.io7m.ironpage.tests;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.immutables.value.Value;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.function.Executable;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,79 +38,133 @@ public final class EqualsTest
 {
   private static final Logger LOG = LoggerFactory.getLogger(EqualsTest.class);
 
-  @Test
-  @Disabled("Temporarily disabled due to enum type issues")
-  public void testEqualsReflectively()
+  private static boolean isIgnoredClass(
+    final Class<?> clazz)
+  {
+    switch (clazz.getCanonicalName()) {
+      case "com.io7m.ironpage.validator.api.SchemaValidationRequest":
+      case "com.io7m.ironpage.types.resolution.api.SchemaResolvedSet": {
+        return true;
+      }
+      default:
+        return false;
+    }
+  }
+
+  private static Set<String> nonNullFieldsFor(
+    final Class<?> clazz)
+  {
+    final var declaredFieldNames =
+      Stream.of(clazz.getDeclaredFields())
+        .map(Field::getName)
+        .collect(Collectors.toSet());
+
+    declaredFieldNames.remove("$VALUES");
+    return declaredFieldNames;
+  }
+
+  private static Set<String> ignoreFieldsFor(
+    final Class<?> clazz)
+  {
+    switch (clazz.getCanonicalName()) {
+      case "com.io7m.ironpage.types.api.SchemaAttribute":
+      case "com.io7m.ironpage.types.api.AttributeTypeNameQualified":
+      case "com.io7m.ironpage.types.api.AttributeTypeNamed": {
+        return Set.of();
+      }
+      default: {
+        break;
+      }
+    }
+
+    final var transientFieldNames =
+      Stream.of(clazz.getDeclaredFields())
+        .filter(field -> Modifier.isTransient(field.getModifiers()))
+        .map(Field::getName)
+        .collect(Collectors.toSet());
+
+    final var declaredFieldNames =
+      Stream.of(clazz.getDeclaredFields())
+        .map(Field::getName)
+        .collect(Collectors.toSet());
+
+    if (declaredFieldNames.contains("type")) {
+      transientFieldNames.add("type");
+    }
+    return transientFieldNames;
+  }
+
+  @TestFactory
+  public Stream<DynamicTest> testEqualsReflectively()
   {
     final var reflections = new Reflections("com.io7m.ironpage");
-    final var types = reflections.getTypesAnnotatedWith(Value.Immutable.class);
+
+    final var types =
+      reflections.getTypesAnnotatedWith(Value.Immutable.class);
+
+    final var enums =
+      reflections.getSubTypesOf(Enum.class)
+        .stream()
+        .filter(Class::isEnum)
+        .collect(Collectors.toList());
+
+    types.addAll(enums);
 
     Assertions.assertTrue(types.size() > 30, "At least 30 subtypes must exist");
 
-    final Collection<Executable> executables = new ArrayList<>();
+    final Collection<DynamicTest> executables = new ArrayList<>();
 
     for (final var type : types) {
+      if (type.isEnum()) {
+        executables.add(testForClass(type));
+        continue;
+      }
+
       if (!type.isInterface()) {
         continue;
       }
 
-      final var subtypes =
-        reflections.getSubTypesOf(type);
-
-      final var names =
-        Stream.of(type.getMethods())
-          .filter(EqualsTest::isAttribute)
-          .map(Method::getName)
-          .collect(Collectors.toList());
-
+      final var subtypes = reflections.getSubTypesOf(type);
       for (final var subtype : subtypes) {
-        final Executable task = () -> {
-          final var name_array = new String[names.size()];
-          names.toArray(name_array);
+        if (isIgnoredClass(subtype)) {
+          continue;
+        }
 
-          LOG.debug("checking: {}: names: {}", subtype.getCanonicalName(), names);
-
-          try {
-            EqualsVerifier.forClass(subtype)
-              .withNonnullFields(name_array)
-              .verify();
-          } catch (final AssertionError e) {
-            checkTypeException(type, subtype, e);
-          }
-        };
-
-        executables.add(task);
+        executables.add(testForClass(subtype));
       }
     }
-
-    Assertions.assertAll(executables);
+    return executables.stream();
   }
 
-  private static void checkTypeException(
-    final Class<?> type,
-    final Class<?> subtype,
-    final AssertionError e)
+  private static DynamicTest testForClass(final Class<?> clazz)
   {
-    throw e;
+    final var task = taskForClass(clazz);
+    return DynamicTest.dynamicTest(
+      "testEqualsReflectively: " + clazz.getCanonicalName(), task);
   }
 
-  private static boolean isAttribute(final Method m)
+  private static Executable taskForClass(
+    final Class<?> clazz)
   {
-    if (Objects.equals(m.getDeclaringClass(), Object.class)) {
-      return false;
-    }
+    return () -> {
+      final var nnFields = nonNullFieldsFor(clazz);
+      final var nnArray = new String[nnFields.size()];
+      nnFields.toArray(nnArray);
 
-    if (m.isDefault()) {
-      final var ignore_names =
-        Set.of(
-          "baseType",
-          "compareTo",
-          "checkPreconditions",
-          "show");
+      final var igFields = ignoreFieldsFor(clazz);
+      final var igArray = new String[igFields.size()];
+      igFields.toArray(igArray);
 
-      return !ignore_names.contains(m.getName());
-    }
+      LOG.debug(
+        "checking: {} (nonnull {}, ignoring {})",
+        clazz.getCanonicalName(),
+        nnFields,
+        igFields);
 
-    return (m.getModifiers() & Modifier.ABSTRACT) == Modifier.ABSTRACT;
+      EqualsVerifier.forClass(clazz)
+        .withNonnullFields(nnArray)
+        .withIgnoredFields(igArray)
+        .verify();
+    };
   }
 }

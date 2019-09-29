@@ -40,9 +40,8 @@ import org.jooq.impl.SQLDataType;
 import java.sql.Connection;
 import java.sql.SQLDataException;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.text.MessageFormat;
-import java.time.Instant;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,24 +53,6 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 {
   private static final ResourceBundle RESOURCES =
     ResourceBundle.getBundle("com.io7m.ironpage.database.core.derby.Messages");
-
-  private final Connection connection;
-  private final DSLContext dslContext;
-
-  private static final Table<Record> TABLE_AUDIT =
-    DSL.table(DSL.name("core", "audit"));
-  private static final Field<Timestamp> FIELD_AUDIT_TIME =
-    DSL.field(DSL.name("audit_time"), SQLDataType.TIMESTAMP);
-  private static final Field<String> FIELD_AUDIT_TYPE =
-    DSL.field(DSL.name("audit_type"), SQLDataType.VARCHAR(64));
-  private static final Field<String> FIELD_AUDIT_ARG0 =
-    DSL.field(DSL.name("audit_arg0"), SQLDataType.VARCHAR(256));
-  private static final Field<String> FIELD_AUDIT_ARG1 =
-    DSL.field(DSL.name("audit_arg1"), SQLDataType.VARCHAR(256));
-  private static final Field<String> FIELD_AUDIT_ARG2 =
-    DSL.field(DSL.name("audit_arg2"), SQLDataType.VARCHAR(256));
-  private static final Field<String> FIELD_AUDIT_ARG3 =
-    DSL.field(DSL.name("audit_arg3"), SQLDataType.VARCHAR(256));
 
   private static final Table<Record> TABLE_USERS =
     DSL.table(DSL.name("core", "users"));
@@ -90,51 +71,20 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
   private static final Field<String> FIELD_USER_PASSWORD_ALGO =
     DSL.field(DSL.name("user_password_algo"), SQLDataType.VARCHAR(64));
 
+  private final Connection connection;
+  private final DSLContext dslContext;
+  private final CoreAuditQueries audit;
+  private final Clock clock;
+
   CoreAccountsDatabaseQueries(
+    final Clock inClock,
     final Connection inConnection)
   {
+    this.clock = Objects.requireNonNull(inClock, "clock");
     this.connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
-  }
-
-  @Override
-  public AccountsDatabaseUserDTO accountCreate(
-    final UUID id,
-    final String displayName,
-    final AccountsDatabasePasswordHashDTO password,
-    final String email,
-    final Optional<String> lockedReason)
-    throws AccountsDatabaseException
-  {
-    Objects.requireNonNull(id, "id");
-    Objects.requireNonNull(displayName, "displayName");
-    Objects.requireNonNull(password, "password");
-    Objects.requireNonNull(email, "email");
-    Objects.requireNonNull(lockedReason, "lockedReason");
-
-    try (var query = this.dslContext.insertInto(TABLE_USERS)
-      .set(FIELD_USER_ID, id)
-      .set(FIELD_USER_DISPLAY_NAME, displayName)
-      .set(FIELD_USER_EMAIL, email)
-      .set(FIELD_USER_LOCKED_REASON, lockedReason.orElse(null))
-      .set(FIELD_USER_PASSWORD_ALGO, password.algorithm())
-      .set(FIELD_USER_PASSWORD_SALT, toHex(password.salt()))
-      .set(FIELD_USER_PASSWORD_HASH, toHex(password.hash()))) {
-      query.execute();
-    } catch (final DataAccessException e) {
-      throw handleDataAccessException(id, displayName, e);
-    }
-
-    this.logAuditEvent("USER_CREATE", id, displayName, "");
-
-    return AccountsDatabaseUserDTO.builder()
-      .setId(id)
-      .setDisplayName(displayName)
-      .setPasswordHash(password)
-      .setEmail(email)
-      .setLocked(lockedReason)
-      .build();
+    this.audit = new CoreAuditQueries(this.clock, this.connection);
   }
 
   private static AccountsDatabaseException handleDataAccessException(
@@ -156,156 +106,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     return genericDatabaseException(new SQLException(cause));
   }
 
-  @Override
-  public AccountsDatabaseUserDTO accountUpdate(
-    final AccountsDatabaseUserDTO account)
-    throws AccountsDatabaseException
-  {
-    Objects.requireNonNull(account, "account");
-
-    final var existing = this.accountGet(account.id());
-
-    try (var query =
-           this.dslContext.update(TABLE_USERS)
-             .set(FIELD_USER_DISPLAY_NAME, account.displayName())
-             .set(FIELD_USER_EMAIL, account.email())
-             .set(FIELD_USER_LOCKED_REASON, account.locked().orElse(null))
-             .set(FIELD_USER_PASSWORD_ALGO, account.passwordHash().algorithm())
-             .set(FIELD_USER_PASSWORD_HASH, toHex(account.passwordHash().hash()))
-             .set(FIELD_USER_PASSWORD_SALT, toHex(account.passwordHash().salt()))
-             .where(FIELD_USER_ID.eq(account.id()))) {
-      query.execute();
-    } catch (final DataAccessException e) {
-      throw handleDataAccessException(account.id(), account.displayName(), e);
-    }
-
-    if (!Objects.equals(existing.displayName(), account.displayName())) {
-      this.logAuditEvent(
-        "USER_MODIFY_DISPLAY_NAME",
-        account.id(),
-        existing.displayName(),
-        account.displayName());
-    }
-
-    if (!Objects.equals(existing.email(), account.email())) {
-      this.logAuditEvent(
-        "USER_MODIFY_EMAIL",
-        account.id(),
-        existing.email(),
-        account.email());
-    }
-
-    if (!Objects.equals(existing.passwordHash(), account.passwordHash())) {
-      this.logAuditEvent(
-        "USER_MODIFY_PASSWORD",
-        account.id(),
-        "",
-        "");
-    }
-
-    if (!Objects.equals(existing.locked(), account.locked())) {
-      this.logAuditEvent(
-        "USER_MODIFY_LOCKED",
-        account.id(),
-        existing.locked().orElse(""),
-        account.locked().orElse(""));
-    }
-
-    return account;
-  }
-
   private static String toHex(final byte[] data)
   {
     return Hex.encodeHexString(data, true);
-  }
-
-  private void logAuditEvent(
-    final String eventType,
-    final UUID userId,
-    final String arg1,
-    final String arg2)
-    throws AccountsDatabaseException
-  {
-    try (var query = this.dslContext.insertInto(TABLE_AUDIT)
-      .set(FIELD_AUDIT_TIME, Timestamp.from(Instant.now()))
-      .set(FIELD_AUDIT_TYPE, eventType)
-      .set(FIELD_AUDIT_ARG0, userId.toString())
-      .set(FIELD_AUDIT_ARG1, arg1)
-      .set(FIELD_AUDIT_ARG2, arg2)
-      .set(FIELD_AUDIT_ARG3, "")) {
-      query.execute();
-    } catch (final DataAccessException e) {
-      throw genericDatabaseException(e);
-    }
-  }
-
-  @Override
-  public AccountsDatabaseUserDTO accountGet(final UUID userId)
-    throws AccountsDatabaseException
-  {
-    Objects.requireNonNull(userId, "userId");
-
-    try (var query = this.dslContext.select(
-      FIELD_USER_DISPLAY_NAME,
-      FIELD_USER_EMAIL,
-      FIELD_USER_ID,
-      FIELD_USER_LOCKED_REASON,
-      FIELD_USER_PASSWORD_HASH,
-      FIELD_USER_PASSWORD_SALT,
-      FIELD_USER_PASSWORD_ALGO)
-      .from(TABLE_USERS)
-      .where(FIELD_USER_ID.eq(userId))
-      .limit(1)) {
-
-      final var result = query.fetch();
-      if (result.isEmpty()) {
-        throw new AccountsDatabaseException(
-          ErrorSeverity.SEVERITY_ERROR,
-          NONEXISTENT,
-          localize("errorUserNonexistent"),
-          null,
-          TreeMap.of(localize("userID"), userId.toString()));
-      }
-
-      return accountFromRecord(result.get(0));
-    }
-  }
-
-  @Override
-  public Stream<AccountsDatabaseUserDTO> accountFind(
-    final Optional<UUID> userId,
-    final Optional<String> displayName,
-    final Optional<String> email)
-    throws AccountsDatabaseException
-  {
-    Objects.requireNonNull(userId, "userId");
-    Objects.requireNonNull(displayName, "displayName");
-    Objects.requireNonNull(email, "email");
-
-    final var conditions = new ArrayList<Condition>(3);
-    userId.ifPresent(
-      uuid -> conditions.add(FIELD_USER_ID.eq(uuid)));
-    displayName.ifPresent(
-      cmpDisplayName -> conditions.add(FIELD_USER_DISPLAY_NAME.eq(cmpDisplayName)));
-    email.ifPresent(
-      cmpEmail -> conditions.add(FIELD_USER_EMAIL.eq(cmpEmail)));
-
-    try {
-      return this.dslContext.select(
-        FIELD_USER_DISPLAY_NAME,
-        FIELD_USER_EMAIL,
-        FIELD_USER_ID,
-        FIELD_USER_LOCKED_REASON,
-        FIELD_USER_PASSWORD_HASH,
-        FIELD_USER_PASSWORD_SALT,
-        FIELD_USER_PASSWORD_ALGO)
-        .from(TABLE_USERS)
-        .where(conditions)
-        .fetchStream()
-        .map(CoreAccountsDatabaseQueries::accountFromRecord);
-    } catch (final DataAccessException e) {
-      throw genericDatabaseException(e);
-    }
   }
 
   private static AccountsDatabaseUserDTO accountFromRecord(
@@ -382,6 +185,192 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
   private static String localize(final String resource)
   {
     return RESOURCES.getString(resource);
+  }
+
+  @Override
+  public AccountsDatabaseUserDTO accountCreate(
+    final UUID id,
+    final String displayName,
+    final AccountsDatabasePasswordHashDTO password,
+    final String email,
+    final Optional<String> lockedReason)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(displayName, "displayName");
+    Objects.requireNonNull(password, "password");
+    Objects.requireNonNull(email, "email");
+    Objects.requireNonNull(lockedReason, "lockedReason");
+
+    try (var query = this.dslContext.insertInto(TABLE_USERS)
+      .set(FIELD_USER_ID, id)
+      .set(FIELD_USER_DISPLAY_NAME, displayName)
+      .set(FIELD_USER_EMAIL, email)
+      .set(FIELD_USER_LOCKED_REASON, lockedReason.orElse(null))
+      .set(FIELD_USER_PASSWORD_ALGO, password.algorithm())
+      .set(FIELD_USER_PASSWORD_SALT, toHex(password.salt()))
+      .set(FIELD_USER_PASSWORD_HASH, toHex(password.hash()))) {
+      query.execute();
+    } catch (final DataAccessException e) {
+      throw handleDataAccessException(id, displayName, e);
+    }
+
+    try {
+      this.audit.logAuditEvent("USER_CREATE", id, displayName, "");
+    } catch (final Exception e) {
+      throw genericDatabaseException(e);
+    }
+
+    return AccountsDatabaseUserDTO.builder()
+      .setId(id)
+      .setDisplayName(displayName)
+      .setPasswordHash(password)
+      .setEmail(email)
+      .setLocked(lockedReason)
+      .build();
+  }
+
+  @Override
+  public AccountsDatabaseUserDTO accountUpdate(
+    final AccountsDatabaseUserDTO account)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(account, "account");
+
+    final var existing = this.accountGet(account.id());
+
+    try (var query =
+           this.dslContext.update(TABLE_USERS)
+             .set(FIELD_USER_DISPLAY_NAME, account.displayName())
+             .set(FIELD_USER_EMAIL, account.email())
+             .set(FIELD_USER_LOCKED_REASON, account.locked().orElse(null))
+             .set(FIELD_USER_PASSWORD_ALGO, account.passwordHash().algorithm())
+             .set(FIELD_USER_PASSWORD_HASH, toHex(account.passwordHash().hash()))
+             .set(FIELD_USER_PASSWORD_SALT, toHex(account.passwordHash().salt()))
+             .where(FIELD_USER_ID.eq(account.id()))) {
+      query.execute();
+    } catch (final DataAccessException e) {
+      throw handleDataAccessException(account.id(), account.displayName(), e);
+    }
+
+    if (!Objects.equals(existing.displayName(), account.displayName())) {
+      try {
+        this.audit.logAuditEvent(
+          "USER_MODIFY_DISPLAY_NAME",
+          account.id(),
+          existing.displayName(),
+          account.displayName());
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+
+    if (!Objects.equals(existing.email(), account.email())) {
+      try {
+        this.audit.logAuditEvent(
+          "USER_MODIFY_EMAIL",
+          account.id(),
+          existing.email(),
+          account.email());
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+
+    if (!Objects.equals(existing.passwordHash(), account.passwordHash())) {
+      try {
+        this.audit.logAuditEvent(
+          "USER_MODIFY_PASSWORD",
+          account.id(),
+          "",
+          "");
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+
+    if (!Objects.equals(existing.locked(), account.locked())) {
+      try {
+        this.audit.logAuditEvent(
+          "USER_MODIFY_LOCKED",
+          account.id(),
+          existing.locked().orElse(""),
+          account.locked().orElse(""));
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+
+    return account;
+  }
+
+  @Override
+  public AccountsDatabaseUserDTO accountGet(final UUID userId)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(userId, "userId");
+
+    try (var query = this.dslContext.select(
+      FIELD_USER_DISPLAY_NAME,
+      FIELD_USER_EMAIL,
+      FIELD_USER_ID,
+      FIELD_USER_LOCKED_REASON,
+      FIELD_USER_PASSWORD_HASH,
+      FIELD_USER_PASSWORD_SALT,
+      FIELD_USER_PASSWORD_ALGO)
+      .from(TABLE_USERS)
+      .where(FIELD_USER_ID.eq(userId))
+      .limit(1)) {
+
+      final var result = query.fetch();
+      if (result.isEmpty()) {
+        throw new AccountsDatabaseException(
+          ErrorSeverity.SEVERITY_ERROR,
+          NONEXISTENT,
+          localize("errorUserNonexistent"),
+          null,
+          TreeMap.of(localize("userID"), userId.toString()));
+      }
+
+      return accountFromRecord(result.get(0));
+    }
+  }
+
+  @Override
+  public Stream<AccountsDatabaseUserDTO> accountFind(
+    final Optional<UUID> userId,
+    final Optional<String> displayName,
+    final Optional<String> email)
+    throws AccountsDatabaseException
+  {
+    Objects.requireNonNull(userId, "userId");
+    Objects.requireNonNull(displayName, "displayName");
+    Objects.requireNonNull(email, "email");
+
+    final var conditions = new ArrayList<Condition>(3);
+    userId.ifPresent(
+      uuid -> conditions.add(FIELD_USER_ID.eq(uuid)));
+    displayName.ifPresent(
+      cmpDisplayName -> conditions.add(FIELD_USER_DISPLAY_NAME.eq(cmpDisplayName)));
+    email.ifPresent(
+      cmpEmail -> conditions.add(FIELD_USER_EMAIL.eq(cmpEmail)));
+
+    try {
+      return this.dslContext.select(
+        FIELD_USER_DISPLAY_NAME,
+        FIELD_USER_EMAIL,
+        FIELD_USER_ID,
+        FIELD_USER_LOCKED_REASON,
+        FIELD_USER_PASSWORD_HASH,
+        FIELD_USER_PASSWORD_SALT,
+        FIELD_USER_PASSWORD_ALGO)
+        .from(TABLE_USERS)
+        .where(conditions)
+        .fetchStream()
+        .map(CoreAccountsDatabaseQueries::accountFromRecord);
+    } catch (final DataAccessException e) {
+      throw genericDatabaseException(e);
+    }
   }
 
 }

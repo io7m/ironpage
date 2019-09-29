@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,9 +67,23 @@ public final class CoreDatabasePartitionProviderDerby extends DatabasePartitionP
 
   public CoreDatabasePartitionProviderDerby()
   {
-    super(new DatabaseQueriesContructorCollection()
-            .put(AccountsDatabaseQueriesType.class, CoreAccountsDatabaseQueries::new)
-            .put(PagesDatabaseQueriesType.class, CorePagesDatabaseQueries::new));
+    this(Clock.systemUTC());
+  }
+
+  /**
+   * Construct a provider.
+   *
+   * @param clock The clock used for time-based queries
+   */
+
+  public CoreDatabasePartitionProviderDerby(
+    final Clock clock)
+  {
+    super(
+      clock,
+      new DatabaseQueriesContructorCollection()
+        .put(AccountsDatabaseQueriesType.class, CoreAccountsDatabaseQueries::new)
+        .put(PagesDatabaseQueriesType.class, CorePagesDatabaseQueries::new));
   }
 
   @Override

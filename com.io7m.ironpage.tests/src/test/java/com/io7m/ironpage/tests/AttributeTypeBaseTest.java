@@ -14,15 +14,24 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.tests;
 
-package com.io7m.ironpage.database.spi;
+import com.io7m.ironpage.types.api.AttributeTypeBase;
+import net.jqwik.api.ForAll;
+import net.jqwik.api.Property;
+import org.junit.jupiter.api.Assertions;
 
-import java.sql.Connection;
-import java.time.Clock;
-
-public interface DatabaseQueriesConstructorType<T extends DatabaseQueriesType>
+public final class AttributeTypeBaseTest
 {
-  T create(
-    Clock clock,
-    Connection connection);
+  @Property
+  public void testShow(
+    @ForAll final AttributeTypeBase type0,
+    @ForAll final AttributeTypeBase type1)
+  {
+    if (type0 == type1) {
+      Assertions.assertEquals(type0.toString(), type1.toString());
+    } else {
+      Assertions.assertNotEquals(type0.toString(), type1.toString());
+    }
+  }
 }

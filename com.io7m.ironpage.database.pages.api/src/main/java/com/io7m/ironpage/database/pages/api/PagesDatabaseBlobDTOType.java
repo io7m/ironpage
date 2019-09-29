@@ -19,7 +19,8 @@ package com.io7m.ironpage.database.pages.api;
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import org.immutables.value.Value;
 
-import java.util.OptionalLong;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * A page blob data transfer object.
@@ -29,6 +30,12 @@ import java.util.OptionalLong;
 @ImmutablesStyleType
 public interface PagesDatabaseBlobDTOType
 {
+  /**
+   * @return The user ID that owns the blob
+   */
+
+  UUID owner();
+
   /**
    * @return The blob ID
    */
@@ -50,8 +57,8 @@ public interface PagesDatabaseBlobDTOType
   byte[] data();
 
   /**
-   * @return The ID of the blob redaction, if one has been issued
+   * @return The blob redaction, if one has been issued
    */
 
-  OptionalLong redaction();
+  Optional<PagesDatabaseRedactionDTO> redaction();
 }

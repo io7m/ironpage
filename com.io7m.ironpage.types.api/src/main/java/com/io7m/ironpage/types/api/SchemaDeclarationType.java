@@ -79,6 +79,7 @@ public interface SchemaDeclarationType
    */
 
   @Value.Derived
+  @Value.Auxiliary
   default SortedMap<SchemaName, SchemaIdentifier> importsByName()
   {
     final var imports = this.imports();
@@ -108,6 +109,7 @@ public interface SchemaDeclarationType
    */
 
   @Value.Derived
+  @Value.Auxiliary
   default SortedMap<AttributeTypeName, AttributeTypeNamed> typesByName()
   {
     final var types = this.types();
@@ -137,6 +139,7 @@ public interface SchemaDeclarationType
    */
 
   @Value.Derived
+  @Value.Auxiliary
   default SortedMap<AttributeName, SchemaAttribute> attributesByName()
   {
     final var attrs = this.attributes();
