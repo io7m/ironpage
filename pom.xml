@@ -38,6 +38,7 @@
     <module>com.io7m.ironpage.types.resolution.vanilla</module>
     <module>com.io7m.ironpage.validator.api</module>
     <module>com.io7m.ironpage.validator.vanilla</module>
+    <module>com.io7m.ironpage.database.pages.api</module>
   </modules>
 
   <properties>
@@ -181,6 +182,11 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>3.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.reflections</groupId>
+        <artifactId>reflections</artifactId>
+        <version>0.9.11</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>

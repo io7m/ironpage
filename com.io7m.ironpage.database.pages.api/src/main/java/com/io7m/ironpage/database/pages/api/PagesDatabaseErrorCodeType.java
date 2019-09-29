@@ -14,24 +14,24 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.database.pages.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
+
 /**
- * Document database (Core Derby implementation)
+ * A pages database error code.
  */
 
-module com.io7m.ironpage.database.core.derby
+@ImmutablesStyleType
+@Value.Immutable
+public interface PagesDatabaseErrorCodeType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.service.component.annotations;
+  /**
+   * @return The error code value
+   */
 
-  requires org.apache.commons.codec;
-  requires org.apache.derby.commons;
-  requires org.jooq;
-  requires org.slf4j;
-
-  requires transitive com.io7m.ironpage.database.accounts.api;
-  requires transitive com.io7m.ironpage.database.pages.api;
-  requires transitive com.io7m.ironpage.database.spi;
-
-  provides com.io7m.ironpage.database.spi.DatabasePartitionProviderType
-    with com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
+  @Value.Parameter
+  String code();
 }

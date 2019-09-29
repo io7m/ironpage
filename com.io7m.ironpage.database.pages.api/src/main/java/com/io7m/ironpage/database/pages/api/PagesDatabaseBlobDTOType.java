@@ -14,24 +14,44 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.database.pages.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
+
+import java.util.OptionalLong;
+
 /**
- * Document database (Core Derby implementation)
+ * A page blob data transfer object.
  */
 
-module com.io7m.ironpage.database.core.derby
+@Value.Immutable
+@ImmutablesStyleType
+public interface PagesDatabaseBlobDTOType
 {
-  requires static org.osgi.annotation.bundle;
-  requires static org.osgi.service.component.annotations;
+  /**
+   * @return The blob ID
+   */
 
-  requires org.apache.commons.codec;
-  requires org.apache.derby.commons;
-  requires org.jooq;
-  requires org.slf4j;
+  String id();
 
-  requires transitive com.io7m.ironpage.database.accounts.api;
-  requires transitive com.io7m.ironpage.database.pages.api;
-  requires transitive com.io7m.ironpage.database.spi;
+  /**
+   * @return The IANA media type
+   *
+   * @see "https://www.iana.org/assignments/media-types/media-types.xhtml"
+   */
 
-  provides com.io7m.ironpage.database.spi.DatabasePartitionProviderType
-    with com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
+  String mediaType();
+
+  /**
+   * @return The blob data
+   */
+
+  byte[] data();
+
+  /**
+   * @return The ID of the blob redaction, if one has been issued
+   */
+
+  OptionalLong redaction();
 }

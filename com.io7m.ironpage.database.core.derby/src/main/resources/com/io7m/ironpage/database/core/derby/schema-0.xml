@@ -35,13 +35,13 @@ create table core.audit (
   <statement>
     <![CDATA[
 create table core.users (
-  user_id                    char (36) not null,
-  user_password_algo         varchar (64) not null,
-  user_password_hash         varchar (64) not null,
-  user_password_salt         varchar (64) not null,
-  user_email                 varchar (128) not null,
-  user_display_name          varchar (128) not null,
-  user_locked_reason         varchar (128),
+  user_id               char (36) not null,
+  user_password_algo    varchar (64) not null,
+  user_password_hash    varchar (64) not null,
+  user_password_salt    varchar (64) not null,
+  user_email            varchar (128) not null,
+  user_display_name     varchar (128) not null,
+  user_locked_reason    varchar (128),
 
   constraint user_id_key primary key (user_id),
   constraint user_id_lower check (user_id = lower(user_id)),
@@ -69,28 +69,15 @@ create table core.redactions (
 
   <statement>
     <![CDATA[
-create table core.metadata (
-  meta_id           char (64) not null,
-  meta_data         blob (16M) not null,
-  meta_redaction    bigint,
+create table core.blobs (
+  blob_id            char (64) not null,
+  blob_data          blob (8M) not null,
+  blob_media_type    varchar (128) not null,
+  blob_redaction     bigint,
 
-  constraint meta_id_key primary key (meta_id),
-  constraint meta_id_lower check (meta_id = lower(meta_id)),
-  constraint meta_redaction_reference foreign key (meta_redaction) references core.redactions (redaction_id)
-)
-    ]]>
-  </statement>
-
-  <statement>
-    <![CDATA[
-create table core.data (
-  data_id           char (64) not null,
-  data_data         blob (128M) not null,
-  data_redaction    bigint,
-
-  constraint data_id_key primary key (data_id),
-  constraint data_id_lower check (data_id = lower(data_id)),
-  constraint data_redaction_reference foreign key (data_redaction) references core.redactions (redaction_id)
+  constraint blob_id_key primary key (blob_id),
+  constraint blob_id_lower check (blob_id = lower(blob_id)),
+  constraint blob_redaction_reference foreign key (blob_redaction) references core.redactions (redaction_id)
 )
     ]]>
   </statement>
@@ -103,8 +90,8 @@ create table core.page_revisions (
   revision_data_id    char (64) not null,
 
   constraint revision_id primary key (revision_id),
-  constraint revision_meta_id_ref foreign key (revision_meta_id) references core.metadata (meta_id),
-  constraint revision_data_id_ref foreign key (revision_data_id) references core.data (data_id)
+  constraint revision_meta_id_ref foreign key (revision_meta_id) references core.blobs (blob_id),
+  constraint revision_data_id_ref foreign key (revision_data_id) references core.blobs (blob_id)
 )
     ]]>
   </statement>

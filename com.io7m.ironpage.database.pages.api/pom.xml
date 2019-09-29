@@ -11,18 +11,13 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.ironpage.database.core.derby</artifactId>
+  <artifactId>com.io7m.ironpage.database.pages.api</artifactId>
 
-  <name>com.io7m.ironpage.database.core.derby</name>
-  <description>Document database (Core Derby implementation)</description>
+  <name>com.io7m.ironpage.database.pages.api</name>
+  <description>Document database (Pages database API)</description>
   <url>http://github.com/io7m/ironpage</url>
 
   <dependencies>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.database.spi</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.ironpage.errors.api</artifactId>
@@ -30,12 +25,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.database.accounts.api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.database.pages.api</artifactId>
+      <artifactId>com.io7m.ironpage.database.spi</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -44,29 +34,18 @@
       <artifactId>vavr</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derbyshared</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.service.component.annotations</artifactId>
+      <artifactId>org.osgi.annotation.bundle</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.annotation.bundle</artifactId>
+      <groupId>org.immutables</groupId>
+      <artifactId>value</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.immutables.style</groupId>
+      <artifactId>com.io7m.immutables.style</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>

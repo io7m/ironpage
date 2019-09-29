@@ -29,11 +29,13 @@ import java.util.Objects;
 final class DatabaseDerbyTransaction implements DatabaseTransactionType
 {
   private final DatabaseDerbyConnection connection;
+  private final DatabaseDerbyProvider provider;
 
   DatabaseDerbyTransaction(
     final DatabaseDerbyConnection inConnection)
   {
     this.connection = Objects.requireNonNull(inConnection, "connection");
+    this.provider = this.connection.database().provider();
   }
 
   @Override
@@ -43,7 +45,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
     try {
       this.connection.pooledConnection().getConnection().close();
     } catch (final SQLException e) {
-      throw this.connection.database().provider().ofSQLException("errorConnectionClose", e);
+      throw this.provider.ofSQLException("errorConnectionClose", e);
     }
   }
 
@@ -54,7 +56,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
     try {
       this.connection.pooledConnection().getConnection().commit();
     } catch (final SQLException e) {
-      throw this.connection.database().provider().ofSQLException("errorConnectionCommit", e);
+      throw this.provider.ofSQLException("errorConnectionCommit", e);
     }
   }
 
@@ -65,7 +67,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
     try {
       this.connection.pooledConnection().getConnection().rollback();
     } catch (final SQLException e) {
-      throw this.connection.database().provider().ofSQLException("errorConnectionRollback", e);
+      throw this.provider.ofSQLException("errorConnectionRollback", e);
     }
   }
 
@@ -76,13 +78,13 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
     final var database = this.connection.database();
 
     try {
-      final var providerOpt =
+      final var partitionProviderOpt =
         database.partitionProviders()
           .findProviderForDialectAndQueries("DERBY", queriesClass);
 
-      if (providerOpt.isPresent()) {
-        final var provider = providerOpt.get();
-        return provider.queriesCreate(
+      if (partitionProviderOpt.isPresent()) {
+        final var partitionProvider = partitionProviderOpt.get();
+        return partitionProvider.queriesCreate(
           this.connection.pooledConnection().getConnection(), queriesClass);
       }
 
@@ -93,7 +95,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
         TreeMap.of(this.localize("queriesClass"), queriesClass.getCanonicalName())
       );
     } catch (final SQLException e) {
-      throw database.provider().ofSQLException("errorCreateQueries", e);
+      throw this.provider.ofSQLException("errorCreateQueries", e);
     }
   }
 
