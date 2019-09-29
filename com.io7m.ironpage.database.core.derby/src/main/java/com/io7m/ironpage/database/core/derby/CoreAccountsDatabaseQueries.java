@@ -21,6 +21,7 @@ import com.io7m.ironpage.database.accounts.api.AccountsDatabasePasswordHashDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseSessionDTO;
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseUserDTO;
+import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import com.io7m.jaffirm.core.Invariants;
 import io.vavr.collection.TreeMap;
@@ -52,12 +53,12 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_CREATED;
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_DISPLAY_NAME;
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_EMAIL;
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_LOCKED;
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_PASSWORD;
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_SESSION_CREATED;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_CREATED;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_DISPLAY_NAME;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_EMAIL;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_LOCKED;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_PASSWORD;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_SESSION_CREATED;
 
 final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 {
@@ -235,7 +236,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     }
 
     try {
-      this.audit.logAuditEvent(USER_CREATED, id, displayName, "", "");
+      this.audit.auditEventLog(USER_CREATED, id, displayName, "", "");
     } catch (final Exception e) {
       throw genericDatabaseException(e);
     }
@@ -276,7 +277,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
     if (!Objects.equals(existing.displayName(), account.displayName())) {
       try {
-        this.audit.logAuditEvent(
+        this.audit.auditEventLog(
           USER_MODIFIED_DISPLAY_NAME,
           caller,
           account.id().toString(),
@@ -289,7 +290,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
     if (!Objects.equals(existing.email(), account.email())) {
       try {
-        this.audit.logAuditEvent(
+        this.audit.auditEventLog(
           USER_MODIFIED_EMAIL,
           caller,
           account.id().toString(),
@@ -302,7 +303,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
     if (!Objects.equals(existing.passwordHash(), account.passwordHash())) {
       try {
-        this.audit.logAuditEvent(
+        this.audit.auditEventLog(
           USER_MODIFIED_PASSWORD,
           caller,
           account.id().toString(),
@@ -315,7 +316,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
     if (!Objects.equals(existing.locked(), account.locked())) {
       try {
-        this.audit.logAuditEvent(
+        this.audit.auditEventLog(
           USER_MODIFIED_LOCKED,
           caller,
           account.id().toString(),
@@ -416,7 +417,11 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
              .set(FIELD_SESSION_USER_ID, owner)) {
       query.execute();
 
-      this.audit.logAuditEvent(USER_SESSION_CREATED, owner, session, "", "");
+      try {
+        this.audit.auditEventLog(USER_SESSION_CREATED, owner, session, "", "");
+      } catch (final DatabaseException e) {
+        throw genericDatabaseException(e);
+      }
 
       return AccountsDatabaseSessionDTO.builder()
         .setId(session)

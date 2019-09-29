@@ -20,6 +20,7 @@ import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseException;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
+import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import io.vavr.collection.TreeMap;
 import org.apache.commons.codec.binary.Hex;
@@ -49,8 +50,8 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.BLOB_CREATED;
-import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.BLOB_REDACTED;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.BLOB_CREATED;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.BLOB_REDACTED;
 
 final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
 {
@@ -218,7 +219,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     }
 
     try {
-      this.audit.logAuditEvent(BLOB_CREATED, owner, hash, "", "");
+      this.audit.auditEventLog(BLOB_CREATED, owner, hash, "", "");
     } catch (final Exception e) {
       throw genericDatabaseException(e);
     }
@@ -348,7 +349,11 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       throw genericDatabaseException(e);
     }
 
-    this.audit.logAuditEvent(BLOB_REDACTED, caller, id, String.valueOf(redaction), "");
+    try {
+      this.audit.auditEventLog(BLOB_REDACTED, caller, id, String.valueOf(redaction), "");
+    } catch (final DatabaseException e) {
+      throw genericDatabaseException(e);
+    }
 
     /*
      * Zero out the blob and update the blob redaction field.

@@ -14,13 +14,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.ironpage.database.core.derby;
+package com.io7m.ironpage.database.audit.api;
 
 /**
- * The kind of audit events.
+ * The set of predefined audit events.
  */
 
-public enum CoreAuditEventKind
+public enum AuditEventKind implements AuditEventType
 {
   /**
    * A blob was created.

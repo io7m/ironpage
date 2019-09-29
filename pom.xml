@@ -26,8 +26,10 @@
   <modules>
     <module>com.io7m.ironpage.database.accounts.api</module>
     <module>com.io7m.ironpage.database.api</module>
+    <module>com.io7m.ironpage.database.audit.api</module>
     <module>com.io7m.ironpage.database.core.derby</module>
     <module>com.io7m.ironpage.database.derby</module>
+    <module>com.io7m.ironpage.database.pages.api</module>
     <module>com.io7m.ironpage.database.spi</module>
     <module>com.io7m.ironpage.errors.api</module>
     <module>com.io7m.ironpage.presentable.api</module>
@@ -38,7 +40,6 @@
     <module>com.io7m.ironpage.types.resolution.vanilla</module>
     <module>com.io7m.ironpage.validator.api</module>
     <module>com.io7m.ironpage.validator.vanilla</module>
-    <module>com.io7m.ironpage.database.pages.api</module>
   </modules>
 
   <properties>

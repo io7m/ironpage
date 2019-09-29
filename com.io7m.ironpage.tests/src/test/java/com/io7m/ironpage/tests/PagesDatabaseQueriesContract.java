@@ -278,4 +278,42 @@ public abstract class PagesDatabaseQueriesContract
     Assertions.assertEquals(hash, blob.id());
     Assertions.assertEquals(Optional.of(blobRedaction), blob.redaction());
   }
+
+  /**
+   * Redacting a nonexistent blob fails.
+   *
+   * @throws Exception If required
+   */
+
+  @Test
+  public final void testPagesBlobRedactionNonexistent()
+    throws Exception
+  {
+    final var transaction = this.transaction();
+
+    final var accountsQueries =
+      transaction.queries(AccountsDatabaseQueriesType.class);
+
+    final var account =
+      accountsQueries.accountCreate(
+        UUID.randomUUID(),
+        "User",
+        AccountsDatabasePasswordHashDTO.builder()
+          .setParameters("params")
+          .setHash((byte) 0x0)
+          .build(),
+        "someone@example.com",
+        Optional.empty());
+
+    final var queries = transaction.queries(PagesDatabaseQueriesType.class);
+
+    final var ex = Assertions.assertThrows(PagesDatabaseException.class, () -> {
+      queries.pageBlobRedact(
+        account.id(),
+        "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
+        "Redacted for testing");
+    });
+
+    Assertions.assertEquals(PagesDatabaseQueriesType.DATA_NONEXISTENT, ex.errorCode());
+  }
 }

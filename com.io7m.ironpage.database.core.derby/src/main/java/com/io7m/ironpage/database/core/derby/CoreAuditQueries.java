@@ -17,6 +17,9 @@
 
 package com.io7m.ironpage.database.core.derby;
 
+import com.io7m.ironpage.database.audit.api.AuditDatabaseQueriesType;
+import com.io7m.ironpage.database.spi.DatabaseException;
+import com.io7m.ironpage.errors.api.ErrorSeverity;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -24,6 +27,7 @@ import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
@@ -31,9 +35,8 @@ import java.sql.Connection;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.util.Objects;
-import java.util.UUID;
 
-final class CoreAuditQueries
+final class CoreAuditQueries implements AuditDatabaseQueriesType
 {
   private static final Table<Record> TABLE_AUDIT =
     DSL.table(DSL.name("core", "audit"));
@@ -64,21 +67,31 @@ final class CoreAuditQueries
     this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
   }
 
-  void logAuditEvent(
-    final CoreAuditEventKind eventType,
-    final UUID userId,
+  @Override
+  public void auditEventLog(
+    final String eventType,
+    final String arg0,
     final String arg1,
     final String arg2,
     final String arg3)
+    throws DatabaseException
   {
+    Objects.requireNonNull(eventType, "eventType");
+    Objects.requireNonNull(arg0, "arg0");
+    Objects.requireNonNull(arg1, "arg1");
+    Objects.requireNonNull(arg2, "arg2");
+    Objects.requireNonNull(arg3, "arg3");
+
     try (var query = this.dslContext.insertInto(TABLE_AUDIT)
       .set(FIELD_AUDIT_TIME, Timestamp.from(this.clock.instant()))
-      .set(FIELD_AUDIT_TYPE, eventType.name())
-      .set(FIELD_AUDIT_ARG0, userId.toString())
+      .set(FIELD_AUDIT_TYPE, eventType)
+      .set(FIELD_AUDIT_ARG0, arg0)
       .set(FIELD_AUDIT_ARG1, arg1)
       .set(FIELD_AUDIT_ARG2, arg2)
       .set(FIELD_AUDIT_ARG3, arg3)) {
       query.execute();
+    } catch (final DataAccessException e) {
+      throw new DatabaseException(ErrorSeverity.SEVERITY_ERROR, e.getLocalizedMessage(), e);
     }
   }
 }

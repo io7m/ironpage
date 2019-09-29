@@ -17,6 +17,7 @@
 package com.io7m.ironpage.database.core.derby;
 
 import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
+import com.io7m.ironpage.database.audit.api.AuditDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.database.spi.DatabasePartitionProviderAbstract;
@@ -77,7 +78,9 @@ public final class CoreDatabasePartitionProviderDerby extends DatabasePartitionP
       clock,
       new DatabaseQueriesContructorCollection()
         .put(AccountsDatabaseQueriesType.class, CoreAccountsDatabaseQueries::new)
-        .put(PagesDatabaseQueriesType.class, CorePagesDatabaseQueries::new));
+        .put(AuditDatabaseQueriesType.class, CoreAuditQueries::new)
+        .put(PagesDatabaseQueriesType.class, CorePagesDatabaseQueries::new)
+    );
   }
 
   private static DatabaseSchemaRevisionType loadRevision(

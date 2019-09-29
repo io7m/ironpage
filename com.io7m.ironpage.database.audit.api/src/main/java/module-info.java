@@ -15,25 +15,16 @@
  */
 
 /**
- * Document database (Core Derby implementation)
+ * Document database (Audit database API)
  */
 
-module com.io7m.ironpage.database.core.derby
+module com.io7m.ironpage.database.audit.api
 {
+  requires static com.io7m.immutables.style;
+  requires static org.immutables.value;
   requires static org.osgi.annotation.bundle;
-  requires static org.osgi.service.component.annotations;
 
-  requires com.io7m.jaffirm.core;
-  requires org.apache.commons.codec;
-  requires org.apache.derby.commons;
-  requires org.jooq;
-  requires org.slf4j;
+  requires com.io7m.ironpage.database.spi;
 
-  requires transitive com.io7m.ironpage.database.accounts.api;
-  requires transitive com.io7m.ironpage.database.audit.api;
-  requires transitive com.io7m.ironpage.database.pages.api;
-  requires transitive com.io7m.ironpage.database.spi;
-
-  provides com.io7m.ironpage.database.spi.DatabasePartitionProviderType
-    with com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
+  exports com.io7m.ironpage.database.audit.api;
 }
