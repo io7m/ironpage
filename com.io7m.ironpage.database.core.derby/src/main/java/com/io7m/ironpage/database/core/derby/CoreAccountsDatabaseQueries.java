@@ -49,6 +49,12 @@ import java.util.ResourceBundle;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_CREATED;
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_DISPLAY_NAME;
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_EMAIL;
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_LOCKED;
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.USER_MODIFIED_PASSWORD;
+
 final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 {
   private static final ResourceBundle RESOURCES =
@@ -216,7 +222,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     }
 
     try {
-      this.audit.logAuditEvent("USER_CREATE", id, displayName, "");
+      this.audit.logAuditEvent(USER_CREATED, id, displayName, "", "");
     } catch (final Exception e) {
       throw genericDatabaseException(e);
     }
@@ -232,9 +238,11 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
   @Override
   public AccountsDatabaseUserDTO accountUpdate(
+    final UUID caller,
     final AccountsDatabaseUserDTO account)
     throws AccountsDatabaseException
   {
+    Objects.requireNonNull(caller, "caller");
     Objects.requireNonNull(account, "account");
 
     final var existing = this.accountGet(account.id());
@@ -256,8 +264,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     if (!Objects.equals(existing.displayName(), account.displayName())) {
       try {
         this.audit.logAuditEvent(
-          "USER_MODIFY_DISPLAY_NAME",
-          account.id(),
+          USER_MODIFIED_DISPLAY_NAME,
+          caller,
+          account.id().toString(),
           existing.displayName(),
           account.displayName());
       } catch (final Exception e) {
@@ -268,8 +277,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     if (!Objects.equals(existing.email(), account.email())) {
       try {
         this.audit.logAuditEvent(
-          "USER_MODIFY_EMAIL",
-          account.id(),
+          USER_MODIFIED_EMAIL,
+          caller,
+          account.id().toString(),
           existing.email(),
           account.email());
       } catch (final Exception e) {
@@ -280,8 +290,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     if (!Objects.equals(existing.passwordHash(), account.passwordHash())) {
       try {
         this.audit.logAuditEvent(
-          "USER_MODIFY_PASSWORD",
-          account.id(),
+          USER_MODIFIED_PASSWORD,
+          caller,
+          account.id().toString(),
           "",
           "");
       } catch (final Exception e) {
@@ -292,8 +303,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     if (!Objects.equals(existing.locked(), account.locked())) {
       try {
         this.audit.logAuditEvent(
-          "USER_MODIFY_LOCKED",
-          account.id(),
+          USER_MODIFIED_LOCKED,
+          caller,
+          account.id().toString(),
           existing.locked().orElse(""),
           account.locked().orElse(""));
       } catch (final Exception e) {
@@ -305,7 +317,8 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
   }
 
   @Override
-  public AccountsDatabaseUserDTO accountGet(final UUID userId)
+  public AccountsDatabaseUserDTO accountGet(
+    final UUID userId)
     throws AccountsDatabaseException
   {
     Objects.requireNonNull(userId, "userId");

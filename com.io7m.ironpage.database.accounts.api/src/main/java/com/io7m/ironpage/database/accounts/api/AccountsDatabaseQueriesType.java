@@ -108,6 +108,7 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
   /**
    * Update an account.
    *
+   * @param caller  The account performing the change (may not be the same as the target account)
    * @param account The account
    *
    * @return An updated account
@@ -116,6 +117,7 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    */
 
   AccountsDatabaseUserDTO accountUpdate(
+    UUID caller,
     AccountsDatabaseUserDTO account)
     throws AccountsDatabaseException;
 

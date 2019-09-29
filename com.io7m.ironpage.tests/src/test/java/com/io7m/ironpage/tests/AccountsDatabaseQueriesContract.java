@@ -356,7 +356,7 @@ public abstract class AccountsDatabaseQueriesContract
                            .build())
         .build();
 
-    final var resulting = queries.accountUpdate(updatedAccount);
+    final var resulting = queries.accountUpdate(account.id(), updatedAccount);
     Assertions.assertEquals(updatedAccount, resulting);
   }
 
@@ -390,7 +390,7 @@ public abstract class AccountsDatabaseQueriesContract
         .build();
 
     final var ex = Assertions.assertThrows(AccountsDatabaseException.class, () -> {
-      queries.accountUpdate(account);
+      queries.accountUpdate(account.id(), account);
     });
 
     LOG.error("", ex);
@@ -435,7 +435,7 @@ public abstract class AccountsDatabaseQueriesContract
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
           .build();
 
-      queries.accountUpdate(account1);
+      queries.accountUpdate(account.id(), account1);
     });
 
     LOG.error("", ex);

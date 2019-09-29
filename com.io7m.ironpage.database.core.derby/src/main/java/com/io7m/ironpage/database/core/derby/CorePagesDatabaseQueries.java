@@ -49,6 +49,9 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.BLOB_CREATED;
+import static com.io7m.ironpage.database.core.derby.CoreAuditEventKind.BLOB_REDACTED;
+
 final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
 {
   private static final ResourceBundle RESOURCES =
@@ -215,7 +218,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     }
 
     try {
-      this.audit.logAuditEvent("BLOB_CREATE", owner, hash, "");
+      this.audit.logAuditEvent(BLOB_CREATED, owner, hash, "", "");
     } catch (final Exception e) {
       throw genericDatabaseException(e);
     }
@@ -297,12 +300,12 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
 
   @Override
   public void pageBlobRedact(
-    final UUID owner,
+    final UUID caller,
     final String id,
     final String reason)
     throws PagesDatabaseException
   {
-    Objects.requireNonNull(owner, "owner");
+    Objects.requireNonNull(caller, "caller");
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(reason, "reason");
 
@@ -314,7 +317,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     try (var query = this.dslContext.insertInto(TABLE_REDACTIONS)
       .set(FIELD_REDACTION_REASON, reason)
       .set(FIELD_REDACTION_TIME, timestamp)
-      .set(FIELD_REDACTION_USER_ID, owner)) {
+      .set(FIELD_REDACTION_USER_ID, caller)) {
       final var updates = query.execute();
       if (updates != 1) {
         throw genericDatabaseExceptionFormatted(
@@ -337,7 +340,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       .where(
         FIELD_REDACTION_REASON.eq(reason),
         FIELD_REDACTION_TIME.eq(timestamp),
-        FIELD_REDACTION_USER_ID.eq(owner))
+        FIELD_REDACTION_USER_ID.eq(caller))
       .orderBy(FIELD_REDACTION_ID.asc())
       .limit(1)) {
       redaction = query.fetchOne().value1();
@@ -345,7 +348,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       throw genericDatabaseException(e);
     }
 
-    this.audit.logAuditEvent("BLOB_REDACTION", owner, id, String.valueOf(redaction));
+    this.audit.logAuditEvent(BLOB_REDACTED, caller, id, String.valueOf(redaction), "");
 
     /*
      * Zero out the blob and update the blob redaction field.

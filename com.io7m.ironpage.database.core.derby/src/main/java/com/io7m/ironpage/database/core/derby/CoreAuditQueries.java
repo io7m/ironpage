@@ -65,18 +65,19 @@ final class CoreAuditQueries
   }
 
   void logAuditEvent(
-    final String eventType,
+    final CoreAuditEventKind eventType,
     final UUID userId,
     final String arg1,
-    final String arg2)
+    final String arg2,
+    final String arg3)
   {
     try (var query = this.dslContext.insertInto(TABLE_AUDIT)
       .set(FIELD_AUDIT_TIME, Timestamp.from(this.clock.instant()))
-      .set(FIELD_AUDIT_TYPE, eventType)
+      .set(FIELD_AUDIT_TYPE, eventType.name())
       .set(FIELD_AUDIT_ARG0, userId.toString())
       .set(FIELD_AUDIT_ARG1, arg1)
       .set(FIELD_AUDIT_ARG2, arg2)
-      .set(FIELD_AUDIT_ARG3, "")) {
+      .set(FIELD_AUDIT_ARG3, arg3)) {
       query.execute();
     }
   }
