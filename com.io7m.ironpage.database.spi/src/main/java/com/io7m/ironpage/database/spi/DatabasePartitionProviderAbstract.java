@@ -47,7 +47,7 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
   private Optional<BigInteger> installedSchemaVersion;
   private Optional<NavigableMap<BigInteger, DatabaseSchemaRevisionType>> schemaRevisions;
 
-  protected <T extends DatabaseQueriesType> DatabasePartitionProviderAbstract(
+  protected DatabasePartitionProviderAbstract(
     final Clock inClock,
     final DatabaseQueriesContructorCollection inQueryConstructors)
   {

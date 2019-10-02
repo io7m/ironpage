@@ -27,9 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.Objects;
-import java.util.ResourceBundle;
 
 /**
  * A provider of Derby databases.
@@ -40,7 +38,6 @@ public final class DatabaseDerbyProvider implements DatabaseProviderType
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseDerbyProvider.class);
 
   private final DatabasePartitionProviderRegistryType registry;
-  private final ResourceBundle resources;
 
   /**
    * Construct a Derby database provider.
@@ -53,8 +50,15 @@ public final class DatabaseDerbyProvider implements DatabaseProviderType
   {
     this.registry =
       Objects.requireNonNull(inRegistry, "registry");
-    this.resources =
-      ResourceBundle.getBundle("com.io7m.ironpage.database.derby.Messages");
+  }
+
+  static DatabaseException ofSQLException(
+    final String resourceId,
+    final SQLException e)
+  {
+    return new DatabaseException(
+      DatabaseMessages.localize(resourceId, e.getLocalizedMessage()),
+      e);
   }
 
   @Override
@@ -63,11 +67,12 @@ public final class DatabaseDerbyProvider implements DatabaseProviderType
   {
     Objects.requireNonNull(parameters, "parameters");
 
-    LOG.info("open: {}", parameters.path());
+    final var path = parameters.path();
+    LOG.info("open: {}", path);
 
     try {
       final var dataSource = new EmbeddedConnectionPoolDataSource();
-      dataSource.setDatabaseName(parameters.path());
+      dataSource.setDatabaseName(path);
       dataSource.setCreateDatabase("true");
       dataSource.setConnectionAttributes("create=true");
 
@@ -94,23 +99,8 @@ public final class DatabaseDerbyProvider implements DatabaseProviderType
     } catch (final Exception e) {
       throw new DatabaseException(
         ErrorSeverity.SEVERITY_ERROR,
-        MessageFormat.format(this.localize("errorOpenDatabase"), e.getLocalizedMessage()),
+        DatabaseMessages.localize("errorOpenDatabase", e.getLocalizedMessage()),
         e);
     }
-  }
-
-  DatabaseException ofSQLException(
-    final String resourceId,
-    final SQLException e)
-  {
-    return new DatabaseException(
-      MessageFormat.format(this.localize(resourceId), e.getMessage()),
-      e);
-  }
-
-  String localize(
-    final String resource)
-  {
-    return this.resources.getString(resource);
   }
 }

@@ -163,9 +163,10 @@ public final class SchemaResolver implements SchemaResolverType
         final var resultOpt = service.findSchema(schema);
         if (resultOpt.isPresent()) {
           final var result = resultOpt.get();
+          final var schemaId = result.identifier();
           Invariants.checkInvariant(
-            result.identifier(),
-            Objects.equals(result.identifier(), schema),
+            schemaId,
+            Objects.equals(schemaId, schema),
             schemaIdentifier -> "Returned schema identifier must match " + schema.show());
           return resultOpt;
         }

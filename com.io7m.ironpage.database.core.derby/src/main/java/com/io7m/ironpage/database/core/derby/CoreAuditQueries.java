@@ -55,7 +55,6 @@ final class CoreAuditQueries implements AuditDatabaseQueriesType
   private static final Field<String> FIELD_AUDIT_ARG3 =
     DSL.field(DSL.name("audit_arg3"), SQLDataType.VARCHAR(256));
 
-  private final Connection connection;
   private final DSLContext dslContext;
   private final Clock clock;
 
@@ -64,9 +63,9 @@ final class CoreAuditQueries implements AuditDatabaseQueriesType
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "clock");
-    this.connection = Objects.requireNonNull(inConnection, "connection");
+    final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
-    this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
+    this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
   }
 
   private static AuditDatabaseEventDTO eventFromRecord(

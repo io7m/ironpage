@@ -40,7 +40,6 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.TreeMap;
 
 /**
@@ -51,15 +50,13 @@ public final class SchemaValidator implements SchemaValidatorType
 {
   private static final Logger LOG = LoggerFactory.getLogger(SchemaValidator.class);
 
-  private final ResourceBundle resources;
+  private final SchemaValidatorMessages messages;
 
   SchemaValidator(
     final Locale inLocale)
   {
-    final var locale =
-      Objects.requireNonNull(inLocale, "locale");
-    this.resources =
-      ResourceBundle.getBundle("com.io7m.ironpage.validator.vanilla.Validation", locale);
+    this.messages =
+      new SchemaValidatorMessages(Objects.requireNonNull(inLocale, "locale"));
   }
 
   @Override
@@ -164,18 +161,18 @@ public final class SchemaValidator implements SchemaValidatorType
     final SortedMap<SchemaName, SchemaIdentifier> importsByName)
   {
     final var errorAttributes = new TreeMap<String, String>();
-    errorAttributes.put(this.localize("attribute"), attributeName.name().name());
+    errorAttributes.put(this.messages.localize("attribute"), attributeName.name().name());
 
     importsByName.forEach(
       (key, value) -> {
-        final var name = MessageFormat.format(this.localize("schemaImported"), key.name());
+        final var name = MessageFormat.format(this.messages.localize("schemaImported"), key.name());
         errorAttributes.put(name, value.show());
       });
 
     return SchemaValidationError.builder()
       .setSeverity(ErrorSeverity.SEVERITY_ERROR)
       .setErrorCode(SchemaValidatorType.SCHEMA_NOT_IMPORTED)
-      .setMessage(this.localize("schemaNotImported"))
+      .setMessage(this.messages.localize("schemaNotImported"))
       .build();
   }
 
@@ -184,18 +181,18 @@ public final class SchemaValidator implements SchemaValidatorType
     final Map<SchemaName, SchemaDeclaration> schemasByName)
   {
     final var errorAttributes = new TreeMap<String, String>();
-    errorAttributes.put(this.localize("attribute"), attributeName.name().name());
+    errorAttributes.put(this.messages.localize("attribute"), attributeName.name().name());
 
     schemasByName.forEach(
       (key, value) -> {
-        final var name = MessageFormat.format(this.localize("schemaAvailable"), key.name());
+        final var name = MessageFormat.format(this.messages.localize("schemaAvailable"), key.name());
         errorAttributes.put(name, value.identifier().show());
       });
 
     return SchemaValidationError.builder()
       .setSeverity(ErrorSeverity.SEVERITY_ERROR)
       .setErrorCode(SchemaValidatorType.SCHEMA_NOT_FOUND)
-      .setMessage(this.localize("schemaNotFound"))
+      .setMessage(this.messages.localize("schemaNotFound"))
       .build();
   }
 
@@ -205,14 +202,14 @@ public final class SchemaValidator implements SchemaValidatorType
     final SortedMap<AttributeName, SchemaAttribute> schemaAttributesByName)
   {
     final var errorAttributes = new TreeMap<String, String>();
-    errorAttributes.put(this.localize("attribute"), attributeName.name().name());
-    errorAttributes.put(this.localize("schema"), schemaIdentifier.show());
+    errorAttributes.put(this.messages.localize("attribute"), attributeName.name().name());
+    errorAttributes.put(this.messages.localize("schema"), schemaIdentifier.show());
 
     final var builder = SchemaValidationError.builder();
     schemaAttributesByName.forEach(
       (key, value) -> {
         builder.addMessageExtras(MessageFormat.format(
-          this.localize("schemaAttributeTyped"),
+          this.messages.localize("schemaAttributeTyped"),
           key.name(),
           value.type().show(),
           value.cardinality().show()));
@@ -221,13 +218,8 @@ public final class SchemaValidator implements SchemaValidatorType
     return builder
       .setSeverity(ErrorSeverity.SEVERITY_ERROR)
       .setErrorCode(SchemaValidatorType.SCHEMA_ATTRIBUTE_NOT_FOUND)
-      .setMessage(this.localize("schemaAttributeNotFound"))
+      .setMessage(this.messages.localize("schemaAttributeNotFound"))
       .build();
   }
 
-  private String localize(
-    final String attribute)
-  {
-    return this.resources.getString(attribute);
-  }
 }

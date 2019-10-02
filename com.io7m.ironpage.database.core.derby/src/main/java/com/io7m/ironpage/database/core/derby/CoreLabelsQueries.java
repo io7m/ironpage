@@ -39,16 +39,15 @@ import static com.io7m.ironpage.errors.api.ErrorSeverity.SEVERITY_ERROR;
 
 final class CoreLabelsQueries implements CDLabelsQueriesType
 {
-  private final Connection connection;
   private final DSLContext dslContext;
 
   CoreLabelsQueries(
     final Clock inClock,
     final Connection inConnection)
   {
-    this.connection = Objects.requireNonNull(inConnection, "connection");
+    final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
-    this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
+    this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
   }
 
   private static CDException handleUpdateException(

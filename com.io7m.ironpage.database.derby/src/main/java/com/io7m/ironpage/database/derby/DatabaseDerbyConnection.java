@@ -32,15 +32,11 @@ final class DatabaseDerbyConnection implements DatabaseConnectionType
 
   private final Connection connection;
   private final DatabaseDerby database;
-  private final DatabaseDerbyProvider provider;
 
   DatabaseDerbyConnection(
-    final DatabaseDerbyProvider inProvider,
     final DatabaseDerby inDatabase,
     final Connection inConnection)
   {
-    this.provider =
-      Objects.requireNonNull(inProvider, "inProvider");
     this.database =
       Objects.requireNonNull(inDatabase, "inDatabase");
     this.connection =
@@ -55,7 +51,7 @@ final class DatabaseDerbyConnection implements DatabaseConnectionType
       LOG.trace("close");
       this.connection.close();
     } catch (final SQLException e) {
-      throw this.provider.ofSQLException("errorCloseConnection", e);
+      throw DatabaseDerbyProvider.ofSQLException("errorCloseConnection", e);
     }
   }
 

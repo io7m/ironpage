@@ -16,6 +16,7 @@
 
 package com.io7m.ironpage.types.api;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -26,11 +27,11 @@ import java.util.regex.Pattern;
 public final class SchemaNames
 {
   /**
-   * The pattern that defines a valid schema name.
+   * The pattern that defines a valid schema name part.
    */
 
-  public static final Pattern VALID_SCHEMA_NAME_PATTERN =
-    Pattern.compile("([a-z][a-z0-9_]*)(\\.[a-z][a-z0-9_]*)*");
+  private static final Pattern VALID_SCHEMA_NAME_PART_PATTERN =
+    Pattern.compile("[a-z][a-z0-9_]*");
 
   private SchemaNames()
   {
@@ -47,10 +48,16 @@ public final class SchemaNames
   {
     Objects.requireNonNull(name, "name");
 
-    if (name.length() <= 128) {
-      return VALID_SCHEMA_NAME_PATTERN.matcher(name).matches();
+    if (name.length() > 128) {
+      return false;
     }
-    return false;
+
+    final var parts = List.of(name.split("\\."));
+    if (parts.isEmpty()) {
+      return false;
+    }
+
+    return parts.stream().allMatch(part -> VALID_SCHEMA_NAME_PART_PATTERN.matcher(part).matches());
   }
 
   /**
@@ -66,8 +73,8 @@ public final class SchemaNames
         new StringBuilder(64)
           .append("Not a valid schema name: ")
           .append(name)
-          .append(" (must match ")
-          .append(VALID_SCHEMA_NAME_PATTERN.pattern())
+          .append(" (Must be a dot-separated sequence of ")
+          .append(VALID_SCHEMA_NAME_PART_PATTERN.pattern())
           .append(")")
           .toString());
     }

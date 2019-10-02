@@ -33,13 +33,11 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseDerbyTransaction.class);
 
   private final DatabaseDerbyConnection connection;
-  private final DatabaseDerbyProvider provider;
 
   DatabaseDerbyTransaction(
     final DatabaseDerbyConnection inConnection)
   {
     this.connection = Objects.requireNonNull(inConnection, "connection");
-    this.provider = this.connection.database().provider();
   }
 
   @Override
@@ -57,7 +55,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
       LOG.trace("commit");
       this.connection.sqlConnection().commit();
     } catch (final SQLException e) {
-      throw this.provider.ofSQLException("errorConnectionCommit", e);
+      throw DatabaseDerbyProvider.ofSQLException("errorConnectionCommit", e);
     }
   }
 
@@ -69,7 +67,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
       LOG.trace("rollback");
       this.connection.sqlConnection().rollback();
     } catch (final SQLException e) {
-      throw this.provider.ofSQLException("errorConnectionRollback", e);
+      throw DatabaseDerbyProvider.ofSQLException("errorConnectionRollback", e);
     }
   }
 
@@ -90,14 +88,9 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
 
     throw new DatabaseException(
       ErrorSeverity.SEVERITY_ERROR,
-      this.localize("errorCreateQueriesUnavailable"),
+      DatabaseMessages.localize("errorCreateQueriesUnavailable"),
       null,
-      TreeMap.of(this.localize("queriesClass"), queriesClass.getCanonicalName())
+      TreeMap.of(DatabaseMessages.localize("queriesClass"), queriesClass.getCanonicalName())
     );
-  }
-
-  private String localize(final String resource)
-  {
-    return this.connection.database().localize(resource);
   }
 }

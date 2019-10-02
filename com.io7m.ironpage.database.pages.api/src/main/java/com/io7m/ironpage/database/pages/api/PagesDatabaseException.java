@@ -16,6 +16,7 @@
 
 package com.io7m.ironpage.database.pages.api;
 
+import com.io7m.ironpage.database.core.api.CDErrorCode;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import io.vavr.collection.SortedMap;
@@ -29,7 +30,7 @@ import java.util.Objects;
 
 public class PagesDatabaseException extends DatabaseException
 {
-  private final PagesDatabaseErrorCode errorCode;
+  private final CDErrorCode errorCode;
 
   /**
    * Construct an exception.
@@ -44,7 +45,7 @@ public class PagesDatabaseException extends DatabaseException
 
   public PagesDatabaseException(
     final ErrorSeverity inSeverity,
-    final PagesDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause,
     final SortedMap<String, String> inAttributes,
@@ -62,7 +63,7 @@ public class PagesDatabaseException extends DatabaseException
    */
 
   public PagesDatabaseException(
-    final PagesDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message)
   {
     super(message);
@@ -78,7 +79,7 @@ public class PagesDatabaseException extends DatabaseException
    */
 
   public PagesDatabaseException(
-    final PagesDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause)
   {
@@ -98,7 +99,7 @@ public class PagesDatabaseException extends DatabaseException
 
   public PagesDatabaseException(
     final ErrorSeverity inSeverity,
-    final PagesDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause,
     final SortedMap<String, String> inAttributes)
@@ -119,7 +120,7 @@ public class PagesDatabaseException extends DatabaseException
 
   public PagesDatabaseException(
     final ErrorSeverity inSeverity,
-    final PagesDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause,
     final List<String> inMessageExtras)
@@ -139,7 +140,7 @@ public class PagesDatabaseException extends DatabaseException
 
   public PagesDatabaseException(
     final ErrorSeverity inSeverity,
-    final PagesDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause)
   {
@@ -151,7 +152,7 @@ public class PagesDatabaseException extends DatabaseException
    * @return The pages database error code
    */
 
-  public final PagesDatabaseErrorCode errorCode()
+  public final CDErrorCode errorCode()
   {
     return this.errorCode;
   }

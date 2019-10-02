@@ -51,7 +51,6 @@ import static com.io7m.ironpage.database.audit.api.AuditEventKind.BLOB_REDACTED;
 
 final class CorePagesQueries implements PagesDatabaseQueriesType
 {
-  private final Connection connection;
   private final DSLContext dslContext;
   private final CoreAuditQueries audit;
   private final Clock clock;
@@ -61,10 +60,10 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "inClock");
-    this.connection = Objects.requireNonNull(inConnection, "connection");
+    final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
-    this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
-    this.audit = new CoreAuditQueries(this.clock, this.connection);
+    this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
+    this.audit = new CoreAuditQueries(this.clock, connection);
   }
 
   private static PagesDatabaseRedactionDTO redactionFromRecord(

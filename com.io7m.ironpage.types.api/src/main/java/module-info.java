@@ -25,6 +25,7 @@ module com.io7m.ironpage.types.api
   requires static org.osgi.annotation.bundle;
 
   requires transitive io.vavr;
+  requires com.io7m.junreachable.core;
 
   exports com.io7m.ironpage.types.api;
 }

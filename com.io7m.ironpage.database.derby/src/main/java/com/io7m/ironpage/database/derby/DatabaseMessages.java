@@ -14,26 +14,28 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.database.derby;
 
-package com.io7m.ironpage.database.core.api;
+import java.text.MessageFormat;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
-import com.io7m.immutables.styles.ImmutablesStyleType;
-import org.immutables.value.Value;
-
-import java.io.Serializable;
-
-/**
- * A core database error code.
- */
-
-@ImmutablesStyleType
-@Value.Immutable
-public interface CDErrorCodeType extends Serializable
+final class DatabaseMessages
 {
-  /**
-   * @return The error code value
-   */
+  private static final ResourceBundle RESOURCES =
+    ResourceBundle.getBundle("com.io7m.ironpage.database.derby.Messages");
 
-  @Value.Parameter
-  String code();
+  private DatabaseMessages()
+  {
+
+  }
+
+  public static String localize(
+    final String resource,
+    final Object... args)
+  {
+    Objects.requireNonNull(resource, "resource");
+    Objects.requireNonNull(args, "args");
+    return MessageFormat.format(RESOURCES.getString(resource), args);
+  }
 }

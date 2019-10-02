@@ -62,11 +62,10 @@ final class DatabaseDerby implements DatabaseType
     try {
       final var connection = this.dataSource.getPooledConnection();
       return new DatabaseDerbyConnection(
-        this.provider,
         this,
         connection.getConnection());
     } catch (final SQLException e) {
-      throw this.provider.ofSQLException("errorOpenConnection", e);
+      throw DatabaseDerbyProvider.ofSQLException("errorOpenConnection", e);
     }
   }
 
@@ -84,10 +83,5 @@ final class DatabaseDerby implements DatabaseType
   DatabaseDerbyProvider provider()
   {
     return this.provider;
-  }
-
-  String localize(final String resource)
-  {
-    return this.provider.localize(resource);
   }
 }

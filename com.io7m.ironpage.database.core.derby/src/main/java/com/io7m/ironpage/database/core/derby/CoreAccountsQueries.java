@@ -81,7 +81,6 @@ import static com.io7m.ironpage.database.core.derby.CoreTables.TABLE_USERS;
 
 final class CoreAccountsQueries implements CDAccountsQueriesType
 {
-  private final Connection connection;
   private final DSLContext dslContext;
   private final CoreAuditQueries audit;
   private final Clock clock;
@@ -91,10 +90,10 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "clock");
-    this.connection = Objects.requireNonNull(inConnection, "connection");
+    final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
-    this.dslContext = DSL.using(this.connection, SQLDialect.DERBY, settings);
-    this.audit = new CoreAuditQueries(this.clock, this.connection);
+    this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
+    this.audit = new CoreAuditQueries(this.clock, connection);
   }
 
   private static CDException handleDataAccessException(
@@ -292,17 +291,19 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     final CDUserDTO existing)
     throws CDException
   {
-    if (!Objects.equals(existing.roles(), account.roles())) {
+    final var existingRoles = existing.roles();
+    final var newRoles = account.roles();
+    if (!Objects.equals(existingRoles, newRoles)) {
       try {
         this.audit.auditEventLog(
           USER_MODIFIED_ROLES,
           caller,
           account.id().toString(),
-          existing.roles()
+          existingRoles
             .stream()
             .map(CDSecurityRoleDTO::name)
             .collect(Collectors.joining(",")),
-          account.roles()
+          newRoles
             .stream()
             .map(CDSecurityRoleDTO::name)
             .collect(Collectors.joining(",")));
@@ -318,14 +319,16 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     final CDUserDTO existing)
     throws CDException
   {
-    if (!Objects.equals(existing.locked(), account.locked())) {
+    final var existingLocked = existing.locked();
+    final var newLocked = account.locked();
+    if (!Objects.equals(existingLocked, newLocked)) {
       try {
         this.audit.auditEventLog(
           USER_MODIFIED_LOCKED,
           caller,
           account.id().toString(),
-          existing.locked().orElse(""),
-          account.locked().orElse(""));
+          existingLocked.orElse(""),
+          newLocked.orElse(""));
       } catch (final Exception e) {
         throw genericDatabaseException(e);
       }
@@ -358,14 +361,16 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     final CDUserDTO existing)
     throws CDException
   {
-    if (!Objects.equals(existing.email(), account.email())) {
+    final var existingEmail = existing.email();
+    final var newEmail = account.email();
+    if (!Objects.equals(existingEmail, newEmail)) {
       try {
         this.audit.auditEventLog(
           USER_MODIFIED_EMAIL,
           caller,
           account.id().toString(),
-          existing.email(),
-          account.email());
+          existingEmail,
+          newEmail);
       } catch (final Exception e) {
         throw genericDatabaseException(e);
       }
@@ -378,14 +383,16 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     final CDUserDTO existing)
     throws CDException
   {
-    if (!Objects.equals(existing.displayName(), account.displayName())) {
+    final var existingDisplay = existing.displayName();
+    final var newDisplay = account.displayName();
+    if (!Objects.equals(existingDisplay, newDisplay)) {
       try {
         this.audit.auditEventLog(
           USER_MODIFIED_DISPLAY_NAME,
           caller,
           account.id().toString(),
-          existing.displayName(),
-          account.displayName());
+          existingDisplay,
+          newDisplay);
       } catch (final Exception e) {
         throw genericDatabaseException(e);
       }
@@ -395,14 +402,15 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
   private void accountUpdateFields(final CDUserDTO account)
     throws CDException
   {
+    final var passwordHash = account.passwordHash();
     try (var query =
            this.dslContext.update(TABLE_USERS)
              .set(FIELD_USER_DISPLAY_NAME, account.displayName())
              .set(FIELD_USER_EMAIL, account.email())
              .set(FIELD_USER_LOCKED_REASON, account.locked().orElse(null))
-             .set(FIELD_USER_PASSWORD_ALGO, account.passwordHash().algorithm())
-             .set(FIELD_USER_PASSWORD_HASH, toHex(account.passwordHash().hash()))
-             .set(FIELD_USER_PASSWORD_PARAMS, account.passwordHash().parameters())
+             .set(FIELD_USER_PASSWORD_ALGO, passwordHash.algorithm())
+             .set(FIELD_USER_PASSWORD_HASH, toHex(passwordHash.hash()))
+             .set(FIELD_USER_PASSWORD_PARAMS, passwordHash.parameters())
              .where(FIELD_USER_ID.eq(account.id()))) {
       query.execute();
     } catch (final DataAccessException e) {
@@ -416,22 +424,23 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     throws CDException
   {
     if (!account.roles().equals(existing.roles())) {
+      final var accountId = account.id();
       try (var rolesDeleteQuery =
              this.dslContext.delete(TABLE_ROLE_USERS)
-               .where(FIELD_ROLE_USER_ID.eq(account.id()))) {
+               .where(FIELD_ROLE_USER_ID.eq(accountId))) {
         rolesDeleteQuery.execute();
 
         final var inserts =
           account.roles()
             .stream()
             .map(role -> this.dslContext.insertInto(TABLE_ROLE_USERS)
-              .set(FIELD_ROLE_USER_ID, account.id())
+              .set(FIELD_ROLE_USER_ID, accountId)
               .set(FIELD_ROLE_ROLE_ID, Long.valueOf(role.id())))
             .collect(Collectors.toList());
 
         this.dslContext.batch(inserts).execute();
       } catch (final DataAccessException e) {
-        throw handleDataAccessException(account.id(), account.displayName(), e);
+        throw handleDataAccessException(accountId, account.displayName(), e);
       }
     }
   }

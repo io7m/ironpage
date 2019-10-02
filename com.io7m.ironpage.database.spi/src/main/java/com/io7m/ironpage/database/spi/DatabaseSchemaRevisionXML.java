@@ -96,8 +96,9 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
 
     try {
       final var source = new InputSource(stream);
-      source.setSystemId(uri.toString());
-      source.setPublicId(uri.toString());
+      final var urlText = uri.toString();
+      source.setSystemId(urlText);
+      source.setPublicId(urlText);
 
       final var errors = new ArrayList<String>();
       final var schema = loadSchema();

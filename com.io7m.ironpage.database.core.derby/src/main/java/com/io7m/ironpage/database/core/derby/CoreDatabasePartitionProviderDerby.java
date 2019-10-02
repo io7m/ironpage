@@ -128,7 +128,7 @@ public final class CoreDatabasePartitionProviderDerby extends DatabasePartitionP
         try (var result = statement.executeQuery()) {
           if (!result.next()) {
             throw new SQLException(
-              "Schema version table (accounts.schema_version) must contain one row");
+              CoreMessages.localize("errorSchemaVersionTableRow", "core.schema_version"));
           }
 
           return Optional.of(valueOf(result.getLong(1)));

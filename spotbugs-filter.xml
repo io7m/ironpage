@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<FindBugsFilter xmlns="https://github.com/spotbugs/filter/3.0.0">
+
+  <Match>
+    <Class name="~com\.io7m\.ironpage\..+\$InitShim"/>
+    <Bug pattern="PME_POOR_MANS_ENUM"/>
+  </Match>
+
+  <Match>
+    <Class name="~com\.io7m\.ironpage\..+\$Builder"/>
+    <Or>
+      <Bug pattern="DLS_DEAD_LOCAL_STORE"/>
+      <Bug pattern="ITC_INHERITANCE_TYPE_CHECKING"/>
+      <Bug pattern="PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"/>
+      <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Or>
+  </Match>
+
+  <Match>
+    <Method name="builder"/>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <!-- SQL statements are read from a file and whitespace is trimmed. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.spi.DatabaseSchemaRevisionXML"/>
+    <Method name="schemaMigrate"/>
+    <Or>
+      <Bug pattern="SQL_INJECTION_JDBC"/>
+      <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"/>
+      <Bug pattern="SIL_SQL_IN_LOOP"/>
+      <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Or>
+  </Match>
+
+  <!-- Enum implements an interface using the generated name() method. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.audit.api.AuditEventKind"/>
+    <Bug pattern="SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"/>
+  </Match>
+
+  <!-- A lambda-based API prevents throwing of a checked exception. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.core.derby.CoreAccountsQueries"/>
+    <Method name="accountFromRecord"/>
+    <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS"/>
+  </Match>
+
+  <!-- A lambda-based API prevents throwing of a checked exception. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.core.derby.CorePagesQueries"/>
+    <Method name="hashOf"/>
+    <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS"/>
+  </Match>
+
+  <!-- The JOOQ API requires us to instanceof exception causes. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.core.derby.CoreAccountsQueries"/>
+    <Method name="handleDataAccessException"/>
+    <Bug pattern="ITC_INHERITANCE_TYPE_CHECKING"/>
+  </Match>
+
+  <!-- The JOOQ API requires us to instanceof exception causes. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.core.derby.CorePagesQueries"/>
+    <Method name="pageBlobPut"/>
+    <Bug pattern="ITC_INHERITANCE_TYPE_CHECKING"/>
+  </Match>
+
+  <!-- This particular method refers to columns defined in the core tables. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.core.derby.CoreAuditQueries"/>
+    <Method name="eventFromRecord"/>
+    <Bug pattern="CE_CLASS_ENVY"/>
+  </Match>
+
+  <!-- These classes are effectively nested in order to implement an API -->
+  <Match>
+    <Or>
+      <Class name="com.io7m.ironpage.database.derby.DatabaseDerby"/>
+      <Class name="com.io7m.ironpage.database.derby.DatabaseDerbyConnection"/>
+    </Or>
+    <Bug pattern="FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"/>
+  </Match>
+
+  <!-- False positive due to null checks inserted into bytecode -->
+  <Match>
+    <Or>
+      <Class name="com.io7m.ironpage.database.core.derby.CoreAccountsQueries"/>
+      <Class name="com.io7m.ironpage.database.core.derby.CoreAuditQueries"/>
+      <Class name="com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby"/>
+      <Class name="com.io7m.ironpage.database.core.derby.CoreLabelsQueries"/>
+      <Class name="com.io7m.ironpage.database.core.derby.CorePagesQueries"/>
+      <Class name="com.io7m.ironpage.database.core.derby.CoreRolesQueries"/>
+    </Or>
+    <Or>
+      <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+      <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Or>
+  </Match>
+
+  <!-- Generated types have various harmless issues. -->
+  <Match>
+    <Or>
+      <Class name="com.io7m.ironpage.database.api.DatabaseParameters"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDErrorCode"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDPasswordHashDTO"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDSecurityLabelDTO"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDSecurityRoleDTO"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDSessionDTO"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDUserDTO"/>
+      <Class name="com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO"/>
+      <Class name="com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeName"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeNameQualified"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeBoolean"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeInteger"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeName"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeNamed"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeNameQualified"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeReal"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeString"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeTimestamp"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeURI"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeUUID"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueBoolean"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueInteger"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueReal"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueString"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueTimestamp"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueUntyped"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueURI"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeValueUUID"/>
+      <Class name="com.io7m.ironpage.types.api.SchemaAttribute"/>
+      <Class name="com.io7m.ironpage.types.api.SchemaDeclaration"/>
+      <Class name="com.io7m.ironpage.types.api.SchemaIdentifier"/>
+      <Class name="com.io7m.ironpage.types.api.SchemaName"/>
+      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolvedSet"/>
+      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolvedSetEdge"/>
+      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolverError"/>
+      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolverErrorCode"/>
+      <Class name="com.io7m.ironpage.validator.api.SchemaValidationError"/>
+      <Class name="com.io7m.ironpage.validator.api.SchemaValidationErrorCode"/>
+      <Class name="com.io7m.ironpage.validator.api.SchemaValidationRequest"/>
+    </Or>
+    <Or>
+      <Bug pattern="CFS_CONFUSING_FUNCTION_SEMANTICS"/>
+      <Bug pattern="IMC_IMMATURE_CLASS_WRONG_FIELD_ORDER"/>
+      <Bug pattern="MDM_BIGDECIMAL_EQUALS"/>
+      <Bug pattern="SE_NO_SERIALVERSIONID"/>
+      <Bug pattern="SEO_SUBOPTIMAL_EXPRESSION_ORDER"/>
+      <Bug pattern="SPP_EQUALS_ON_ENUM"/>
+      <Bug pattern="UCPM_USE_CHARACTER_PARAMETERIZED_METHOD"/>
+      <Bug pattern="UP_UNUSED_PARAMETER"/>
+      <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Or>
+  </Match>
+
+  <!-- These methods are part of a documented API. -->
+  <Match>
+    <Or>
+      <Class name="com.io7m.ironpage.types.api.AttributeNames"/>
+      <Class name="com.io7m.ironpage.types.api.AttributeTypeNames"/>
+      <Class name="com.io7m.ironpage.types.api.SchemaNames"/>
+    </Or>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <!-- This implementation class is not yet complete. -->
+  <Match>
+    <Class name="com.io7m.ironpage.validator.vanilla.SchemaValidator"/>
+  </Match>
+
+  <!-- False positives. -->
+  <Match>
+    <Class name="com.io7m.ironpage.types.resolution.vanilla.SchemaResolver$SchemaResolution"/>
+    <Or>
+      <Bug pattern="FCBL_FIELD_COULD_BE_LOCAL"/>
+      <Bug pattern="DMC_DUBIOUS_MAP_COLLECTION"/>
+    </Or>
+  </Match>
+
+  <!-- Exposed to aid testing. -->
+  <Match>
+    <Class name="com.io7m.ironpage.types.resolution.vanilla.SchemaResolversServiceLoader"/>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <!-- The checkPreconditions method typically defined on generated types. -->
+  <Match>
+    <Method name="checkPreconditions"/>
+    <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS"/>
+  </Match>
+
+  <Match>
+    <Or>
+      <Bug pattern="OCP_OVERLY_CONCRETE_PARAMETER"/>
+      <Bug pattern="IMC_IMMATURE_CLASS_NO_TOSTRING"/>
+      <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Or>
+  </Match>
+
+</FindBugsFilter>

@@ -16,6 +16,8 @@
 
 package com.io7m.ironpage.types.api;
 
+import com.io7m.junreachable.UnreachableCodeException;
+
 /**
  * The cardinality of an attribute.
  */
@@ -62,6 +64,6 @@ public enum AttributeCardinality
       case CARDINALITY_1_TO_N:
         return "[1 … N]";
     }
-    throw new IllegalStateException("Unreachable code");
+    throw new UnreachableCodeException();
   }
 }

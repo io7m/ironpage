@@ -14,24 +14,30 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.validator.vanilla;
 
-package com.io7m.ironpage.database.pages.api;
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
-import com.io7m.immutables.styles.ImmutablesStyleType;
-import org.immutables.value.Value;
-
-/**
- * A pages database error code.
- */
-
-@ImmutablesStyleType
-@Value.Immutable
-public interface PagesDatabaseErrorCodeType
+final class SchemaValidatorMessages
 {
-  /**
-   * @return The error code value
-   */
+  private final ResourceBundle resources;
 
-  @Value.Parameter
-  String code();
+  SchemaValidatorMessages(
+    final Locale locale)
+  {
+    this.resources =
+      ResourceBundle.getBundle("com.io7m.ironpage.validator.vanilla.Validation", locale);
+  }
+
+  public String localize(
+    final String resource,
+    final Object... args)
+  {
+    Objects.requireNonNull(resource, "resource");
+    Objects.requireNonNull(args, "args");
+    return MessageFormat.format(this.resources.getString(resource), args);
+  }
 }
