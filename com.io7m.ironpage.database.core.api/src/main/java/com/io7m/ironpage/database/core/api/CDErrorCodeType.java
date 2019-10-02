@@ -15,53 +15,23 @@
  */
 
 
-package com.io7m.ironpage.database.accounts.api;
+package com.io7m.ironpage.database.core.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import org.immutables.value.Value;
 
-import java.util.Optional;
-import java.util.UUID;
-
 /**
- * An accounts database user data transfer object.
+ * A core database error code.
  */
 
-@Value.Immutable
 @ImmutablesStyleType
-public interface AccountsDatabaseUserDTOType
+@Value.Immutable
+public interface CDErrorCodeType
 {
   /**
-   * @return The user ID
+   * @return The error code value
    */
 
-  @Value.Default
-  default UUID id()
-  {
-    return new UUID(0L, 0L);
-  }
-
-  /**
-   * @return The user password hash
-   */
-
-  AccountsDatabasePasswordHashDTO passwordHash();
-
-  /**
-   * @return The user email address
-   */
-
-  String email();
-
-  /**
-   * @return The user display name
-   */
-
-  String displayName();
-
-  /**
-   * @return The reason the user account is locked (if it is)
-   */
-
-  Optional<String> locked();
+  @Value.Parameter
+  String code();
 }

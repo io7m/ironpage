@@ -28,8 +28,8 @@ create table core.schema_version (
 
   <comment>
     The audit table stores events relative to auditing. The audit_type column
-    stores the type of audit event, and the rest of the columns store the
-    fields of the event.
+    stores the type of audit event, and the rest of the columns store the fields
+    of the event.
   </comment>
 
   <statement>
@@ -41,6 +41,48 @@ create table core.audit (
   audit_arg1    varchar(256) not null,
   audit_arg2    varchar(256) not null,
   audit_arg3    varchar(256) not null
+)
+    ]]>
+  </statement>
+
+  <comment>
+    The security_roles table stores the definitions of security roles within the
+    system. The role_name column stores the user-visible name of the role (which
+    must be unique), and the role_description column stores a humanly-readable
+    description of the role's purpose.
+  </comment>
+
+  <statement>
+    <![CDATA[
+create table core.security_roles (
+  role_id               bigint generated always as identity not null,
+  role_name             varchar (128) not null,
+  role_description      varchar (128) not null,
+
+  constraint role_id_key primary key (role_id),
+  constraint role_hash_lower check (role_name = lower(role_name)),
+  constraint role_name_unique unique (role_name)
+)
+    ]]>
+  </statement>
+
+  <comment>
+    The security_labels table stores the definitions of security labels within
+    the system. The label_name column stores the user-visible name of the label
+    (which must be unique), and the label_description column stores a
+    humanly-readable description of the label's purpose.
+  </comment>
+
+  <statement>
+    <![CDATA[
+create table core.security_labels (
+  label_id               bigint generated always as identity not null,
+  label_name             varchar (128) not null,
+  label_description      varchar (128) not null,
+
+  constraint label_id_key primary key (label_id),
+  constraint label_hash_lower check (label_name = lower(label_name)),
+  constraint label_name_unique unique (label_name)
 )
     ]]>
   </statement>
@@ -73,6 +115,24 @@ create table core.users (
   constraint user_id_nonzero check (user_id != '00000000-0000-0000-0000-000000000000'),
   constraint user_hash_lower check (user_password_hash = lower(user_password_hash)),
   constraint user_display_name_unique unique (user_display_name)
+)
+    ]]>
+  </statement>
+
+  <comment>
+    The user_roles table associates roles with users. A user may have any number
+    of roles.
+  </comment>
+
+  <statement>
+    <![CDATA[
+create table core.user_roles (
+  role_user_id    char (36) not null,
+  role_role_id    bigint not null,
+
+  constraint role_user_key primary key (role_user_id, role_role_id),
+  constraint role_user_id_reference foreign key (role_user_id) references core.users (user_id),
+  constraint role_role_id_reference foreign key (role_role_id) references core.security_roles (role_id)
 )
     ]]>
   </statement>
@@ -127,23 +187,26 @@ create table core.redactions (
   <comment>
     The blobs table stores opaque (but typed) blobs of data. Blobs are uniquely
     identified by their SHA-256 hash. Blobs carry an IANA media type, an owner,
-    and a possible redaction (see the redactions table). Blobs that have been
-    redacted have zero-length data fields.
+    a possible redaction (see the redactions table), and a security label (see
+    the security_labels table). Blobs that have been redacted have zero-length
+    data fields.
   </comment>
 
   <statement>
     <![CDATA[
 create table core.blobs (
-  blob_id            char (64) not null,
-  blob_data          blob (8M) not null,
-  blob_media_type    varchar (128) not null,
-  blob_owner         char (36) not null,
-  blob_redaction     bigint,
+  blob_id                char (64) not null,
+  blob_data              blob (8M) not null,
+  blob_media_type        varchar (128) not null,
+  blob_owner             char (36) not null,
+  blob_redaction         bigint,
+  blob_security_label    bigint not null,
 
   constraint blob_id_key primary key (blob_id),
   constraint blob_id_lower check (blob_id = lower(blob_id)),
   constraint blob_owner_reference foreign key (blob_owner) references core.users (user_id),
-  constraint blob_redaction_reference foreign key (blob_redaction) references core.redactions (redaction_id)
+  constraint blob_redaction_reference foreign key (blob_redaction) references core.redactions (redaction_id),
+  constraint blob_label_reference foreign key (blob_security_label) references core.security_labels (label_id)
 )
     ]]>
   </statement>

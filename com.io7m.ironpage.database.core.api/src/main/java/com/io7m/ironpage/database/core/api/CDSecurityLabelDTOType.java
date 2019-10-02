@@ -14,24 +14,45 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-package com.io7m.ironpage.database.accounts.api;
+package com.io7m.ironpage.database.core.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import org.immutables.value.Value;
 
+import java.util.Objects;
+
 /**
- * An accounts database error code.
+ * A security label data transfer object.
  */
 
-@ImmutablesStyleType
 @Value.Immutable
-public interface AccountsDatabaseErrorCodeType
+@ImmutablesStyleType
+public interface CDSecurityLabelDTOType extends Comparable<CDSecurityLabelDTOType>
 {
+  @Override
+  default int compareTo(final CDSecurityLabelDTOType other)
+  {
+    Objects.requireNonNull(other, "other");
+    return Long.compare(this.id(), other.id());
+  }
+
   /**
-   * @return The error code value
+   * @return The label ID
    */
 
-  @Value.Parameter
-  String code();
+  long id();
+
+  /**
+   * @return The label name
+   */
+
+  @Value.Auxiliary
+  String name();
+
+  /**
+   * @return The label description
+   */
+
+  @Value.Auxiliary
+  String description();
 }

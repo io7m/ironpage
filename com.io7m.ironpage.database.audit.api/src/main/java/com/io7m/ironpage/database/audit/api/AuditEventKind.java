@@ -68,5 +68,11 @@ public enum AuditEventKind implements AuditEventType
    * A user's account was locked or unlocked.
    */
 
-  USER_MODIFIED_LOCKED
+  USER_MODIFIED_LOCKED,
+
+  /**
+   * A user's roles were changed.
+   */
+
+  USER_MODIFIED_ROLES
 }

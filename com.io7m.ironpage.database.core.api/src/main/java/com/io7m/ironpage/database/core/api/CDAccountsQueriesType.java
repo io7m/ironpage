@@ -14,28 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.ironpage.database.accounts.api;
+package com.io7m.ironpage.database.core.api;
 
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 /**
- * The queries supported by accounts databases.
+ * The accounts-related queries supported by core databases.
  */
 
-public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
+public interface CDAccountsQueriesType extends DatabaseQueriesType
 {
   /**
    * A display name is already used.
    */
 
-  AccountsDatabaseErrorCode DISPLAY_NAME_ALREADY_USED =
-    AccountsDatabaseErrorCode.of(
+  CDErrorCode DISPLAY_NAME_ALREADY_USED =
+    CDErrorCode.of(
       new StringBuilder(64)
-        .append(AccountsDatabaseQueriesType.class.getCanonicalName())
+        .append(CDAccountsQueriesType.class.getCanonicalName())
         .append(":displayNameAlreadyUsed")
         .toString());
 
@@ -43,21 +42,21 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    * An ID is already used.
    */
 
-  AccountsDatabaseErrorCode ID_ALREADY_USED =
-    AccountsDatabaseErrorCode.of(
+  CDErrorCode ID_ALREADY_USED =
+    CDErrorCode.of(
       new StringBuilder(64)
-        .append(AccountsDatabaseQueriesType.class.getCanonicalName())
+        .append(CDAccountsQueriesType.class.getCanonicalName())
         .append(":idAlreadyUsed")
         .toString());
 
   /**
-   * A user does not exist.
+   * A referenced object does not exist.
    */
 
-  AccountsDatabaseErrorCode NONEXISTENT =
-    AccountsDatabaseErrorCode.of(
+  CDErrorCode NONEXISTENT =
+    CDErrorCode.of(
       new StringBuilder(64)
-        .append(AccountsDatabaseQueriesType.class.getCanonicalName())
+        .append(CDAccountsQueriesType.class.getCanonicalName())
         .append(":nonexistent")
         .toString());
 
@@ -65,10 +64,10 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    * One or more fields were invalid.
    */
 
-  AccountsDatabaseErrorCode INVALID_DATA =
-    AccountsDatabaseErrorCode.of(
+  CDErrorCode INVALID_DATA =
+    CDErrorCode.of(
       new StringBuilder(64)
-        .append(AccountsDatabaseQueriesType.class.getCanonicalName())
+        .append(CDAccountsQueriesType.class.getCanonicalName())
         .append(":invalidData")
         .toString());
 
@@ -76,10 +75,10 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    * An unexpected database error occurred.
    */
 
-  AccountsDatabaseErrorCode DATABASE_ERROR =
-    AccountsDatabaseErrorCode.of(
+  CDErrorCode DATABASE_ERROR =
+    CDErrorCode.of(
       new StringBuilder(64)
-        .append(AccountsDatabaseQueriesType.class.getCanonicalName())
+        .append(CDAccountsQueriesType.class.getCanonicalName())
         .append(":databaseError")
         .toString());
 
@@ -94,16 +93,16 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return A new account
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
-  AccountsDatabaseUserDTO accountCreate(
+  CDUserDTO accountCreate(
     UUID id,
     String displayName,
-    AccountsDatabasePasswordHashDTO password,
+    CDPasswordHashDTO password,
     String email,
     Optional<String> lockedReason)
-    throws AccountsDatabaseException;
+    throws CDException;
 
   /**
    * Update an account.
@@ -113,13 +112,13 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return An updated account
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
-  AccountsDatabaseUserDTO accountUpdate(
+  CDUserDTO accountUpdate(
     UUID caller,
-    AccountsDatabaseUserDTO account)
-    throws AccountsDatabaseException;
+    CDUserDTO account)
+    throws CDException;
 
   /**
    * Retrieve an account.
@@ -128,30 +127,12 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return The account
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
-  AccountsDatabaseUserDTO accountGet(
+  CDUserDTO accountGet(
     UUID userId)
-    throws AccountsDatabaseException;
-
-  /**
-   * Find an account.
-   *
-   * @param userId      The account ID (if any)
-   * @param displayName The display name (if any)
-   * @param email       The email (if any)
-   *
-   * @return A stream of matching accounts
-   *
-   * @throws AccountsDatabaseException On errors
-   */
-
-  Stream<AccountsDatabaseUserDTO> accountFind(
-    Optional<UUID> userId,
-    Optional<String> displayName,
-    Optional<String> email)
-    throws AccountsDatabaseException;
+    throws CDException;
 
   /**
    * Create a new session for the given account.
@@ -161,13 +142,13 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return A new session
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
-  AccountsDatabaseSessionDTO accountSessionCreate(
+  CDSessionDTO accountSessionCreate(
     UUID owner,
     String session)
-    throws AccountsDatabaseException;
+    throws CDException;
 
   /**
    * Update a session.
@@ -176,24 +157,24 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return The updated session
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
-  AccountsDatabaseSessionDTO accountSessionUpdate(
+  CDSessionDTO accountSessionUpdate(
     String session)
-    throws AccountsDatabaseException;
+    throws CDException;
 
   /**
    * Delete a session.
    *
    * @param session The session ID
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
   void accountSessionDelete(
     String session)
-    throws AccountsDatabaseException;
+    throws CDException;
 
   /**
    * Delete all sessions for a given user.
@@ -202,10 +183,10 @@ public interface AccountsDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return The number of deleted sessions
    *
-   * @throws AccountsDatabaseException On errors
+   * @throws CDException On errors
    */
 
   int accountSessionDeleteForUser(
     UUID owner)
-    throws AccountsDatabaseException;
+    throws CDException;
 }

@@ -14,7 +14,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.ironpage.database.accounts.api;
+package com.io7m.ironpage.database.core.api;
 
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
@@ -24,12 +24,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The type of exceptions related to accounts databases.
+ * The type of exceptions related to core databases.
  */
 
-public class AccountsDatabaseException extends DatabaseException
+public class CDException extends DatabaseException
 {
-  private final AccountsDatabaseErrorCode errorCode;
+  private final CDErrorCode errorCode;
 
   /**
    * Construct an exception.
@@ -42,9 +42,9 @@ public class AccountsDatabaseException extends DatabaseException
    * @param inMessageExtras The extra message lines
    */
 
-  public AccountsDatabaseException(
+  public CDException(
     final ErrorSeverity inSeverity,
-    final AccountsDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause,
     final SortedMap<String, String> inAttributes,
@@ -61,8 +61,8 @@ public class AccountsDatabaseException extends DatabaseException
    * @param message     The message
    */
 
-  public AccountsDatabaseException(
-    final AccountsDatabaseErrorCode inErrorCode,
+  public CDException(
+    final CDErrorCode inErrorCode,
     final String message)
   {
     super(message);
@@ -77,8 +77,8 @@ public class AccountsDatabaseException extends DatabaseException
    * @param cause       The cause
    */
 
-  public AccountsDatabaseException(
-    final AccountsDatabaseErrorCode inErrorCode,
+  public CDException(
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause)
   {
@@ -96,9 +96,9 @@ public class AccountsDatabaseException extends DatabaseException
    * @param inAttributes The attributes associated with the error
    */
 
-  public AccountsDatabaseException(
+  public CDException(
     final ErrorSeverity inSeverity,
-    final AccountsDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause,
     final SortedMap<String, String> inAttributes)
@@ -117,9 +117,9 @@ public class AccountsDatabaseException extends DatabaseException
    * @param inMessageExtras The extra message lines
    */
 
-  public AccountsDatabaseException(
+  public CDException(
     final ErrorSeverity inSeverity,
-    final AccountsDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause,
     final List<String> inMessageExtras)
@@ -137,9 +137,9 @@ public class AccountsDatabaseException extends DatabaseException
    * @param cause       The cause
    */
 
-  public AccountsDatabaseException(
+  public CDException(
     final ErrorSeverity inSeverity,
-    final AccountsDatabaseErrorCode inErrorCode,
+    final CDErrorCode inErrorCode,
     final String message,
     final Throwable cause)
   {
@@ -151,7 +151,7 @@ public class AccountsDatabaseException extends DatabaseException
    * @return The accounts database error code
    */
 
-  public final AccountsDatabaseErrorCode errorCode()
+  public final CDErrorCode errorCode()
   {
     return this.errorCode;
   }

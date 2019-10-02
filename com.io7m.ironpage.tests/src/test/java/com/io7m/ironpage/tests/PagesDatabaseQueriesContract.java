@@ -16,10 +16,12 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.database.accounts.api.AccountsDatabasePasswordHashDTO;
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
 import com.io7m.ironpage.database.api.DatabaseTransactionType;
-import com.io7m.ironpage.database.pages.api.PagesDatabaseException;
+import com.io7m.ironpage.database.core.api.CDAccountsQueriesType;
+import com.io7m.ironpage.database.core.api.CDException;
+import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
+import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
@@ -62,13 +64,17 @@ public abstract class PagesDatabaseQueriesContract
     final var transaction = this.transaction();
 
     final var accountsQueries =
-      transaction.queries(AccountsDatabaseQueriesType.class);
+      transaction.queries(CDAccountsQueriesType.class);
+    final var labelsQueries =
+      transaction.queries(CDLabelsQueriesType.class);
+    final var label =
+      labelsQueries.labelCreate("label", "A label");
 
     final var account =
       accountsQueries.accountCreate(
         UUID.randomUUID(),
         "User",
-        AccountsDatabasePasswordHashDTO.builder()
+        CDPasswordHashDTO.builder()
           .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
@@ -79,7 +85,7 @@ public abstract class PagesDatabaseQueriesContract
       transaction.queries(PagesDatabaseQueriesType.class);
 
     final var data = "hello".getBytes(StandardCharsets.UTF_8);
-    final var hash = queries.pageBlobPut(account.id(), "text/plain", data);
+    final var hash = queries.pageBlobPut(account.id(), "text/plain", data, label);
 
     Assertions.assertEquals(
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
@@ -93,6 +99,7 @@ public abstract class PagesDatabaseQueriesContract
     Assertions.assertEquals("text/plain", blob.mediaType());
     Assertions.assertEquals(hash, blob.id());
     Assertions.assertEquals(Optional.empty(), blob.redaction());
+    Assertions.assertEquals(label, blob.securityLabel());
   }
 
   /**
@@ -127,13 +134,17 @@ public abstract class PagesDatabaseQueriesContract
     final var transaction = this.transaction();
 
     final var accountsQueries =
-      transaction.queries(AccountsDatabaseQueriesType.class);
+      transaction.queries(CDAccountsQueriesType.class);
+    final var labelsQueries =
+      transaction.queries(CDLabelsQueriesType.class);
+    final var label =
+      labelsQueries.labelCreate("label", "A label");
 
     final var account =
       accountsQueries.accountCreate(
         UUID.randomUUID(),
         "User",
-        AccountsDatabasePasswordHashDTO.builder()
+        CDPasswordHashDTO.builder()
           .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
@@ -144,14 +155,14 @@ public abstract class PagesDatabaseQueriesContract
       transaction.queries(PagesDatabaseQueriesType.class);
 
     final var hash =
-      queries.pageBlobPut(account.id(), "text/plain", "hello".getBytes(StandardCharsets.UTF_8));
+      queries.pageBlobPut(account.id(), "text/plain", "hello".getBytes(StandardCharsets.UTF_8), label);
 
     Assertions.assertEquals(
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
       hash);
 
-    final var ex = Assertions.assertThrows(PagesDatabaseException.class, () -> {
-      queries.pageBlobPut(account.id(), "text/plain", "hello".getBytes(StandardCharsets.UTF_8));
+    final var ex = Assertions.assertThrows(CDException.class, () -> {
+      queries.pageBlobPut(account.id(), "text/plain", "hello".getBytes(StandardCharsets.UTF_8), label);
     });
 
     Assertions.assertEquals(PagesDatabaseQueriesType.DATA_ALREADY_EXISTS, ex.errorCode());
@@ -171,15 +182,63 @@ public abstract class PagesDatabaseQueriesContract
 
     final var queries =
       transaction.queries(PagesDatabaseQueriesType.class);
+    final var labelsQueries =
+      transaction.queries(CDLabelsQueriesType.class);
+    final var label =
+      labelsQueries.labelCreate("label", "A label");
 
-    final var ex = Assertions.assertThrows(PagesDatabaseException.class, () -> {
+    final var ex = Assertions.assertThrows(CDException.class, () -> {
       queries.pageBlobPut(
         UUID.randomUUID(),
         "text/plain",
-        "hello".getBytes(StandardCharsets.UTF_8));
+        "hello".getBytes(StandardCharsets.UTF_8),
+        label);
     });
 
     Assertions.assertEquals(PagesDatabaseQueriesType.DATA_OWNER_NONEXISTENT, ex.errorCode());
+  }
+
+  /**
+   * Putting a blob with a nonexistent label fails.
+   *
+   * @throws Exception If required
+   */
+
+  @Test
+  public final void testPagesBlobPutLabelNonexistent()
+    throws Exception
+  {
+    final var transaction = this.transaction();
+
+    final var queries =
+      transaction.queries(PagesDatabaseQueriesType.class);
+    final var accountsQueries =
+      transaction.queries(CDAccountsQueriesType.class);
+
+    final var account =
+      accountsQueries.accountCreate(
+        UUID.randomUUID(),
+        "User",
+        CDPasswordHashDTO.builder()
+          .setParameters("params")
+          .setHash((byte) 0x0)
+          .build(),
+        "someone@example.com",
+        Optional.empty());
+
+    final var ex = Assertions.assertThrows(CDException.class, () -> {
+      queries.pageBlobPut(
+        account.id(),
+        "text/plain",
+        "hello".getBytes(StandardCharsets.UTF_8),
+        CDSecurityLabelDTO.builder()
+          .setName("x")
+          .setId(32767L)
+          .setDescription("A label")
+          .build());
+    });
+
+    Assertions.assertEquals(CDLabelsQueriesType.LABEL_NONEXISTENT, ex.errorCode());
   }
 
   /**
@@ -195,13 +254,17 @@ public abstract class PagesDatabaseQueriesContract
     final var transaction = this.transaction();
 
     final var accountsQueries =
-      transaction.queries(AccountsDatabaseQueriesType.class);
+      transaction.queries(CDAccountsQueriesType.class);
+    final var labelsQueries =
+      transaction.queries(CDLabelsQueriesType.class);
+    final var label =
+      labelsQueries.labelCreate("label", "A label");
 
     final var account =
       accountsQueries.accountCreate(
         UUID.randomUUID(),
         "User",
-        AccountsDatabasePasswordHashDTO.builder()
+        CDPasswordHashDTO.builder()
           .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
@@ -218,8 +281,8 @@ public abstract class PagesDatabaseQueriesContract
       for (var index = 0; index < 10_000; ++index) {
         output.write(data);
       }
-      final var ex = Assertions.assertThrows(PagesDatabaseException.class, () -> {
-        queries.pageBlobPut(account.id(), "text/plain", output.toByteArray());
+      final var ex = Assertions.assertThrows(CDException.class, () -> {
+        queries.pageBlobPut(account.id(), "text/plain", output.toByteArray(), label);
       });
 
       Assertions.assertEquals(PagesDatabaseQueriesType.DATA_INVALID, ex.errorCode());
@@ -239,13 +302,17 @@ public abstract class PagesDatabaseQueriesContract
     final var transaction = this.transaction();
 
     final var accountsQueries =
-      transaction.queries(AccountsDatabaseQueriesType.class);
+      transaction.queries(CDAccountsQueriesType.class);
+    final var labelsQueries =
+      transaction.queries(CDLabelsQueriesType.class);
+    final var label =
+      labelsQueries.labelCreate("label", "A label");
 
     final var account =
       accountsQueries.accountCreate(
         UUID.randomUUID(),
         "User",
-        AccountsDatabasePasswordHashDTO.builder()
+        CDPasswordHashDTO.builder()
           .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
@@ -254,7 +321,7 @@ public abstract class PagesDatabaseQueriesContract
 
     final var queries = transaction.queries(PagesDatabaseQueriesType.class);
     final var data = "hello".getBytes(StandardCharsets.UTF_8);
-    final var hash = queries.pageBlobPut(account.id(), "text/plain", data);
+    final var hash = queries.pageBlobPut(account.id(), "text/plain", data, label);
 
     Assertions.assertEquals(
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
@@ -296,13 +363,13 @@ public abstract class PagesDatabaseQueriesContract
     final var transaction = this.transaction();
 
     final var accountsQueries =
-      transaction.queries(AccountsDatabaseQueriesType.class);
+      transaction.queries(CDAccountsQueriesType.class);
 
     final var account =
       accountsQueries.accountCreate(
         UUID.randomUUID(),
         "User",
-        AccountsDatabasePasswordHashDTO.builder()
+        CDPasswordHashDTO.builder()
           .setParameters("params")
           .setHash((byte) 0x0)
           .build(),
@@ -311,7 +378,7 @@ public abstract class PagesDatabaseQueriesContract
 
     final var queries = transaction.queries(PagesDatabaseQueriesType.class);
 
-    final var ex = Assertions.assertThrows(PagesDatabaseException.class, () -> {
+    final var ex = Assertions.assertThrows(CDException.class, () -> {
       queries.pageBlobRedact(
         account.id(),
         "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",

@@ -14,38 +14,17 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-package com.io7m.ironpage.database.accounts.api;
-
-import com.io7m.immutables.styles.ImmutablesStyleType;
-import org.immutables.value.Value;
-
-import java.time.Instant;
-import java.util.UUID;
-
 /**
- * An accounts database session data transfer object.
+ * Document database (Core database types and API)
  */
 
-@Value.Immutable
-@ImmutablesStyleType
-public interface AccountsDatabaseSessionDTOType
+module com.io7m.ironpage.database.core.api
 {
-  /**
-   * @return The session ID
-   */
+  requires static com.io7m.immutables.style;
+  requires static org.immutables.value;
+  requires static org.osgi.annotation.bundle;
 
-  String id();
+  requires com.io7m.ironpage.database.spi;
 
-  /**
-   * @return The user ID
-   */
-
-  UUID userID();
-
-  /**
-   * @return The last updated time
-   */
-
-  Instant updated();
+  exports com.io7m.ironpage.database.core.api;
 }

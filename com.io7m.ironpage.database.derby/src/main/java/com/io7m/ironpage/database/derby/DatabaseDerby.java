@@ -60,10 +60,11 @@ final class DatabaseDerby implements DatabaseType
     throws DatabaseException
   {
     try {
+      final var connection = this.dataSource.getPooledConnection();
       return new DatabaseDerbyConnection(
         this.provider,
         this,
-        this.dataSource.getPooledConnection());
+        connection.getConnection());
     } catch (final SQLException e) {
       throw this.provider.ofSQLException("errorOpenConnection", e);
     }

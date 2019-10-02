@@ -14,41 +14,45 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.ironpage.database.accounts.api;
+package com.io7m.ironpage.database.core.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import org.immutables.value.Value;
 
+import java.util.Objects;
+
 /**
- * A password hash data transfer object.
+ * A security role data transfer object.
  */
 
 @Value.Immutable
 @ImmutablesStyleType
-public interface AccountsDatabasePasswordHashDTOType
+public interface CDSecurityRoleDTOType extends Comparable<CDSecurityRoleDTOType>
 {
-  /**
-   * @return The password algorithm
-   */
-
-  @Value.Default
-  default String algorithm()
+  @Override
+  default int compareTo(final CDSecurityRoleDTOType other)
   {
-    return "PBKDF2WithHmacSHA256";
+    Objects.requireNonNull(other, "other");
+    return Long.compare(this.id(), other.id());
   }
 
   /**
-   * @return The password hash
+   * @return The role ID
    */
 
-  byte[] hash();
+  long id();
 
   /**
-   * The algorithm-specific password parameters. In the case of PBKDF2, for example, this will
-   * be the salt and the number of iterations.
-   *
-   * @return The password parameters
+   * @return The role name
    */
 
-  String parameters();
+  @Value.Auxiliary
+  String name();
+
+  /**
+   * @return The role description
+   */
+
+  @Value.Auxiliary
+  String description();
 }

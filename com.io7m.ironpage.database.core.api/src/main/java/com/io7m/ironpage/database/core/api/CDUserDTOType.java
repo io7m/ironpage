@@ -14,58 +14,66 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.ironpage.database.pages.api;
+
+package com.io7m.ironpage.database.core.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
-import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import org.immutables.value.Value;
 
 import java.util.Optional;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 /**
- * A page blob data transfer object.
+ * An accounts database user data transfer object.
  */
 
 @Value.Immutable
 @ImmutablesStyleType
-public interface PagesDatabaseBlobDTOType
+public interface CDUserDTOType
 {
   /**
-   * @return The user ID that owns the blob
+   * @return The user ID
    */
 
-  UUID owner();
+  @Value.Default
+  default UUID id()
+  {
+    return new UUID(0L, 0L);
+  }
 
   /**
-   * @return The blob ID
+   * @return The user password hash
    */
 
-  String id();
+  CDPasswordHashDTO passwordHash();
 
   /**
-   * @return The IANA media type
-   *
-   * @see "https://www.iana.org/assignments/media-types/media-types.xhtml"
+   * @return The user roles
    */
 
-  String mediaType();
+  @Value.Default
+  default SortedSet<CDSecurityRoleDTO> roles()
+  {
+    return new TreeSet<>();
+  }
 
   /**
-   * @return The blob data
+   * @return The user email address
    */
 
-  byte[] data();
+  String email();
 
   /**
-   * @return The security label for the blob
+   * @return The user display name
    */
 
-  CDSecurityLabelDTO securityLabel();
+  String displayName();
 
   /**
-   * @return The blob redaction, if one has been issued
+   * @return The reason the user account is locked (if it is)
    */
 
-  Optional<PagesDatabaseRedactionDTO> redaction();
+  Optional<String> locked();
 }

@@ -16,6 +16,9 @@
 
 package com.io7m.ironpage.database.pages.api;
 
+import com.io7m.ironpage.database.core.api.CDErrorCode;
+import com.io7m.ironpage.database.core.api.CDException;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
 
 import java.util.Optional;
@@ -31,8 +34,8 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * A piece of inserted data already exists.
    */
 
-  PagesDatabaseErrorCode DATA_ALREADY_EXISTS =
-    PagesDatabaseErrorCode.of(
+  CDErrorCode DATA_ALREADY_EXISTS =
+    CDErrorCode.of(
       new StringBuilder(64)
         .append(PagesDatabaseQueriesType.class.getCanonicalName())
         .append(":dataAlreadyExists")
@@ -42,8 +45,8 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * A referenced piece of data doesn't exist.
    */
 
-  PagesDatabaseErrorCode DATA_NONEXISTENT =
-    PagesDatabaseErrorCode.of(
+  CDErrorCode DATA_NONEXISTENT =
+    CDErrorCode.of(
       new StringBuilder(64)
         .append(PagesDatabaseQueriesType.class.getCanonicalName())
         .append(":dataNonexistent")
@@ -53,8 +56,8 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * An unexpected database error occurred.
    */
 
-  PagesDatabaseErrorCode DATABASE_ERROR =
-    PagesDatabaseErrorCode.of(
+  CDErrorCode DATABASE_ERROR =
+    CDErrorCode.of(
       new StringBuilder(64)
         .append(PagesDatabaseQueriesType.class.getCanonicalName())
         .append(":databaseError")
@@ -64,8 +67,8 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * One or more page data fields were invalid.
    */
 
-  PagesDatabaseErrorCode DATA_INVALID =
-    PagesDatabaseErrorCode.of(
+  CDErrorCode DATA_INVALID =
+    CDErrorCode.of(
       new StringBuilder(64)
         .append(PagesDatabaseQueriesType.class.getCanonicalName())
         .append(":dataInvalid")
@@ -75,8 +78,8 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * The owner of the page data does not exist.
    */
 
-  PagesDatabaseErrorCode DATA_OWNER_NONEXISTENT =
-    PagesDatabaseErrorCode.of(
+  CDErrorCode DATA_OWNER_NONEXISTENT =
+    CDErrorCode.of(
       new StringBuilder(64)
         .append(PagesDatabaseQueriesType.class.getCanonicalName())
         .append(":dataOwnerNonexistent")
@@ -88,18 +91,20 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * @param owner     The ID of the owner
    * @param mediaType The IANA media type
    * @param data      The data
+   * @param label     The security label of the blob
    *
    * @return The hash of the blob
    *
-   * @throws PagesDatabaseException On database errors
+   * @throws CDException On database errors
    * @see "https://www.iana.org/assignments/media-types/media-types.xhtml"
    */
 
   String pageBlobPut(
     UUID owner,
     String mediaType,
-    byte[] data)
-    throws PagesDatabaseException;
+    byte[] data,
+    CDSecurityLabelDTO label)
+    throws CDException;
 
   /**
    * Retrieve the given page blob.
@@ -108,12 +113,12 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    *
    * @return A blob
    *
-   * @throws PagesDatabaseException On database errors
+   * @throws CDException On database errors
    */
 
   Optional<PagesDatabaseBlobDTO> pageBlobGet(
     String id)
-    throws PagesDatabaseException;
+    throws CDException;
 
   /**
    * Redact the given page blob.
@@ -122,12 +127,12 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * @param id     The blob ID
    * @param reason The redaction reason
    *
-   * @throws PagesDatabaseException On database errors
+   * @throws CDException On database errors
    */
 
   void pageBlobRedact(
     UUID owner,
     String id,
     String reason)
-    throws PagesDatabaseException;
+    throws CDException;
 }

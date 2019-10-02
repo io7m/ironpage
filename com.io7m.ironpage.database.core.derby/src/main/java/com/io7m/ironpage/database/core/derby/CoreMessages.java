@@ -14,17 +14,29 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Document database (Accounts database API)
- */
 
-module com.io7m.ironpage.database.accounts.api
+package com.io7m.ironpage.database.core.derby;
+
+import java.text.MessageFormat;
+import java.util.Objects;
+import java.util.ResourceBundle;
+
+final class CoreMessages
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  private static final ResourceBundle RESOURCES =
+    ResourceBundle.getBundle("com.io7m.ironpage.database.core.derby.Messages");
 
-  requires com.io7m.ironpage.database.spi;
+  private CoreMessages()
+  {
 
-  exports com.io7m.ironpage.database.accounts.api;
+  }
+
+  public static String localize(
+    final String resource,
+    final Object... args)
+  {
+    Objects.requireNonNull(resource, "resource");
+    Objects.requireNonNull(args, "args");
+    return MessageFormat.format(RESOURCES.getString(resource), args);
+  }
 }

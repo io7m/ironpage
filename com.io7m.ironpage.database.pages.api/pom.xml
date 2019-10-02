@@ -20,7 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.database.accounts.api</artifactId>
+      <artifactId>com.io7m.ironpage.database.core.api</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

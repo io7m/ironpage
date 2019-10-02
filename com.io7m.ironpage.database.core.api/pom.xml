@@ -11,10 +11,10 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.ironpage.database.accounts.api</artifactId>
+  <artifactId>com.io7m.ironpage.database.core.api</artifactId>
 
-  <name>com.io7m.ironpage.database.accounts.api</name>
-  <description>Document database (Accounts database API)</description>
+  <name>com.io7m.ironpage.database.core.api</name>
+  <description>Document database (Core database API)</description>
   <url>http://github.com/io7m/ironpage</url>
 
   <dependencies>

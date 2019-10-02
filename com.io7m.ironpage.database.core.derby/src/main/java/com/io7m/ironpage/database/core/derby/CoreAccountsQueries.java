@@ -16,11 +16,12 @@
 
 package com.io7m.ironpage.database.core.derby;
 
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseException;
-import com.io7m.ironpage.database.accounts.api.AccountsDatabasePasswordHashDTO;
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseQueriesType;
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseSessionDTO;
-import com.io7m.ironpage.database.accounts.api.AccountsDatabaseUserDTO;
+import com.io7m.ironpage.database.core.api.CDAccountsQueriesType;
+import com.io7m.ironpage.database.core.api.CDException;
+import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
+import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
+import com.io7m.ironpage.database.core.api.CDSessionDTO;
+import com.io7m.ironpage.database.core.api.CDUserDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import com.io7m.jaffirm.core.Invariants;
@@ -28,75 +29,64 @@ import io.vavr.collection.TreeMap;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record4;
 import org.jooq.SQLDialect;
-import org.jooq.Table;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 
+import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.SQLDataException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.MessageFormat;
 import java.time.Clock;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_CREATED;
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_DISPLAY_NAME;
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_EMAIL;
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_LOCKED;
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_PASSWORD;
+import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_MODIFIED_ROLES;
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.USER_SESSION_CREATED;
+import static com.io7m.ironpage.database.core.api.CDRolesQueriesType.ROLE_NONEXISTENT;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_ROLE_DESCRIPTION;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_ROLE_ID;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_ROLE_NAME;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_ROLE_ROLE_ID;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_ROLE_USER_ID;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_SESSION_ID;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_SESSION_UPDATED;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_SESSION_USER_ID;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_DISPLAY_NAME;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_EMAIL;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_ID;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_LOCKED_REASON;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_PASSWORD_ALGO;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_PASSWORD_HASH;
+import static com.io7m.ironpage.database.core.derby.CoreTables.FIELD_USER_PASSWORD_PARAMS;
+import static com.io7m.ironpage.database.core.derby.CoreTables.TABLE_ROLES;
+import static com.io7m.ironpage.database.core.derby.CoreTables.TABLE_ROLE_USERS;
+import static com.io7m.ironpage.database.core.derby.CoreTables.TABLE_SESSIONS;
+import static com.io7m.ironpage.database.core.derby.CoreTables.TABLE_USERS;
 
-final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
+final class CoreAccountsQueries implements CDAccountsQueriesType
 {
-  private static final ResourceBundle RESOURCES =
-    ResourceBundle.getBundle("com.io7m.ironpage.database.core.derby.Messages");
-
-  private static final Table<Record> TABLE_USERS =
-    DSL.table(DSL.name("core", "users"));
-  private static final Field<String> FIELD_USER_DISPLAY_NAME =
-    DSL.field(DSL.name("user_display_name"), SQLDataType.VARCHAR(128));
-  private static final Field<String> FIELD_USER_EMAIL =
-    DSL.field(DSL.name("user_email"), SQLDataType.VARCHAR(128));
-  private static final Field<UUID> FIELD_USER_ID =
-    DSL.field(DSL.name("user_id"), SQLDataType.UUID);
-  private static final Field<String> FIELD_USER_LOCKED_REASON =
-    DSL.field(DSL.name("user_locked_reason"), SQLDataType.VARCHAR(128));
-  private static final Field<String> FIELD_USER_PASSWORD_HASH =
-    DSL.field(DSL.name("user_password_hash"), SQLDataType.VARCHAR(128));
-  private static final Field<String> FIELD_USER_PASSWORD_PARAMS =
-    DSL.field(DSL.name("user_password_params"), SQLDataType.VARCHAR(256));
-  private static final Field<String> FIELD_USER_PASSWORD_ALGO =
-    DSL.field(DSL.name("user_password_algo"), SQLDataType.VARCHAR(64));
-
-  private static final Table<Record> TABLE_SESSIONS =
-    DSL.table(DSL.name("core", "sessions"));
-  private static final Field<String> FIELD_SESSION_ID =
-    DSL.field(DSL.name("session_id"), SQLDataType.VARCHAR(36));
-  private static final Field<UUID> FIELD_SESSION_USER_ID =
-    DSL.field(DSL.name("session_user_id"), SQLDataType.UUID);
-  private static final Field<Timestamp> FIELD_SESSION_UPDATED =
-    DSL.field(DSL.name("session_updated"), SQLDataType.TIMESTAMP);
-
   private final Connection connection;
   private final DSLContext dslContext;
   private final CoreAuditQueries audit;
   private final Clock clock;
 
-  CoreAccountsDatabaseQueries(
+  CoreAccountsQueries(
     final Clock inClock,
     final Connection inConnection)
   {
@@ -107,13 +97,21 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     this.audit = new CoreAuditQueries(this.clock, this.connection);
   }
 
-  private static AccountsDatabaseException handleDataAccessException(
+  private static CDException handleDataAccessException(
     final UUID id,
     final String displayName,
     final DataAccessException e)
   {
     final var cause = e.getCause();
-    if (cause instanceof DerbySQLIntegrityConstraintViolationException) {
+    if (cause instanceof BatchUpdateException) {
+      final var batchCause = cause.getCause();
+      if (batchCause instanceof DerbySQLIntegrityConstraintViolationException) {
+        return integrityException(
+          (DerbySQLIntegrityConstraintViolationException) batchCause,
+          id,
+          displayName);
+      }
+    } else if (cause instanceof DerbySQLIntegrityConstraintViolationException) {
       return integrityException(
         (DerbySQLIntegrityConstraintViolationException) cause,
         id,
@@ -131,50 +129,60 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     return Hex.encodeHexString(data, true);
   }
 
-  private static AccountsDatabaseUserDTO accountFromRecord(
-    final Record record)
+  private static CDUserDTO accountFromRecord(
+    final Record userRecord,
+    final SortedSet<CDSecurityRoleDTO> userRoles)
   {
     try {
       final var hash =
-        AccountsDatabasePasswordHashDTO.builder()
-          .setHash(Hex.decodeHex(record.get(FIELD_USER_PASSWORD_HASH)))
-          .setParameters(record.get(FIELD_USER_PASSWORD_PARAMS))
-          .setAlgorithm(record.get(FIELD_USER_PASSWORD_ALGO))
+        CDPasswordHashDTO.builder()
+          .setHash(Hex.decodeHex(userRecord.get(FIELD_USER_PASSWORD_HASH)))
+          .setParameters(userRecord.get(FIELD_USER_PASSWORD_PARAMS))
+          .setAlgorithm(userRecord.get(FIELD_USER_PASSWORD_ALGO))
           .build();
 
-      return AccountsDatabaseUserDTO.builder()
-        .setDisplayName(record.get(FIELD_USER_DISPLAY_NAME))
-        .setEmail(record.get(FIELD_USER_EMAIL))
-        .setId(record.get(FIELD_USER_ID))
-        .setLocked(Optional.ofNullable(record.get(FIELD_USER_LOCKED_REASON)))
+      return CDUserDTO.builder()
+        .setDisplayName(userRecord.get(FIELD_USER_DISPLAY_NAME))
+        .setEmail(userRecord.get(FIELD_USER_EMAIL))
+        .setId(userRecord.get(FIELD_USER_ID))
+        .setLocked(Optional.ofNullable(userRecord.get(FIELD_USER_LOCKED_REASON)))
         .setPasswordHash(hash)
+        .setRoles(userRoles)
         .build();
     } catch (final DecoderException e) {
       throw new IllegalStateException(e);
     }
   }
 
-  private static AccountsDatabaseException integrityException(
+  private static CDException integrityException(
     final DerbySQLIntegrityConstraintViolationException e,
     final UUID id,
     final String displayName)
   {
     switch (e.getConstraintName()) {
+      case "ROLE_ROLE_ID_REFERENCE": {
+        return new CDException(
+          ErrorSeverity.SEVERITY_ERROR,
+          ROLE_NONEXISTENT,
+          CoreMessages.localize("errorRoleNonexistent"),
+          e,
+          TreeMap.of(CoreMessages.localize("displayName"), displayName));
+      }
       case "USER_DISPLAY_NAME_UNIQUE": {
-        return new AccountsDatabaseException(
+        return new CDException(
           ErrorSeverity.SEVERITY_ERROR,
           DISPLAY_NAME_ALREADY_USED,
-          MessageFormat.format(localize("errorUserDisplayNameConflict"), displayName),
+          CoreMessages.localize("errorUserDisplayNameConflict", displayName),
           e,
-          TreeMap.of(localize("displayName"), displayName));
+          TreeMap.of(CoreMessages.localize("displayName"), displayName));
       }
       case "USER_ID_KEY": {
-        return new AccountsDatabaseException(
+        return new CDException(
           ErrorSeverity.SEVERITY_ERROR,
           ID_ALREADY_USED,
-          localize("errorUserIDConflict"),
+          CoreMessages.localize("errorUserIDConflict"),
           e,
-          TreeMap.of(localize("userID"), id.toString()));
+          TreeMap.of(CoreMessages.localize("userID"), id.toString()));
       }
       default: {
         return invalidDataException(e);
@@ -182,39 +190,44 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     }
   }
 
-  private static AccountsDatabaseException invalidDataException(
+  private static CDException invalidDataException(
     final Exception e)
   {
-    return new AccountsDatabaseException(
+    return new CDException(
       ErrorSeverity.SEVERITY_ERROR,
       INVALID_DATA,
-      localize("errorUserDataInvalid"),
+      CoreMessages.localize("errorUserDataInvalid"),
       e);
   }
 
-  private static AccountsDatabaseException genericDatabaseException(
+  private static CDException genericDatabaseException(
     final Exception e)
   {
-    return new AccountsDatabaseException(
+    return new CDException(
       ErrorSeverity.SEVERITY_ERROR,
       DATABASE_ERROR,
-      MessageFormat.format(localize("errorDatabase"), e.getLocalizedMessage()),
+      CoreMessages.localize("errorDatabase", e.getLocalizedMessage()),
       e);
   }
 
-  private static String localize(final String resource)
+  private static CDSecurityRoleDTO roleFromRecord(
+    final Record4<UUID, Long, String, String> record)
   {
-    return RESOURCES.getString(resource);
+    return CDSecurityRoleDTO.builder()
+      .setId(record.<Long>getValue(FIELD_ROLE_ID).longValue())
+      .setName(record.getValue(FIELD_ROLE_NAME))
+      .setDescription(record.getValue(FIELD_ROLE_DESCRIPTION))
+      .build();
   }
 
   @Override
-  public AccountsDatabaseUserDTO accountCreate(
+  public CDUserDTO accountCreate(
     final UUID id,
     final String displayName,
-    final AccountsDatabasePasswordHashDTO password,
+    final CDPasswordHashDTO password,
     final String email,
     final Optional<String> lockedReason)
-    throws AccountsDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(id, "id");
     Objects.requireNonNull(displayName, "displayName");
@@ -241,26 +254,147 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
       throw genericDatabaseException(e);
     }
 
-    return AccountsDatabaseUserDTO.builder()
+    return CDUserDTO.builder()
       .setId(id)
       .setDisplayName(displayName)
       .setPasswordHash(password)
       .setEmail(email)
       .setLocked(lockedReason)
+      .setRoles(new TreeSet<>())
       .build();
   }
 
   @Override
-  public AccountsDatabaseUserDTO accountUpdate(
+  public CDUserDTO accountUpdate(
     final UUID caller,
-    final AccountsDatabaseUserDTO account)
-    throws AccountsDatabaseException
+    final CDUserDTO account)
+    throws CDException
   {
     Objects.requireNonNull(caller, "caller");
     Objects.requireNonNull(account, "account");
 
     final var existing = this.accountGet(account.id());
 
+    this.accountUpdateRoles(account, existing);
+    this.accountUpdateFields(account);
+    this.accountUpdateLogDisplayName(caller, account, existing);
+    this.accountUpdateLogEmail(caller, account, existing);
+    this.accountUpdateLogPasswordHash(caller, account, existing);
+    this.accountUpdateLogLocked(caller, account, existing);
+    this.accountUpdateLogRoles(caller, account, existing);
+
+    return account;
+  }
+
+  private void accountUpdateLogRoles(
+    final UUID caller,
+    final CDUserDTO account,
+    final CDUserDTO existing)
+    throws CDException
+  {
+    if (!Objects.equals(existing.roles(), account.roles())) {
+      try {
+        this.audit.auditEventLog(
+          USER_MODIFIED_ROLES,
+          caller,
+          account.id().toString(),
+          existing.roles()
+            .stream()
+            .map(CDSecurityRoleDTO::name)
+            .collect(Collectors.joining(",")),
+          account.roles()
+            .stream()
+            .map(CDSecurityRoleDTO::name)
+            .collect(Collectors.joining(",")));
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+  }
+
+  private void accountUpdateLogLocked(
+    final UUID caller,
+    final CDUserDTO account,
+    final CDUserDTO existing)
+    throws CDException
+  {
+    if (!Objects.equals(existing.locked(), account.locked())) {
+      try {
+        this.audit.auditEventLog(
+          USER_MODIFIED_LOCKED,
+          caller,
+          account.id().toString(),
+          existing.locked().orElse(""),
+          account.locked().orElse(""));
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+  }
+
+  private void accountUpdateLogPasswordHash(
+    final UUID caller,
+    final CDUserDTO account,
+    final CDUserDTO existing)
+    throws CDException
+  {
+    if (!Objects.equals(existing.passwordHash(), account.passwordHash())) {
+      try {
+        this.audit.auditEventLog(
+          USER_MODIFIED_PASSWORD,
+          caller,
+          account.id().toString(),
+          "",
+          "");
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+  }
+
+  private void accountUpdateLogEmail(
+    final UUID caller,
+    final CDUserDTO account,
+    final CDUserDTO existing)
+    throws CDException
+  {
+    if (!Objects.equals(existing.email(), account.email())) {
+      try {
+        this.audit.auditEventLog(
+          USER_MODIFIED_EMAIL,
+          caller,
+          account.id().toString(),
+          existing.email(),
+          account.email());
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+  }
+
+  private void accountUpdateLogDisplayName(
+    final UUID caller,
+    final CDUserDTO account,
+    final CDUserDTO existing)
+    throws CDException
+  {
+    if (!Objects.equals(existing.displayName(), account.displayName())) {
+      try {
+        this.audit.auditEventLog(
+          USER_MODIFIED_DISPLAY_NAME,
+          caller,
+          account.id().toString(),
+          existing.displayName(),
+          account.displayName());
+      } catch (final Exception e) {
+        throw genericDatabaseException(e);
+      }
+    }
+  }
+
+  private void accountUpdateFields(final CDUserDTO account)
+    throws CDException
+  {
     try (var query =
            this.dslContext.update(TABLE_USERS)
              .set(FIELD_USER_DISPLAY_NAME, account.displayName())
@@ -274,70 +408,42 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
     } catch (final DataAccessException e) {
       throw handleDataAccessException(account.id(), account.displayName(), e);
     }
+  }
 
-    if (!Objects.equals(existing.displayName(), account.displayName())) {
-      try {
-        this.audit.auditEventLog(
-          USER_MODIFIED_DISPLAY_NAME,
-          caller,
-          account.id().toString(),
-          existing.displayName(),
-          account.displayName());
-      } catch (final Exception e) {
-        throw genericDatabaseException(e);
+  private void accountUpdateRoles(
+    final CDUserDTO account,
+    final CDUserDTO existing)
+    throws CDException
+  {
+    if (!account.roles().equals(existing.roles())) {
+      try (var rolesDeleteQuery =
+             this.dslContext.delete(TABLE_ROLE_USERS)
+               .where(FIELD_ROLE_USER_ID.eq(account.id()))) {
+        rolesDeleteQuery.execute();
+
+        final var inserts =
+          account.roles()
+            .stream()
+            .map(role -> this.dslContext.insertInto(TABLE_ROLE_USERS)
+              .set(FIELD_ROLE_USER_ID, account.id())
+              .set(FIELD_ROLE_ROLE_ID, Long.valueOf(role.id())))
+            .collect(Collectors.toList());
+
+        this.dslContext.batch(inserts).execute();
+      } catch (final DataAccessException e) {
+        throw handleDataAccessException(account.id(), account.displayName(), e);
       }
     }
-
-    if (!Objects.equals(existing.email(), account.email())) {
-      try {
-        this.audit.auditEventLog(
-          USER_MODIFIED_EMAIL,
-          caller,
-          account.id().toString(),
-          existing.email(),
-          account.email());
-      } catch (final Exception e) {
-        throw genericDatabaseException(e);
-      }
-    }
-
-    if (!Objects.equals(existing.passwordHash(), account.passwordHash())) {
-      try {
-        this.audit.auditEventLog(
-          USER_MODIFIED_PASSWORD,
-          caller,
-          account.id().toString(),
-          "",
-          "");
-      } catch (final Exception e) {
-        throw genericDatabaseException(e);
-      }
-    }
-
-    if (!Objects.equals(existing.locked(), account.locked())) {
-      try {
-        this.audit.auditEventLog(
-          USER_MODIFIED_LOCKED,
-          caller,
-          account.id().toString(),
-          existing.locked().orElse(""),
-          account.locked().orElse(""));
-      } catch (final Exception e) {
-        throw genericDatabaseException(e);
-      }
-    }
-
-    return account;
   }
 
   @Override
-  public AccountsDatabaseUserDTO accountGet(
+  public CDUserDTO accountGet(
     final UUID userId)
-    throws AccountsDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(userId, "userId");
 
-    try (var query = this.dslContext.select(
+    try (var accountQuery = this.dslContext.select(
       FIELD_USER_DISPLAY_NAME,
       FIELD_USER_EMAIL,
       FIELD_USER_ID,
@@ -349,62 +455,39 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
       .where(FIELD_USER_ID.eq(userId))
       .limit(1)) {
 
-      final var result = query.fetch();
-      if (result.isEmpty()) {
-        throw new AccountsDatabaseException(
+      final var userResults = accountQuery.fetch();
+      if (userResults.isEmpty()) {
+        throw new CDException(
           ErrorSeverity.SEVERITY_ERROR,
           NONEXISTENT,
-          localize("errorUserNonexistent"),
+          CoreMessages.localize("errorUserNonexistent"),
           null,
-          TreeMap.of(localize("userID"), userId.toString()));
+          TreeMap.of(CoreMessages.localize("userID"), userId.toString()));
       }
 
-      return accountFromRecord(result.get(0));
+      try (var roleQuery = this.dslContext.select(
+        FIELD_ROLE_USER_ID,
+        FIELD_ROLE_ID,
+        FIELD_ROLE_NAME,
+        FIELD_ROLE_DESCRIPTION)
+        .from(TABLE_ROLE_USERS)
+        .join(TABLE_ROLES)
+        .on(FIELD_ROLE_ROLE_ID.eq(FIELD_ROLE_ID))
+        .where(FIELD_ROLE_USER_ID.eq(userId))) {
+
+        final var roleResults = roleQuery.fetch();
+        final SortedSet<CDSecurityRoleDTO> roles =
+          new TreeSet<>(roleResults.map(CoreAccountsQueries::roleFromRecord));
+        return accountFromRecord(userResults.get(0), roles);
+      }
     }
   }
 
   @Override
-  public Stream<AccountsDatabaseUserDTO> accountFind(
-    final Optional<UUID> userId,
-    final Optional<String> displayName,
-    final Optional<String> email)
-    throws AccountsDatabaseException
-  {
-    Objects.requireNonNull(userId, "userId");
-    Objects.requireNonNull(displayName, "displayName");
-    Objects.requireNonNull(email, "email");
-
-    final var conditions = new ArrayList<Condition>(3);
-    userId.ifPresent(
-      uuid -> conditions.add(FIELD_USER_ID.eq(uuid)));
-    displayName.ifPresent(
-      cmpDisplayName -> conditions.add(FIELD_USER_DISPLAY_NAME.eq(cmpDisplayName)));
-    email.ifPresent(
-      cmpEmail -> conditions.add(FIELD_USER_EMAIL.eq(cmpEmail)));
-
-    try {
-      return this.dslContext.select(
-        FIELD_USER_DISPLAY_NAME,
-        FIELD_USER_EMAIL,
-        FIELD_USER_ID,
-        FIELD_USER_LOCKED_REASON,
-        FIELD_USER_PASSWORD_HASH,
-        FIELD_USER_PASSWORD_PARAMS,
-        FIELD_USER_PASSWORD_ALGO)
-        .from(TABLE_USERS)
-        .where(conditions)
-        .fetchStream()
-        .map(CoreAccountsDatabaseQueries::accountFromRecord);
-    } catch (final DataAccessException e) {
-      throw genericDatabaseException(e);
-    }
-  }
-
-  @Override
-  public AccountsDatabaseSessionDTO accountSessionCreate(
+  public CDSessionDTO accountSessionCreate(
     final UUID owner,
     final String session)
-    throws AccountsDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(owner, "owner");
     Objects.requireNonNull(session, "session");
@@ -423,7 +506,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
         throw genericDatabaseException(e);
       }
 
-      return AccountsDatabaseSessionDTO.builder()
+      return CDSessionDTO.builder()
         .setId(session)
         .setUserID(owner)
         .setUpdated(timestamp.toInstant())
@@ -434,17 +517,17 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
         final var constraintViolation = (DerbySQLIntegrityConstraintViolationException) cause;
         switch (constraintViolation.getConstraintName()) {
           case "SESSION_USER_REFERENCE": {
-            throw new AccountsDatabaseException(
+            throw new CDException(
               ErrorSeverity.SEVERITY_ERROR,
               NONEXISTENT,
-              localize("errorUserNonexistent"),
+              CoreMessages.localize("errorUserNonexistent"),
               cause);
           }
           case "SESSION_ID_KEY": {
-            throw new AccountsDatabaseException(
+            throw new CDException(
               ErrorSeverity.SEVERITY_ERROR,
               ID_ALREADY_USED,
-              localize("errorSessionIDAlreadyUsed"),
+              CoreMessages.localize("errorSessionIDAlreadyUsed"),
               cause);
           }
           default: {
@@ -457,9 +540,9 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
   }
 
   @Override
-  public AccountsDatabaseSessionDTO accountSessionUpdate(
+  public CDSessionDTO accountSessionUpdate(
     final String session)
-    throws AccountsDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(session, "session");
 
@@ -476,7 +559,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
         "Must have updated exactly one row (got %d)",
         Integer.valueOf(updated));
 
-      return AccountsDatabaseSessionDTO.builder()
+      return CDSessionDTO.builder()
         .setId(session)
         .setUserID(userId)
         .setUpdated(timestamp.toInstant())
@@ -487,7 +570,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
   }
 
   private UUID sessionGet(final String session)
-    throws AccountsDatabaseException
+    throws CDException
   {
     try (var query =
            this.dslContext.select(FIELD_SESSION_ID, FIELD_SESSION_USER_ID)
@@ -496,12 +579,12 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
       final var rows = query.fetch();
       if (rows.size() != 1) {
-        throw new AccountsDatabaseException(
+        throw new CDException(
           ErrorSeverity.SEVERITY_ERROR,
           NONEXISTENT,
-          localize("errorSessionNonexistent"),
+          CoreMessages.localize("errorSessionNonexistent"),
           null,
-          TreeMap.of(localize("sessionID"), session));
+          TreeMap.of(CoreMessages.localize("sessionID"), session));
       }
 
       final var record = rows.get(0);
@@ -525,7 +608,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
   @Override
   public void accountSessionDelete(final String session)
-    throws AccountsDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(session, "session");
 
@@ -540,7 +623,7 @@ final class CoreAccountsDatabaseQueries implements AccountsDatabaseQueriesType
 
   @Override
   public int accountSessionDeleteForUser(final UUID owner)
-    throws AccountsDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(owner, "owner");
 

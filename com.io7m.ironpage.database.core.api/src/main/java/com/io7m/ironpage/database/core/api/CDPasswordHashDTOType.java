@@ -14,9 +14,41 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.database.core.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
+
 /**
- * Document database (Accounts database API)
+ * A password hash data transfer object.
  */
 
-@org.osgi.annotation.bundle.Export
-package com.io7m.ironpage.database.accounts.api;
+@Value.Immutable
+@ImmutablesStyleType
+public interface CDPasswordHashDTOType
+{
+  /**
+   * @return The password algorithm
+   */
+
+  @Value.Default
+  default String algorithm()
+  {
+    return "PBKDF2WithHmacSHA256";
+  }
+
+  /**
+   * @return The password hash
+   */
+
+  byte[] hash();
+
+  /**
+   * The algorithm-specific password parameters. In the case of PBKDF2, for example, this will be
+   * the salt and the number of iterations.
+   *
+   * @return The password parameters
+   */
+
+  String parameters();
+}

@@ -91,6 +91,19 @@ public final class EqualsTest
     if (declaredFieldNames.contains("type")) {
       transientFieldNames.add("type");
     }
+
+    switch (clazz.getCanonicalName()) {
+      case "com.io7m.ironpage.database.core.api.CDSecurityRoleDTO":
+      case "com.io7m.ironpage.database.core.api.CDSecurityLabelDTO": {
+        transientFieldNames.add("name");
+        transientFieldNames.add("description");
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+
     return transientFieldNames;
   }
 

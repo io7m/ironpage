@@ -24,9 +24,9 @@
   <inceptionYear>2019</inceptionYear>
 
   <modules>
-    <module>com.io7m.ironpage.database.accounts.api</module>
     <module>com.io7m.ironpage.database.api</module>
     <module>com.io7m.ironpage.database.audit.api</module>
+    <module>com.io7m.ironpage.database.core.api</module>
     <module>com.io7m.ironpage.database.core.derby</module>
     <module>com.io7m.ironpage.database.derby</module>
     <module>com.io7m.ironpage.database.pages.api</module>

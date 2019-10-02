@@ -16,8 +16,10 @@
 
 package com.io7m.ironpage.database.core.derby;
 
+import com.io7m.ironpage.database.core.api.CDException;
+import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
-import com.io7m.ironpage.database.pages.api.PagesDatabaseException;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
@@ -26,67 +28,35 @@ import io.vavr.collection.TreeMap;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.Record;
 import org.jooq.Record4;
-import org.jooq.Record5;
+import org.jooq.Record8;
 import org.jooq.SQLDialect;
-import org.jooq.Table;
 import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLDataException;
 import java.sql.Timestamp;
-import java.text.MessageFormat;
 import java.time.Clock;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.UUID;
 
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.BLOB_CREATED;
 import static com.io7m.ironpage.database.audit.api.AuditEventKind.BLOB_REDACTED;
 
-final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
+final class CorePagesQueries implements PagesDatabaseQueriesType
 {
-  private static final ResourceBundle RESOURCES =
-    ResourceBundle.getBundle("com.io7m.ironpage.database.core.derby.Messages");
-
-  private static final Table<Record> TABLE_BLOBS =
-    DSL.table(DSL.name("core", "blobs"));
-  private static final Field<String> FIELD_BLOB_ID =
-    DSL.field(DSL.name("blob_id"), SQLDataType.CHAR(64));
-  private static final Field<byte[]> FIELD_BLOB_DATA =
-    DSL.field(DSL.name("blob_data"), SQLDataType.BLOB(8_000_000));
-  private static final Field<Long> FIELD_BLOB_REDACTION =
-    DSL.field(DSL.name("blob_redaction"), SQLDataType.BIGINT);
-  private static final Field<String> FIELD_BLOB_MEDIA_TYPE =
-    DSL.field(DSL.name("blob_media_type"), SQLDataType.VARCHAR(128));
-  private static final Field<UUID> FIELD_BLOB_OWNER =
-    DSL.field(DSL.name("blob_owner"), SQLDataType.UUID);
-  private static final Table<Record> TABLE_REDACTIONS =
-    DSL.table(DSL.name("core", "redactions"));
-  private static final Field<UUID> FIELD_REDACTION_USER_ID =
-    DSL.field(DSL.name("redaction_user"), SQLDataType.UUID);
-  private static final Field<Timestamp> FIELD_REDACTION_TIME =
-    DSL.field(DSL.name("redaction_time"), SQLDataType.TIMESTAMP);
-  private static final Field<String> FIELD_REDACTION_REASON =
-    DSL.field(DSL.name("redaction_reason"), SQLDataType.VARCHAR(128));
-  private static final Field<Long> FIELD_REDACTION_ID =
-    DSL.field(DSL.name("redaction_id"), SQLDataType.BIGINT);
-
   private final Connection connection;
   private final DSLContext dslContext;
   private final CoreAuditQueries audit;
   private final Clock clock;
 
-  CorePagesDatabaseQueries(
+  CorePagesQueries(
     final Clock inClock,
     final Connection inConnection)
   {
@@ -101,51 +71,53 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     final Record4<Long, String, Timestamp, UUID> redactionRecord)
   {
     return PagesDatabaseRedactionDTO.builder()
-      .setId(redactionRecord.getValue(FIELD_REDACTION_ID).longValue())
-      .setOwner(redactionRecord.getValue(FIELD_REDACTION_USER_ID))
-      .setTime(redactionRecord.getValue(FIELD_REDACTION_TIME).toInstant())
-      .setReason(redactionRecord.getValue(FIELD_REDACTION_REASON))
+      .setId(redactionRecord.getValue(CoreTables.FIELD_REDACTION_ID).longValue())
+      .setOwner(redactionRecord.getValue(CoreTables.FIELD_REDACTION_USER_ID))
+      .setTime(redactionRecord.getValue(CoreTables.FIELD_REDACTION_TIME).toInstant())
+      .setReason(redactionRecord.getValue(CoreTables.FIELD_REDACTION_REASON))
       .build();
   }
 
   private static Optional<PagesDatabaseBlobDTO> dataFromRecord(
-    final Record5<String, String, byte[], UUID, Long> record,
+    final Record8<String, String, byte[], UUID, Long, Long, String, String> record,
     final Optional<PagesDatabaseRedactionDTO> redaction)
   {
+    final var label =
+      CDSecurityLabelDTO.builder()
+        .setId(record.<Long>getValue(CoreTables.FIELD_LABEL_ID).longValue())
+        .setName(record.getValue(CoreTables.FIELD_LABEL_NAME))
+        .setDescription(record.getValue(CoreTables.FIELD_LABEL_DESCRIPTION))
+        .build();
+
     return Optional.of(
       PagesDatabaseBlobDTO.builder()
-        .setId(record.get(FIELD_BLOB_ID))
-        .setMediaType(record.get(FIELD_BLOB_MEDIA_TYPE))
+        .setId(record.get(CoreTables.FIELD_BLOB_ID))
+        .setMediaType(record.get(CoreTables.FIELD_BLOB_MEDIA_TYPE))
         .setRedaction(redaction)
-        .setData(record.get(FIELD_BLOB_DATA))
-        .setOwner(record.get(FIELD_BLOB_OWNER))
+        .setData(record.get(CoreTables.FIELD_BLOB_DATA))
+        .setOwner(record.get(CoreTables.FIELD_BLOB_OWNER))
+        .setSecurityLabel(label)
         .build());
   }
 
-  private static String localize(
-    final String resources)
-  {
-    return RESOURCES.getString(resources);
-  }
-
-  private static PagesDatabaseException genericDatabaseException(
+  private static CDException genericDatabaseException(
     final Exception e)
   {
-    return new PagesDatabaseException(
+    return new CDException(
       ErrorSeverity.SEVERITY_ERROR,
       DATABASE_ERROR,
-      MessageFormat.format(localize("errorDatabase"), e.getLocalizedMessage()),
+      CoreMessages.localize("errorDatabase", e.getLocalizedMessage()),
       e);
   }
 
-  private static PagesDatabaseException genericDatabaseExceptionFormatted(
+  private static CDException genericDatabaseExceptionFormatted(
     final String resource,
     final Object... args)
   {
-    return new PagesDatabaseException(
+    return new CDException(
       ErrorSeverity.SEVERITY_ERROR,
       DATABASE_ERROR,
-      MessageFormat.format(localize(resource), args),
+      CoreMessages.localize(resource, args),
       null);
   }
 
@@ -164,23 +136,26 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
   public String pageBlobPut(
     final UUID owner,
     final String mediaType,
-    final byte[] data)
-    throws PagesDatabaseException
+    final byte[] data,
+    final CDSecurityLabelDTO securityLabel)
+    throws CDException
   {
     Objects.requireNonNull(owner, "owner");
     Objects.requireNonNull(mediaType, "mediaType");
     Objects.requireNonNull(data, "data");
+    Objects.requireNonNull(securityLabel, "securityLabel");
 
     final var hash = hashOf(data);
     this.checkBlobDoesNotExist(hash);
 
     try (var query =
-           this.dslContext.insertInto(TABLE_BLOBS)
-             .set(FIELD_BLOB_ID, hash)
-             .set(FIELD_BLOB_DATA, data)
-             .set(FIELD_BLOB_MEDIA_TYPE, mediaType)
-             .set(FIELD_BLOB_OWNER, owner)
-             .set(FIELD_BLOB_REDACTION, (Long) null)) {
+           this.dslContext.insertInto(CoreTables.TABLE_BLOBS)
+             .set(CoreTables.FIELD_BLOB_ID, hash)
+             .set(CoreTables.FIELD_BLOB_DATA, data)
+             .set(CoreTables.FIELD_BLOB_MEDIA_TYPE, mediaType)
+             .set(CoreTables.FIELD_BLOB_OWNER, owner)
+             .set(CoreTables.FIELD_BLOB_SECURITY_LABEL, Long.valueOf(securityLabel.id()))
+             .set(CoreTables.FIELD_BLOB_REDACTION, (Long) null)) {
       query.execute();
     } catch (final DataAccessException e) {
 
@@ -192,13 +167,26 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       final var cause = e.getCause();
       if (cause instanceof DerbySQLIntegrityConstraintViolationException) {
         final var integrity = (DerbySQLIntegrityConstraintViolationException) cause;
-        if (Objects.equals(integrity.getConstraintName(), "BLOB_OWNER_REFERENCE")) {
-          throw new PagesDatabaseException(
-            ErrorSeverity.SEVERITY_ERROR,
-            PagesDatabaseQueriesType.DATA_OWNER_NONEXISTENT,
-            localize("errorPageDataOwnerNonexistent"),
-            e,
-            TreeMap.of(localize("userID"), owner.toString()));
+        switch (integrity.getConstraintName()) {
+          case "BLOB_OWNER_REFERENCE": {
+            throw new CDException(
+              ErrorSeverity.SEVERITY_ERROR,
+              PagesDatabaseQueriesType.DATA_OWNER_NONEXISTENT,
+              CoreMessages.localize("errorPageDataOwnerNonexistent"),
+              e,
+              TreeMap.of(CoreMessages.localize("userID"), owner.toString()));
+          }
+          case "BLOB_LABEL_REFERENCE": {
+            throw new CDException(
+              ErrorSeverity.SEVERITY_ERROR,
+              CDLabelsQueriesType.LABEL_NONEXISTENT,
+              CoreMessages.localize("errorLabelNonexistent"),
+              e,
+              TreeMap.of(CoreMessages.localize("labelID"), Long.toString(securityLabel.id())));
+          }
+          default: {
+            break;
+          }
         }
       }
 
@@ -209,9 +197,9 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
       if (cause instanceof SQLDataException) {
         final var dataCause = (SQLDataException) cause;
         if ("22001".equals(dataCause.getSQLState())) {
-          throw new PagesDatabaseException(
+          throw new CDException(
             PagesDatabaseQueriesType.DATA_INVALID,
-            localize("errorPageDataInvalid"),
+            CoreMessages.localize("errorPageDataInvalid"),
             e);
         }
       }
@@ -219,7 +207,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     }
 
     try {
-      this.audit.auditEventLog(BLOB_CREATED, owner, hash, "", "");
+      this.audit.auditEventLog(BLOB_CREATED, owner, hash, securityLabel.name(), "");
     } catch (final Exception e) {
       throw genericDatabaseException(e);
     }
@@ -229,21 +217,21 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
 
   private void checkBlobDoesNotExist(
     final String hash)
-    throws PagesDatabaseException
+    throws CDException
   {
     try (var query =
-           this.dslContext.select(FIELD_BLOB_ID)
-             .from(TABLE_BLOBS)
-             .where(FIELD_BLOB_ID.eq(hash))
+           this.dslContext.select(CoreTables.FIELD_BLOB_ID)
+             .from(CoreTables.TABLE_BLOBS)
+             .where(CoreTables.FIELD_BLOB_ID.eq(hash))
              .limit(1)) {
       final var count = query.execute();
       if (count > 0) {
-        throw new PagesDatabaseException(
+        throw new CDException(
           ErrorSeverity.SEVERITY_ERROR,
           PagesDatabaseQueriesType.DATA_ALREADY_EXISTS,
-          localize("errorPageDataAlreadyExists"),
+          CoreMessages.localize("errorPageDataAlreadyExists"),
           null,
-          TreeMap.of(localize("dataHash"), hash));
+          TreeMap.of(CoreMessages.localize("dataHash"), hash));
       }
     } catch (final DataAccessException e) {
       throw genericDatabaseException(e);
@@ -253,46 +241,60 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
   @Override
   public Optional<PagesDatabaseBlobDTO> pageBlobGet(
     final String id)
-    throws PagesDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(id, "id");
 
     try (var blobQuery =
            this.dslContext.select(
-             FIELD_BLOB_ID,
-             FIELD_BLOB_MEDIA_TYPE,
-             FIELD_BLOB_DATA,
-             FIELD_BLOB_OWNER,
-             FIELD_BLOB_REDACTION)
-             .from(TABLE_BLOBS)
-             .where(FIELD_BLOB_ID.eq(id))
+             CoreTables.FIELD_BLOB_ID,
+             CoreTables.FIELD_BLOB_MEDIA_TYPE,
+             CoreTables.FIELD_BLOB_DATA,
+             CoreTables.FIELD_BLOB_OWNER,
+             CoreTables.FIELD_BLOB_REDACTION,
+             CoreTables.FIELD_LABEL_ID,
+             CoreTables.FIELD_LABEL_NAME,
+             CoreTables.FIELD_LABEL_DESCRIPTION)
+             .from(CoreTables.TABLE_BLOBS)
+             .join(CoreTables.TABLE_LABELS)
+             .on(CoreTables.FIELD_LABEL_ID.eq(CoreTables.FIELD_BLOB_SECURITY_LABEL))
+             .where(CoreTables.FIELD_BLOB_ID.eq(id))
              .limit(1)) {
       final var blobResults = blobQuery.fetch();
-      Optional<PagesDatabaseRedactionDTO> redaction = Optional.empty();
-      if (blobResults.isNotEmpty()) {
-        final var blobRecord = blobResults.get(0);
-        final var blobRedaction = blobRecord.getValue(FIELD_BLOB_REDACTION);
-        if (blobRedaction != null) {
-          redaction = this.fetchRedaction(blobRedaction);
-        }
-        return dataFromRecord(blobRecord, redaction);
+      if (blobResults.isEmpty()) {
+        return Optional.empty();
       }
-      return Optional.empty();
+
+      final var blobRecord = blobResults.get(0);
+      final var blobRedaction =
+        Optional.ofNullable(blobRecord.getValue(CoreTables.FIELD_BLOB_REDACTION));
+
+      return dataFromRecord(blobRecord, this.fetchRedactionOptionally(blobRedaction));
     } catch (final DataAccessException e) {
       throw genericDatabaseException(e);
     }
   }
 
-  private Optional<PagesDatabaseRedactionDTO> fetchRedaction(final Long id)
+  private Optional<PagesDatabaseRedactionDTO> fetchRedactionOptionally(
+    final Optional<Long> id)
+  {
+    if (id.isEmpty()) {
+      return Optional.empty();
+    }
+    return this.fetchRedaction(id.get());
+  }
+
+  private Optional<PagesDatabaseRedactionDTO> fetchRedaction(
+    final Long id)
   {
     try (var redactionQuery =
            this.dslContext.select(
-             FIELD_REDACTION_ID,
-             FIELD_REDACTION_REASON,
-             FIELD_REDACTION_TIME,
-             FIELD_REDACTION_USER_ID)
-             .from(TABLE_REDACTIONS)
-             .where(FIELD_REDACTION_ID.eq(id))) {
+             CoreTables.FIELD_REDACTION_ID,
+             CoreTables.FIELD_REDACTION_REASON,
+             CoreTables.FIELD_REDACTION_TIME,
+             CoreTables.FIELD_REDACTION_USER_ID)
+             .from(CoreTables.TABLE_REDACTIONS)
+             .where(CoreTables.FIELD_REDACTION_ID.eq(id))) {
 
       final var redactionRecord = redactionQuery.fetchOne();
       return Optional.of(redactionFromRecord(redactionRecord));
@@ -304,7 +306,7 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
     final UUID caller,
     final String id,
     final String reason)
-    throws PagesDatabaseException
+    throws CDException
   {
     Objects.requireNonNull(caller, "caller");
     Objects.requireNonNull(id, "id");
@@ -315,10 +317,10 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
      */
 
     final var timestamp = Timestamp.from(this.clock.instant());
-    try (var query = this.dslContext.insertInto(TABLE_REDACTIONS)
-      .set(FIELD_REDACTION_REASON, reason)
-      .set(FIELD_REDACTION_TIME, timestamp)
-      .set(FIELD_REDACTION_USER_ID, caller)) {
+    try (var query = this.dslContext.insertInto(CoreTables.TABLE_REDACTIONS)
+      .set(CoreTables.FIELD_REDACTION_REASON, reason)
+      .set(CoreTables.FIELD_REDACTION_TIME, timestamp)
+      .set(CoreTables.FIELD_REDACTION_USER_ID, caller)) {
       final var updates = query.execute();
       if (updates != 1) {
         throw genericDatabaseExceptionFormatted(
@@ -336,13 +338,13 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
      */
 
     final Long redaction;
-    try (var query = this.dslContext.select(FIELD_REDACTION_ID)
-      .from(TABLE_REDACTIONS)
+    try (var query = this.dslContext.select(CoreTables.FIELD_REDACTION_ID)
+      .from(CoreTables.TABLE_REDACTIONS)
       .where(
-        FIELD_REDACTION_REASON.eq(reason),
-        FIELD_REDACTION_TIME.eq(timestamp),
-        FIELD_REDACTION_USER_ID.eq(caller))
-      .orderBy(FIELD_REDACTION_ID.asc())
+        CoreTables.FIELD_REDACTION_REASON.eq(reason),
+        CoreTables.FIELD_REDACTION_TIME.eq(timestamp),
+        CoreTables.FIELD_REDACTION_USER_ID.eq(caller))
+      .orderBy(CoreTables.FIELD_REDACTION_ID.asc())
       .limit(1)) {
       redaction = query.fetchOne().value1();
     } catch (final DataAccessException e) {
@@ -359,18 +361,18 @@ final class CorePagesDatabaseQueries implements PagesDatabaseQueriesType
      * Zero out the blob and update the blob redaction field.
      */
 
-    try (var query = this.dslContext.update(TABLE_BLOBS)
-      .set(FIELD_BLOB_DATA, new byte[0])
-      .set(FIELD_BLOB_REDACTION, redaction)
-      .where(FIELD_BLOB_ID.eq(id))) {
+    try (var query = this.dslContext.update(CoreTables.TABLE_BLOBS)
+      .set(CoreTables.FIELD_BLOB_DATA, new byte[0])
+      .set(CoreTables.FIELD_BLOB_REDACTION, redaction)
+      .where(CoreTables.FIELD_BLOB_ID.eq(id))) {
       final var results = query.execute();
       if (results != 1) {
-        throw new PagesDatabaseException(
+        throw new CDException(
           ErrorSeverity.SEVERITY_ERROR,
           PagesDatabaseQueriesType.DATA_NONEXISTENT,
-          localize("errorPageDataNonexistent"),
+          CoreMessages.localize("errorPageDataNonexistent"),
           null,
-          TreeMap.of(localize("dataHash"), id));
+          TreeMap.of(CoreMessages.localize("dataHash"), id));
       }
     } catch (final DataAccessException e) {
       throw genericDatabaseException(e);

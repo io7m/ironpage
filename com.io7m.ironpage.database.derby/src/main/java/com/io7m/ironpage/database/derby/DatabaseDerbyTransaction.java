@@ -22,12 +22,16 @@ import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import io.vavr.collection.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.Objects;
 
 final class DatabaseDerbyTransaction implements DatabaseTransactionType
 {
+  private static final Logger LOG = LoggerFactory.getLogger(DatabaseDerbyTransaction.class);
+
   private final DatabaseDerbyConnection connection;
   private final DatabaseDerbyProvider provider;
 
@@ -42,11 +46,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
   public void close()
     throws DatabaseException
   {
-    try {
-      this.connection.pooledConnection().getConnection().close();
-    } catch (final SQLException e) {
-      throw this.provider.ofSQLException("errorConnectionClose", e);
-    }
+    this.rollback();
   }
 
   @Override
@@ -54,7 +54,8 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
     throws DatabaseException
   {
     try {
-      this.connection.pooledConnection().getConnection().commit();
+      LOG.trace("commit");
+      this.connection.sqlConnection().commit();
     } catch (final SQLException e) {
       throw this.provider.ofSQLException("errorConnectionCommit", e);
     }
@@ -65,7 +66,8 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
     throws DatabaseException
   {
     try {
-      this.connection.pooledConnection().getConnection().rollback();
+      LOG.trace("rollback");
+      this.connection.sqlConnection().rollback();
     } catch (final SQLException e) {
       throw this.provider.ofSQLException("errorConnectionRollback", e);
     }
@@ -77,26 +79,21 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
   {
     final var database = this.connection.database();
 
-    try {
-      final var partitionProviderOpt =
-        database.partitionProviders()
-          .findProviderForDialectAndQueries("DERBY", queriesClass);
+    final var partitionProviderOpt =
+      database.partitionProviders()
+        .findProviderForDialectAndQueries("DERBY", queriesClass);
 
-      if (partitionProviderOpt.isPresent()) {
-        final var partitionProvider = partitionProviderOpt.get();
-        return partitionProvider.queriesCreate(
-          this.connection.pooledConnection().getConnection(), queriesClass);
-      }
-
-      throw new DatabaseException(
-        ErrorSeverity.SEVERITY_ERROR,
-        this.localize("errorCreateQueriesUnavailable"),
-        null,
-        TreeMap.of(this.localize("queriesClass"), queriesClass.getCanonicalName())
-      );
-    } catch (final SQLException e) {
-      throw this.provider.ofSQLException("errorCreateQueries", e);
+    if (partitionProviderOpt.isPresent()) {
+      final var partitionProvider = partitionProviderOpt.get();
+      return partitionProvider.queriesCreate(this.connection.sqlConnection(), queriesClass);
     }
+
+    throw new DatabaseException(
+      ErrorSeverity.SEVERITY_ERROR,
+      this.localize("errorCreateQueriesUnavailable"),
+      null,
+      TreeMap.of(this.localize("queriesClass"), queriesClass.getCanonicalName())
+    );
   }
 
   private String localize(final String resource)

@@ -22,7 +22,7 @@ import com.io7m.ironpage.database.spi.DatabaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.PooledConnection;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 
@@ -30,21 +30,21 @@ final class DatabaseDerbyConnection implements DatabaseConnectionType
 {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseDerbyConnection.class);
 
-  private final PooledConnection pooledConnection;
+  private final Connection connection;
   private final DatabaseDerby database;
   private final DatabaseDerbyProvider provider;
 
   DatabaseDerbyConnection(
     final DatabaseDerbyProvider inProvider,
     final DatabaseDerby inDatabase,
-    final PooledConnection inPooledConnection)
+    final Connection inConnection)
   {
     this.provider =
       Objects.requireNonNull(inProvider, "inProvider");
     this.database =
       Objects.requireNonNull(inDatabase, "inDatabase");
-    this.pooledConnection =
-      Objects.requireNonNull(inPooledConnection, "pooledConnection");
+    this.connection =
+      Objects.requireNonNull(inConnection, "inConnection");
   }
 
   @Override
@@ -52,8 +52,8 @@ final class DatabaseDerbyConnection implements DatabaseConnectionType
     throws DatabaseException
   {
     try {
-      LOG.debug("close");
-      this.pooledConnection.close();
+      LOG.trace("close");
+      this.connection.close();
     } catch (final SQLException e) {
       throw this.provider.ofSQLException("errorCloseConnection", e);
     }
@@ -70,8 +70,8 @@ final class DatabaseDerbyConnection implements DatabaseConnectionType
     return this.database;
   }
 
-  PooledConnection pooledConnection()
+  Connection sqlConnection()
   {
-    return this.pooledConnection;
+    return this.connection;
   }
 }
