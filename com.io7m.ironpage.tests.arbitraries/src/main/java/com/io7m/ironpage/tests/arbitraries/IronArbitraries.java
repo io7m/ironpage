@@ -18,17 +18,26 @@ package com.io7m.ironpage.tests.arbitraries;
 
 import com.io7m.ironpage.database.api.DatabaseParameters;
 import com.io7m.ironpage.database.audit.api.AuditDatabaseEventDTO;
+import com.io7m.ironpage.database.core.api.CDErrorCode;
+import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
+import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
+import com.io7m.ironpage.database.core.api.CDSessionDTO;
+import com.io7m.ironpage.database.core.api.CDUserDTO;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.providers.ArbitraryProvider;
 import net.jqwik.api.providers.TypeUsage;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -37,6 +46,20 @@ import java.util.function.Supplier;
 
 public final class IronArbitraries implements ArbitraryProvider
 {
+  private static final Map<Class<?>, Supplier<Arbitrary<?>>> ARBITRARIES =
+    Map.of(
+      AuditDatabaseEventDTO.class, IronArbitraries::auditDatabaseEvents,
+      CDErrorCode.class, IronArbitraries::errorCodes,
+      CDPasswordHashDTO.class, IronArbitraries::passwordHashes,
+      CDSecurityLabelDTO.class, IronArbitraries::labels,
+      CDSecurityRoleDTO.class, IronArbitraries::roles,
+      CDSessionDTO.class, IronArbitraries::sessions,
+      CDUserDTO.class, IronArbitraries::users,
+      DatabaseParameters.class, IronArbitraries::databaseParameters,
+      Instant.class, IronArbitraries::instants,
+      Path.class, IronArbitraries::paths
+    );
+
   /**
    * Construct a provider.
    */
@@ -45,14 +68,6 @@ public final class IronArbitraries implements ArbitraryProvider
   {
 
   }
-
-  private static final Map<Class<?>, Supplier<Arbitrary<?>>> ARBITRARIES =
-    Map.of(
-      AuditDatabaseEventDTO.class, IronArbitraries::auditDatabaseEvents,
-      DatabaseParameters.class, IronArbitraries::databaseParameters,
-      Path.class, IronArbitraries::paths,
-      Instant.class, IronArbitraries::instants
-    );
 
   /**
    * @return A generator of {@link Instant} values
@@ -118,6 +133,75 @@ public final class IronArbitraries implements ArbitraryProvider
   }
 
   /**
+   * @return A generator of {@link CDUserDTO} values
+   */
+
+  public static Arbitrary<CDUserDTO> users()
+  {
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    final var uuids =
+      Arbitraries.create(UUID::randomUUID)
+        .list()
+        .ofSize(4);
+
+    final var roles =
+      roles()
+        .set()
+        .ofSize(4)
+        .map(rrs -> {
+          final var sortedRoles = new TreeSet<CDSecurityRoleDTO>();
+          sortedRoles.addAll(rrs);
+          return sortedRoles;
+        })
+        .list()
+        .ofSize(2);
+
+    final var hashes =
+      passwordHashes()
+        .list()
+        .ofSize(3);
+
+    return hashes.flatMap(hashesValues -> {
+      return roles.flatMap(rolesValues -> {
+        return uuids.flatMap(uuidValues -> {
+          return strings.map(texts -> {
+            final var instance0 =
+              CDUserDTO.builder()
+                .setDisplayName(texts.get(0))
+                .setLocked(texts.get(1))
+                .setEmail(texts.get(2))
+                .setId(uuidValues.get(0))
+                .setRoles(rolesValues.get(0))
+                .setPasswordHash(hashesValues.get(0))
+                .build();
+
+            final var instance1 =
+              instance0
+                .withPasswordHash(hashesValues.get(1))
+                .withRoles(rolesValues.get(1))
+                .withId(uuidValues.get(1))
+                .withDisplayName(texts.get(3))
+                .withEmail(texts.get(4))
+                .withLocked(texts.get(5));
+
+            final var instance2 =
+              CDUserDTO.builder().from(instance1).build();
+
+            return CDUserDTO.copyOf(instance2);
+          });
+        });
+      });
+    });
+  }
+
+  /**
    * @return A generator of {@link AuditDatabaseEventDTO} values
    */
 
@@ -160,6 +244,208 @@ public final class IronArbitraries implements ArbitraryProvider
           AuditDatabaseEventDTO.builder().from(instance1).build();
 
         return AuditDatabaseEventDTO.copyOf(instance2);
+      });
+    });
+  }
+
+  /**
+   * @return A generator of {@link CDSecurityLabelDTO} values
+   */
+
+  public static Arbitrary<CDSecurityLabelDTO> labels()
+  {
+    final var longs =
+      Arbitraries.longs()
+        .list()
+        .ofSize(4);
+
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    return longs.flatMap(ids -> {
+      return strings.map(texts -> {
+        final var instance0 =
+          CDSecurityLabelDTO.builder()
+            .setDescription(texts.get(0))
+            .setName(texts.get(1))
+            .setId(ids.get(0).longValue())
+            .build();
+
+        final var instance1 =
+          instance0.withName(texts.get(2))
+            .withDescription(texts.get(3))
+            .withId(ids.get(1).longValue());
+
+        final var instance2 =
+          CDSecurityLabelDTO.builder().from(instance1).build();
+
+        return CDSecurityLabelDTO.copyOf(instance2);
+      });
+    });
+  }
+
+  /**
+   * @return A generator of {@link CDSecurityRoleDTO} values
+   */
+
+  public static Arbitrary<CDSecurityRoleDTO> roles()
+  {
+    final var longs =
+      Arbitraries.longs()
+        .list()
+        .ofSize(4);
+
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    return longs.flatMap(ids -> {
+      return strings.map(texts -> {
+        final var instance0 =
+          CDSecurityRoleDTO.builder()
+            .setDescription(texts.get(0))
+            .setName(texts.get(1))
+            .setId(ids.get(0).longValue())
+            .build();
+
+        final var instance1 =
+          instance0.withName(texts.get(2))
+            .withDescription(texts.get(3))
+            .withId(ids.get(1).longValue());
+
+        final var instance2 =
+          CDSecurityRoleDTO.builder().from(instance1).build();
+
+        return CDSecurityRoleDTO.copyOf(instance2);
+      });
+    });
+  }
+
+  /**
+   * @return A generator of {@link CDSessionDTO} values
+   */
+
+  public static Arbitrary<CDSessionDTO> sessions()
+  {
+    final var times =
+      instants()
+        .list()
+        .ofSize(4);
+
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    final var uuids =
+      Arbitraries.create(UUID::randomUUID)
+        .list()
+        .ofSize(4);
+
+    return uuids.flatMap(uuidValues -> {
+      return times.flatMap(instants -> {
+        return strings.map(texts -> {
+          final var instance0 =
+            CDSessionDTO.builder()
+              .setId(texts.get(0))
+              .setUserID(uuidValues.get(0))
+              .setUpdated(instants.get(0))
+              .build();
+
+          final var instance1 =
+            instance0.withId(texts.get(2))
+              .withUserID(uuidValues.get(1))
+              .withUpdated(instants.get(1));
+
+          final var instance2 =
+            CDSessionDTO.builder().from(instance1).build();
+
+          return CDSessionDTO.copyOf(instance2);
+        });
+      });
+    });
+  }
+
+  /**
+   * @return A generator of {@link CDErrorCode} values
+   */
+
+  public static Arbitrary<CDErrorCode> errorCodes()
+  {
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    return strings.map(texts -> {
+      final var instance0 =
+        CDErrorCode.builder()
+          .setCode(texts.get(0))
+          .build();
+
+      final var instance1 =
+        instance0.withCode(texts.get(1));
+
+      final var instance2 =
+        CDErrorCode.builder().from(instance1).build();
+
+      return CDErrorCode.copyOf(instance2);
+    });
+  }
+
+  /**
+   * @return A generator of {@link CDPasswordHashDTO} values
+   */
+
+  public static Arbitrary<CDPasswordHashDTO> passwordHashes()
+  {
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    final var hashes =
+      Arbitraries.strings()
+        .map(s -> s.getBytes(StandardCharsets.UTF_8))
+        .list()
+        .ofSize(4);
+
+    return hashes.flatMap(hashValues -> {
+      return strings.map(texts -> {
+        final var instance0 =
+          CDPasswordHashDTO.builder()
+            .setParameters(texts.get(0))
+            .setAlgorithm(texts.get(1))
+            .setHash(hashValues.get(0))
+            .build();
+
+        final var instance1 =
+          instance0.withParameters(texts.get(2))
+            .withAlgorithm(texts.get(3))
+            .withHash(hashValues.get(1));
+
+        final var instance2 =
+          CDPasswordHashDTO.builder().from(instance1).build();
+
+        return CDPasswordHashDTO.copyOf(instance2);
       });
     });
   }

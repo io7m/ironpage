@@ -19,8 +19,15 @@ package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.database.api.DatabaseParameters;
 import com.io7m.ironpage.database.audit.api.AuditDatabaseEventDTO;
+import com.io7m.ironpage.database.core.api.CDErrorCode;
+import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
+import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
+import com.io7m.ironpage.database.core.api.CDSessionDTO;
+import com.io7m.ironpage.database.core.api.CDUserDTO;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +51,44 @@ public final class IronArbitrariesTest
 
   @Property
   public void testAuditDatabaseEventDTO(@ForAll final AuditDatabaseEventDTO x)
+  {
+    LOG.debug("{}", x);
+  }
+
+  @Property
+  public void testCDSecurityLabelDTO(@ForAll final CDSecurityLabelDTO x)
+  {
+    LOG.debug("{}", x);
+    Assertions.assertEquals(0, x.compareTo(x));
+  }
+
+  @Property
+  public void testCDSecurityRoleDTO(@ForAll final CDSecurityRoleDTO x)
+  {
+    LOG.debug("{}", x);
+    Assertions.assertEquals(0, x.compareTo(x));
+  }
+
+  @Property
+  public void testCDSessionDTO(@ForAll final CDSessionDTO x)
+  {
+    LOG.debug("{}", x);
+  }
+
+  @Property
+  public void testCDErrorCode(@ForAll final CDErrorCode x)
+  {
+    LOG.debug("{}", x);
+  }
+
+  @Property
+  public void testCDPasswordHash(@ForAll final CDPasswordHashDTO x)
+  {
+    LOG.debug("{}", x);
+  }
+
+  @Property
+  public void testCDUser(@ForAll final CDUserDTO x)
   {
     LOG.debug("{}", x);
   }
