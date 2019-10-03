@@ -23,7 +23,9 @@ module com.io7m.ironpage.validator.vanilla
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.service.component.annotations;
 
+  requires com.io7m.junreachable.core;
   requires org.slf4j;
+
   requires transitive com.io7m.ironpage.errors.api;
   requires transitive com.io7m.ironpage.validator.api;
 }

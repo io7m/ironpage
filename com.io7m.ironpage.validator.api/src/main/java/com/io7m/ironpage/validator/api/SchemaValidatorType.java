@@ -48,6 +48,17 @@ public interface SchemaValidatorType
         .toString());
 
   /**
+   * An attribute type doesn't exist.
+   */
+
+  SchemaValidationErrorCode SCHEMA_TYPE_NOT_FOUND =
+    SchemaValidationErrorCode.of(
+      new StringBuilder(64)
+        .append(SchemaValidatorType.class.getCanonicalName())
+        .append(":schemaTypeNotFound")
+        .toString());
+
+  /**
    * An attribute is referenced that does not exist in a schema.
    */
 
@@ -56,6 +67,17 @@ public interface SchemaValidatorType
       new StringBuilder(64)
         .append(SchemaValidatorType.class.getCanonicalName())
         .append(":schemaAttributeNotFound")
+        .toString());
+
+  /**
+   * The value of an attribute is not valid with respect to the attribute's declared type.
+   */
+
+  SchemaValidationErrorCode SCHEMA_ATTRIBUTE_TYPE_ERROR =
+    SchemaValidationErrorCode.of(
+      new StringBuilder(64)
+        .append(SchemaValidatorType.class.getCanonicalName())
+        .append(":schemaAttributeTypeError")
         .toString());
 
   /**

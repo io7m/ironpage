@@ -43,6 +43,19 @@ public interface AttributeNameQualifiedType extends Comparable<AttributeNameQual
   @Value.Parameter
   AttributeName name();
 
+  /**
+   * @return The name as a humanly-readable string
+   */
+
+  default String show()
+  {
+    return new StringBuilder(64)
+      .append(this.schema().name())
+      .append(":")
+      .append(this.name().name())
+      .toString();
+  }
+
   @Override
   default int compareTo(final AttributeNameQualifiedType other)
   {

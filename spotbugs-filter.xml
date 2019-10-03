@@ -167,11 +167,6 @@
     <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
   </Match>
 
-  <!-- This implementation class is not yet complete. -->
-  <Match>
-    <Class name="com.io7m.ironpage.validator.vanilla.SchemaValidator"/>
-  </Match>
-
   <!-- False positives. -->
   <Match>
     <Class name="com.io7m.ironpage.types.resolution.vanilla.SchemaResolver$SchemaResolution"/>
