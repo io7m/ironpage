@@ -28,6 +28,7 @@ import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
+import net.jqwik.api.arbitraries.SizableArbitrary;
 import net.jqwik.api.providers.ArbitraryProvider;
 import net.jqwik.api.providers.TypeUsage;
 
@@ -36,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -142,19 +144,6 @@ public final class IronArbitraries implements ArbitraryProvider
 
   public static Arbitrary<CDUserDTO> users()
   {
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
-    final var uuids =
-      Arbitraries.create(UUID::randomUUID)
-        .list()
-        .ofSize(4);
-
     final var roles =
       roles()
         .set()
@@ -174,8 +163,8 @@ public final class IronArbitraries implements ArbitraryProvider
 
     return hashes.flatMap(hashesValues -> {
       return roles.flatMap(rolesValues -> {
-        return uuids.flatMap(uuidValues -> {
-          return strings.map(texts -> {
+        return uuidList().flatMap(uuidValues -> {
+          return stringList().map(texts -> {
             final var instance0 =
               CDUserDTO.builder()
                 .setDisplayName(texts.get(0))
@@ -205,27 +194,26 @@ public final class IronArbitraries implements ArbitraryProvider
     });
   }
 
+  private static SizableArbitrary<List<UUID>> uuidList()
+  {
+    return Arbitraries.create(UUID::randomUUID)
+      .list()
+      .ofSize(4);
+  }
+
   /**
    * @return A generator of {@link AuditDatabaseEventDTO} values
    */
 
   public static Arbitrary<AuditDatabaseEventDTO> auditDatabaseEvents()
   {
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
     final var times =
       Arbitraries.defaultFor(Instant.class)
         .list()
         .ofSize(4);
 
     return times.flatMap(timeValues -> {
-      return strings.map(texts -> {
+      return stringList().map(texts -> {
         final var instance0 =
           AuditDatabaseEventDTO.builder()
             .setTime(timeValues.get(0))
@@ -263,16 +251,8 @@ public final class IronArbitraries implements ArbitraryProvider
         .list()
         .ofSize(4);
 
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
     return longs.flatMap(ids -> {
-      return strings.map(texts -> {
+      return stringList().map(texts -> {
         final var instance0 =
           CDSecurityLabelDTO.builder()
             .setDescription(texts.get(0))
@@ -304,16 +284,8 @@ public final class IronArbitraries implements ArbitraryProvider
         .list()
         .ofSize(4);
 
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
     return longs.flatMap(ids -> {
-      return strings.map(texts -> {
+      return stringList().map(texts -> {
         final var instance0 =
           CDSecurityRoleDTO.builder()
             .setDescription(texts.get(0))
@@ -345,22 +317,9 @@ public final class IronArbitraries implements ArbitraryProvider
         .list()
         .ofSize(4);
 
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
-    final var uuids =
-      Arbitraries.create(UUID::randomUUID)
-        .list()
-        .ofSize(4);
-
-    return uuids.flatMap(uuidValues -> {
+    return uuidList().flatMap(uuidValues -> {
       return times.flatMap(instants -> {
-        return strings.map(texts -> {
+        return stringList().map(texts -> {
           final var instance0 =
             CDSessionDTO.builder()
               .setId(texts.get(0))
@@ -382,21 +341,23 @@ public final class IronArbitraries implements ArbitraryProvider
     });
   }
 
+  private static SizableArbitrary<List<String>> stringList()
+  {
+    return Arbitraries.strings()
+      .alpha()
+      .ofMinLength(1)
+      .ofMaxLength(16)
+      .list()
+      .ofSize(16);
+  }
+
   /**
    * @return A generator of {@link CDErrorCode} values
    */
 
   public static Arbitrary<CDErrorCode> errorCodes()
   {
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
-    return strings.map(texts -> {
+    return stringList().map(texts -> {
       final var instance0 =
         CDErrorCode.builder()
           .setCode(texts.get(0))
@@ -418,14 +379,6 @@ public final class IronArbitraries implements ArbitraryProvider
 
   public static Arbitrary<CDPasswordHashDTO> passwordHashes()
   {
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
     final var hashes =
       Arbitraries.strings()
         .map(s -> s.getBytes(StandardCharsets.UTF_8))
@@ -433,7 +386,7 @@ public final class IronArbitraries implements ArbitraryProvider
         .ofSize(4);
 
     return hashes.flatMap(hashValues -> {
-      return strings.map(texts -> {
+      return stringList().map(texts -> {
         final var instance0 =
           CDPasswordHashDTO.builder()
             .setParameters(texts.get(0))
@@ -465,28 +418,15 @@ public final class IronArbitraries implements ArbitraryProvider
         .list()
         .ofSize(4);
 
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
-    final var uuids =
-      Arbitraries.create(UUID::randomUUID)
-        .list()
-        .ofSize(4);
-
     final var instants =
       instants()
         .list()
         .ofSize(4);
 
-    return uuids.flatMap(uuidValues -> {
+    return uuidList().flatMap(uuidValues -> {
       return longs.flatMap(longValues -> {
         return instants.flatMap(instantsValues -> {
-          return strings.map(stringsValues -> {
+          return stringList().map(stringsValues -> {
             final var instance0 =
               PagesDatabaseRedactionDTO.builder()
                 .setId(longValues.get(0).longValue())
@@ -520,14 +460,6 @@ public final class IronArbitraries implements ArbitraryProvider
 
   public static Arbitrary<PagesDatabaseBlobDTO> pagesDatabaseBlobs()
   {
-    final var strings =
-      Arbitraries.strings()
-        .alpha()
-        .ofMinLength(1)
-        .ofMaxLength(16)
-        .list()
-        .ofSize(16);
-
     final var bytes =
       Arbitraries.strings()
         .alpha()
@@ -547,13 +479,8 @@ public final class IronArbitraries implements ArbitraryProvider
         .list()
         .ofSize(4);
 
-    final var uuids =
-      Arbitraries.create(UUID::randomUUID)
-        .list()
-        .ofSize(4);
-
-    return uuids.flatMap(uuidValues -> {
-      return strings.flatMap(stringsValues -> {
+    return uuidList().flatMap(uuidValues -> {
+      return stringList().flatMap(stringsValues -> {
         return bytes.flatMap(bytesValues -> {
           return labels.flatMap(labelsValues -> {
             return redactions.map(redactionsValues -> {
@@ -575,8 +502,7 @@ public final class IronArbitraries implements ArbitraryProvider
                   .withData(bytesValues.get(1))
                   .withId(stringsValues.get(4))
                   .withRedaction(redactionsValues.get(1))
-                  .withOwner(uuidValues.get(1))
-                ;
+                  .withOwner(uuidValues.get(1));
 
               final var instance2 =
                 PagesDatabaseBlobDTO.builder()
