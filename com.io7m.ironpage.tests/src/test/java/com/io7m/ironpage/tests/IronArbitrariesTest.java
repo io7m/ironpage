@@ -25,6 +25,7 @@ import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDSessionDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
+import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
@@ -96,6 +97,12 @@ public final class IronArbitrariesTest
 
   @Property
   public void testPagesDatabaseRedactionDTO(@ForAll final PagesDatabaseRedactionDTO x)
+  {
+    LOG.debug("{}", x);
+  }
+
+  @Property
+  public void testPagesDatabaseBlobDTO(@ForAll final PagesDatabaseBlobDTO x)
   {
     LOG.debug("{}", x);
   }

@@ -24,6 +24,7 @@ import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDSessionDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
+import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
@@ -58,6 +59,7 @@ public final class IronArbitraries implements ArbitraryProvider
       Map.entry(CDUserDTO.class, IronArbitraries::users),
       Map.entry(DatabaseParameters.class, IronArbitraries::databaseParameters),
       Map.entry(Instant.class, IronArbitraries::instants),
+      Map.entry(PagesDatabaseBlobDTO.class, IronArbitraries::pagesDatabaseBlobs),
       Map.entry(PagesDatabaseRedactionDTO.class, IronArbitraries::pagesDatabaseRedactions),
       Map.entry(Path.class, IronArbitraries::paths)
     );
@@ -506,6 +508,83 @@ public final class IronArbitraries implements ArbitraryProvider
                 .build();
 
             return PagesDatabaseRedactionDTO.copyOf(instance2);
+          });
+        });
+      });
+    });
+  }
+
+  /**
+   * @return A generator of {@link PagesDatabaseBlobDTO} values
+   */
+
+  public static Arbitrary<PagesDatabaseBlobDTO> pagesDatabaseBlobs()
+  {
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    final var bytes =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .map(String::getBytes)
+        .list()
+        .ofSize(16);
+
+    final var labels =
+      labels()
+        .list()
+        .ofSize(4);
+
+    final var redactions =
+      pagesDatabaseRedactions()
+        .list()
+        .ofSize(4);
+
+    final var uuids =
+      Arbitraries.create(UUID::randomUUID)
+        .list()
+        .ofSize(4);
+
+    return uuids.flatMap(uuidValues -> {
+      return strings.flatMap(stringsValues -> {
+        return bytes.flatMap(bytesValues -> {
+          return labels.flatMap(labelsValues -> {
+            return redactions.map(redactionsValues -> {
+
+              final var instance0 =
+                PagesDatabaseBlobDTO.builder()
+                  .setSecurityLabel(labelsValues.get(0))
+                  .setMediaType(stringsValues.get(1))
+                  .setData(bytesValues.get(0))
+                  .setId(stringsValues.get(2))
+                  .setRedaction(redactionsValues.get(0))
+                  .setOwner(uuidValues.get(0))
+                  .build();
+
+              final var instance1 =
+                instance0
+                  .withSecurityLabel(labelsValues.get(1))
+                  .withMediaType(stringsValues.get(3))
+                  .withData(bytesValues.get(1))
+                  .withId(stringsValues.get(4))
+                  .withRedaction(redactionsValues.get(1))
+                  .withOwner(uuidValues.get(1))
+                ;
+
+              final var instance2 =
+                PagesDatabaseBlobDTO.builder()
+                  .from(instance1)
+                  .build();
+
+              return PagesDatabaseBlobDTO.copyOf(instance2);
+            });
           });
         });
       });
