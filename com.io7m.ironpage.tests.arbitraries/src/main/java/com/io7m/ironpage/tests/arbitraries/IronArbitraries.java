@@ -24,6 +24,7 @@ import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDSessionDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
+import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.providers.ArbitraryProvider;
@@ -47,17 +48,18 @@ import java.util.function.Supplier;
 public final class IronArbitraries implements ArbitraryProvider
 {
   private static final Map<Class<?>, Supplier<Arbitrary<?>>> ARBITRARIES =
-    Map.of(
-      AuditDatabaseEventDTO.class, IronArbitraries::auditDatabaseEvents,
-      CDErrorCode.class, IronArbitraries::errorCodes,
-      CDPasswordHashDTO.class, IronArbitraries::passwordHashes,
-      CDSecurityLabelDTO.class, IronArbitraries::labels,
-      CDSecurityRoleDTO.class, IronArbitraries::roles,
-      CDSessionDTO.class, IronArbitraries::sessions,
-      CDUserDTO.class, IronArbitraries::users,
-      DatabaseParameters.class, IronArbitraries::databaseParameters,
-      Instant.class, IronArbitraries::instants,
-      Path.class, IronArbitraries::paths
+    Map.ofEntries(
+      Map.entry(AuditDatabaseEventDTO.class, IronArbitraries::auditDatabaseEvents),
+      Map.entry(CDErrorCode.class, IronArbitraries::errorCodes),
+      Map.entry(CDPasswordHashDTO.class, IronArbitraries::passwordHashes),
+      Map.entry(CDSecurityLabelDTO.class, IronArbitraries::labels),
+      Map.entry(CDSecurityRoleDTO.class, IronArbitraries::roles),
+      Map.entry(CDSessionDTO.class, IronArbitraries::sessions),
+      Map.entry(CDUserDTO.class, IronArbitraries::users),
+      Map.entry(DatabaseParameters.class, IronArbitraries::databaseParameters),
+      Map.entry(Instant.class, IronArbitraries::instants),
+      Map.entry(PagesDatabaseRedactionDTO.class, IronArbitraries::pagesDatabaseRedactions),
+      Map.entry(Path.class, IronArbitraries::paths)
     );
 
   /**
@@ -446,6 +448,66 @@ public final class IronArbitraries implements ArbitraryProvider
           CDPasswordHashDTO.builder().from(instance1).build();
 
         return CDPasswordHashDTO.copyOf(instance2);
+      });
+    });
+  }
+
+  /**
+   * @return A generator of {@link PagesDatabaseRedactionDTO} values
+   */
+
+  public static Arbitrary<PagesDatabaseRedactionDTO> pagesDatabaseRedactions()
+  {
+    final var longs =
+      Arbitraries.longs()
+        .list()
+        .ofSize(4);
+
+    final var strings =
+      Arbitraries.strings()
+        .alpha()
+        .ofMinLength(1)
+        .ofMaxLength(16)
+        .list()
+        .ofSize(16);
+
+    final var uuids =
+      Arbitraries.create(UUID::randomUUID)
+        .list()
+        .ofSize(4);
+
+    final var instants =
+      instants()
+        .list()
+        .ofSize(4);
+
+    return uuids.flatMap(uuidValues -> {
+      return longs.flatMap(longValues -> {
+        return instants.flatMap(instantsValues -> {
+          return strings.map(stringsValues -> {
+            final var instance0 =
+              PagesDatabaseRedactionDTO.builder()
+                .setId(longValues.get(0).longValue())
+                .setTime(instantsValues.get(0))
+                .setOwner(uuidValues.get(0))
+                .setReason(stringsValues.get(0))
+                .build();
+
+            final var instance1 =
+              instance0
+                .withId(longValues.get(1).longValue())
+                .withOwner(uuidValues.get(1))
+                .withReason(stringsValues.get(1))
+                .withTime(instantsValues.get(1));
+
+            final var instance2 =
+              PagesDatabaseRedactionDTO.builder()
+                .from(instance1)
+                .build();
+
+            return PagesDatabaseRedactionDTO.copyOf(instance2);
+          });
+        });
       });
     });
   }
