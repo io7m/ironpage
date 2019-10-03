@@ -11,10 +11,10 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.ironpage.tests</artifactId>
+  <artifactId>com.io7m.ironpage.tests.arbitraries</artifactId>
 
-  <name>com.io7m.ironpage.tests</name>
-  <description>Document database (Test suite)</description>
+  <name>com.io7m.ironpage.tests.arbitraries</name>
+  <description>Document database (Arbitrary value generation)</description>
   <url>http://github.com/io7m/ironpage</url>
 
   <properties>
@@ -29,17 +29,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.validator.vanilla</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.ironpage.types.api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.types.resolution.vanilla</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -49,17 +39,7 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.database.core.derby</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.ironpage.database.api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.database.derby</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -69,41 +49,17 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.tests.arbitraries</artifactId>
+      <artifactId>com.io7m.ironpage.database.audit.api</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>nl.jqno.equalsverifier</groupId>
-      <artifactId>equalsverifier</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
+      <groupId>net.jqwik</groupId>
+      <artifactId>jqwik-api</artifactId>
     </dependency>
     <dependency>
       <groupId>net.jqwik</groupId>
-      <artifactId>jqwik</artifactId>
+      <artifactId>jqwik-engine</artifactId>
     </dependency>
   </dependencies>
 

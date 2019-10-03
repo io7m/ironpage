@@ -40,6 +40,7 @@
     <module>com.io7m.ironpage.types.resolution.vanilla</module>
     <module>com.io7m.ironpage.validator.api</module>
     <module>com.io7m.ironpage.validator.vanilla</module>
+    <module>com.io7m.ironpage.tests.arbitraries</module>
   </modules>
 
   <properties>
@@ -207,6 +208,16 @@
       <dependency>
         <groupId>net.jqwik</groupId>
         <artifactId>jqwik</artifactId>
+        <version>1.2.0</version>
+      </dependency>
+      <dependency>
+        <groupId>net.jqwik</groupId>
+        <artifactId>jqwik-api</artifactId>
+        <version>1.2.0</version>
+      </dependency>
+      <dependency>
+        <groupId>net.jqwik</groupId>
+        <artifactId>jqwik-engine</artifactId>
         <version>1.2.0</version>
       </dependency>
       <dependency>

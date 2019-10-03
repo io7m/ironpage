@@ -188,6 +188,11 @@
     <Bug pattern="EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS"/>
   </Match>
 
+  <!-- This class is only used for unit tests. -->
+  <Match>
+    <Class name="com.io7m.ironpage.tests.arbitraries.IronArbitraries"/>
+  </Match>
+
   <Match>
     <Or>
       <Bug pattern="OCP_OVERLY_CONCRETE_PARAMETER"/>
