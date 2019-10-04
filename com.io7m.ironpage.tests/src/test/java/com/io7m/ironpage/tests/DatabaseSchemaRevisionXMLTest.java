@@ -88,7 +88,7 @@ public final class DatabaseSchemaRevisionXMLTest
       DatabaseSchemaRevisionXML.fromStream(
         Optional.empty(),
         BigInteger.ZERO,
-        URI.create("urn:invalid"),
+        URI.create("urn:valid"),
         resource("valid-0.xml"));
 
     Assertions.assertEquals(Optional.empty(), revision.schemaPrevious());

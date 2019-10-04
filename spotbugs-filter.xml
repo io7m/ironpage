@@ -176,6 +176,13 @@
     </Or>
   </Match>
 
+  <!-- We specifically use JXE, which configures parsers to be secure -->
+  <!-- against entity expansion attacks. -->
+  <Match>
+    <Class name="com.io7m.ironpage.database.spi.DatabaseSchemaRevisionXML"/>
+    <Bug pattern="XXE_XMLREADER"/>
+  </Match>
+
   <!-- Exposed to aid testing. -->
   <Match>
     <Class name="com.io7m.ironpage.types.resolution.vanilla.SchemaResolversServiceLoader"/>

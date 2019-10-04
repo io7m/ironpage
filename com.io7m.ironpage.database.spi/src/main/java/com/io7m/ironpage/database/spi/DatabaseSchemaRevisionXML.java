@@ -17,19 +17,20 @@
 package com.io7m.ironpage.database.spi;
 
 import com.io7m.jaffirm.core.Preconditions;
+import com.io7m.jxe.core.JXEHardenedSAXParsers;
+import com.io7m.jxe.core.JXESchemaDefinition;
+import com.io7m.jxe.core.JXESchemaResolutionMappings;
+import com.io7m.jxe.core.JXEXInclude;
 import io.vavr.collection.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.ErrorHandler;
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.DefaultHandler2;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -50,6 +51,22 @@ import static com.io7m.ironpage.errors.api.ErrorSeverity.SEVERITY_ERROR;
 public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionType
 {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseSchemaRevisionXML.class);
+
+  private static final JXESchemaDefinition SCHEMA_1_0 =
+    JXESchemaDefinition.builder()
+      .setFileIdentifier("statements.xsd")
+      .setLocation(DatabaseSchemaRevisionXML.class.getResource(
+        "/com/io7m/ironpage/database/spi/statements.xsd"))
+      .setNamespace(URI.create("urn:com.io7m.ironpage.database.spi.statements:1:0"))
+      .build();
+
+  private static final JXESchemaResolutionMappings SCHEMA_MAPPINGS =
+    JXESchemaResolutionMappings.builder()
+      .putMappings(SCHEMA_1_0.namespace(), SCHEMA_1_0)
+      .build();
+
+  private static final JXEHardenedSAXParsers PARSERS =
+    new JXEHardenedSAXParsers();
 
   private final Optional<BigInteger> schemaPrevious;
   private final BigInteger schemaCurrent;
@@ -95,49 +112,29 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
     Objects.requireNonNull(stream, "stream");
 
     try {
+      final var parser =
+        PARSERS.createXMLReader(Optional.empty(), JXEXInclude.XINCLUDE_DISABLED, SCHEMA_MAPPINGS);
+
       final var source = new InputSource(stream);
       final var urlText = uri.toString();
-      source.setSystemId(urlText);
       source.setPublicId(urlText);
 
       final var errors = new ArrayList<String>();
-      final var schema = loadSchema();
-      final var documentBuilderFactory = DocumentBuilderFactory.newDefaultInstance();
-      documentBuilderFactory.setSchema(schema);
-      documentBuilderFactory.setNamespaceAware(true);
-      documentBuilderFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      final var statements = new ArrayList<String>();
+      final var handler = new XMLContentHandler(errors, statements);
+      parser.setErrorHandler(handler);
+      parser.setContentHandler(handler);
+      parser.parse(source);
 
-      final var documentBuilder = documentBuilderFactory.newDocumentBuilder();
-      documentBuilder.setErrorHandler(new LoggingErrorHandler(errors));
-
-      final var document = documentBuilder.parse(source);
       if (errors.size() > 0) {
         throw new DatabaseException(
           SEVERITY_ERROR, errors.get(0), null, TreeMap.empty(), List.copyOf(errors));
-      }
-
-      final var statementElements = document.getElementsByTagName("statement");
-
-      final var statements = new ArrayList<String>(statementElements.getLength());
-      for (var index = 0; index < statementElements.getLength(); ++index) {
-        final var statementElement = statementElements.item(index);
-        statements.add(statementElement.getTextContent());
       }
 
       return new DatabaseSchemaRevisionXML(schemaPrevious, schemaCurrent, statements);
     } catch (final ParserConfigurationException | SAXException | IOException e) {
       throw new DatabaseException(SEVERITY_ERROR, e.getLocalizedMessage(), e);
     }
-  }
-
-  private static Schema loadSchema()
-    throws SAXException
-  {
-    final var schemaURL =
-      DatabaseSchemaRevisionXML.class.getResource(
-        "/com/io7m/ironpage/database/spi/statements.xsd");
-    final var schemas = SchemaFactory.newDefaultInstance();
-    return schemas.newSchema(schemaURL);
   }
 
   @Override
@@ -177,14 +174,20 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
     }
   }
 
-  private static final class LoggingErrorHandler implements ErrorHandler
+  private static final class XMLContentHandler extends DefaultHandler2
   {
     private final List<String> errors;
+    private final List<String> statements;
+    private boolean inStatement;
 
-    LoggingErrorHandler(
-      final List<String> inErrors)
+    XMLContentHandler(
+      final List<String> inErrors,
+      final List<String> inStatements)
     {
-      this.errors = Objects.requireNonNull(inErrors, "errors");
+      this.errors =
+        Objects.requireNonNull(inErrors, "errors");
+      this.statements =
+        Objects.requireNonNull(inStatements, "inStatements");
     }
 
     @Override
@@ -231,6 +234,55 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
       LOG.error("{}", message);
       this.errors.add(message);
       throw exception;
+    }
+
+    @Override
+    public void characters(
+      final char[] ch,
+      final int start,
+      final int length)
+    {
+      if (!this.errors.isEmpty()) {
+        return;
+      }
+      if (!this.inStatement) {
+        return;
+      }
+
+      final var text = String.valueOf(ch, start, length).trim();
+      if (!text.isEmpty()) {
+        LOG.trace("statement: {}", text);
+        this.statements.add(text);
+      }
+    }
+
+    @Override
+    public void endElement(
+      final String uri,
+      final String localName,
+      final String qName)
+    {
+      if (!this.errors.isEmpty()) {
+        return;
+      }
+
+      LOG.trace("endElement: {}", localName);
+      this.inStatement = !Objects.equals(localName, "statement");
+    }
+
+    @Override
+    public void startElement(
+      final String uri,
+      final String localName,
+      final String qName,
+      final Attributes attributes)
+    {
+      if (!this.errors.isEmpty()) {
+        return;
+      }
+
+      LOG.trace("startElement: {}", localName);
+      this.inStatement = Objects.equals(localName, "statement");
     }
   }
 }

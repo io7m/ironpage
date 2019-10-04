@@ -26,6 +26,7 @@ module com.io7m.ironpage.database.spi
   requires transitive java.sql;
 
   requires com.io7m.jaffirm.core;
+  requires com.io7m.jxe.core;
   requires org.slf4j;
 
   exports com.io7m.ironpage.database.spi;
