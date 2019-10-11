@@ -25,7 +25,11 @@ import com.io7m.ironpage.metadata.schema.compiler.loader.api.MSchemaCompilerLoad
 import com.io7m.ironpage.metadata.schema.compiler.spi.MSchemaCompilerSourceType;
 import com.io7m.ironpage.metadata.schema.compiler.spi.MSchemaCompilerStream;
 import com.io7m.ironpage.metadata.schema.compiler.vanilla.MSCVMessagesProvider;
+import com.io7m.ironpage.metadata.schema.types.api.AttributeCardinality;
+import com.io7m.ironpage.metadata.schema.types.api.AttributeName;
 import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaIdentifier;
+import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaName;
+import com.io7m.ironpage.metadata.schema.types.api.TypePrimitive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -36,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -44,6 +49,8 @@ import java.util.Optional;
 import static com.io7m.ironpage.metadata.schema.compiler.binder.api.MSchemaCompilerBinderType.SCHEMA_NONEXISTENT;
 import static com.io7m.ironpage.metadata.schema.compiler.loader.api.MSchemaCompilerLoaderType.CYCLIC_IMPORT;
 import static com.io7m.ironpage.metadata.schema.compiler.loader.api.MSchemaCompilerLoaderType.SOURCE_ERROR;
+import static com.io7m.ironpage.metadata.schema.types.api.AttributeCardinality.CARDINALITY_1;
+import static com.io7m.ironpage.metadata.schema.types.api.TypePrimitive.TYPE_INTEGER;
 
 @Tag("schemaCompiler")
 public abstract class MSchemaCompilerContract
@@ -243,5 +250,138 @@ public abstract class MSchemaCompilerContract
       Assertions.assertTrue(result.isEmpty());
       Assertions.assertTrue(this.errorsContain(SCHEMA_NONEXISTENT));
     }
+  }
+
+  /**
+   * The basic schema is compiled correctly.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public final void testBasic0()
+    throws Exception
+  {
+    final var sources = new BasicSource();
+    final var loader = this.loader(sources, this.showError());
+
+    try (var compiler = this.createCompiler(
+      this.showError(),
+      this.messages,
+      loader,
+      URI.create("urn:test"),
+      resource("meta-basic.xml"))) {
+      final var result = compiler.execute();
+      Assertions.assertTrue(result.isPresent());
+
+      final var schema = result.get();
+      Assertions.assertEquals(
+        MetaSchemaIdentifier.of(
+          MetaSchemaName.of("com.io7m.example"),
+          BigInteger.ONE,
+          BigInteger.ZERO),
+        schema.identifier());
+    }
+  }
+
+  private static final class BasicSource implements MSchemaCompilerSourceType
+  {
+    BasicSource()
+    {
+
+    }
+
+    @Override
+    public Optional<MSchemaCompilerStream> openSchemaSource(
+      final MetaSchemaIdentifier identifier)
+      throws IOException
+    {
+      switch (identifier.show()) {
+        case "com.io7m.basic:1:2": {
+          return Optional.of(MSchemaCompilerStream.of(
+            identifier,
+            URI.create("urn:ok"),
+            resource("meta-basic-12.xml")));
+        }
+        case "com.io7m.other:2:3": {
+          return Optional.of(MSchemaCompilerStream.of(
+            identifier,
+            URI.create("urn:ok"),
+            resource("meta-other-23.xml")));
+        }
+        default:
+          return Optional.empty();
+      }
+    }
+  }
+
+  /**
+   * The complete attributes schema is compiled correctly.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public final void testAttributeComplete0()
+    throws Exception
+  {
+    final var sources = new BasicSource();
+    final var loader = this.loader(sources, this.showError());
+
+    try (var compiler = this.createCompiler(
+      this.showError(),
+      this.messages,
+      loader,
+      URI.create("urn:test"),
+      resource("meta-attributes-complete.xml"))) {
+      final var result = compiler.execute();
+      Assertions.assertTrue(result.isPresent());
+
+      final var schema = result.get();
+      Assertions.assertEquals(
+        MetaSchemaIdentifier.of(
+          MetaSchemaName.of("com.io7m.complete"),
+          BigInteger.ONE,
+          BigInteger.ZERO),
+        schema.identifier());
+
+      final var byName = schema.attributesByName();
+      for (final var tp : TypePrimitive.values()) {
+        for (final var cardinality : AttributeCardinality.values()) {
+          final var attrName =
+            AttributeName.of(String.format(
+              "%s_c%s",
+              primitiveName(tp),
+              cardinalityName(cardinality)));
+
+          LOG.debug("checking {}", attrName.show());
+          Assertions.assertTrue(byName.containsKey(attrName));
+          final var attr = byName.get(attrName);
+          Assertions.assertEquals(attrName, attr.name());
+          Assertions.assertEquals(tp, attr.type().basePrimitiveType());
+          Assertions.assertEquals(cardinality, attr.cardinality());
+        }
+      }
+
+      final var attr = byName.get(AttributeName.of("named"));
+      Assertions.assertEquals(CARDINALITY_1, attr.cardinality());
+      Assertions.assertEquals(TYPE_INTEGER, attr.type().basePrimitiveType());
+    }
+  }
+
+  private static String cardinalityName(
+    final AttributeCardinality cardinality)
+  {
+    return cardinality.toString()
+      .toLowerCase()
+      .replace("_to_", "")
+      .replace("cardinality_", "");
+  }
+
+  private static String primitiveName(final TypePrimitive tp)
+  {
+    return tp.toString()
+      .toLowerCase()
+      .replace("type_", "");
   }
 }

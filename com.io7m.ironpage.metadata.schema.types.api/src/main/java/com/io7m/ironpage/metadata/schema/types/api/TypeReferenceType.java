@@ -22,15 +22,17 @@ import org.immutables.value.Value;
 
 public interface TypeReferenceType
 {
+  String show();
+
+  Kind kind();
+
+  TypePrimitive basePrimitiveType();
+
   enum Kind
   {
     TYPE_REFERENCE_NAMED,
     TYPE_REFERENCE_PRIMITIVE
   }
-
-  Kind kind();
-
-  TypePrimitive basePrimitiveType();
 
   @ImmutablesStyleType
   @Value.Immutable
@@ -50,6 +52,12 @@ public interface TypeReferenceType
 
     @Value.Parameter
     TypePrimitive basePrimitiveType();
+
+    @Override
+    default String show()
+    {
+      return String.format("%s:%s", this.schema().name().show(), this.name().show());
+    }
   }
 
   @ImmutablesStyleType
@@ -64,5 +72,11 @@ public interface TypeReferenceType
 
     @Value.Parameter
     TypePrimitive basePrimitiveType();
+
+    @Override
+    default String show()
+    {
+      return this.basePrimitiveType().name();
+    }
   }
 }

@@ -39,7 +39,7 @@ import com.io7m.ironpage.metadata.schema.types.api.MetaSchema;
 import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaAttribute;
 import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaIdentifier;
 import com.io7m.ironpage.metadata.schema.types.api.TypePrimitive;
-import com.io7m.ironpage.metadata.schema.types.api.TypeQualifiedNamed;
+import com.io7m.ironpage.metadata.schema.types.api.TypeReferenceType;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import com.io7m.jaffirm.core.Preconditions;
 import com.io7m.junreachable.UnreachableCodeException;
@@ -140,29 +140,29 @@ final class MetaValidator implements MetaValidatorType
     final AttributeValueUntyped value)
   {
     return this.findAttributeFor(schema, value).flatMap(attributeDef -> {
-      final var typeNamed = attributeDef.type();
-      switch (typeNamed.basePrimitiveType()) {
+      final var type = attributeDef.type();
+      switch (type.basePrimitiveType()) {
         case TYPE_BOOLEAN:
-          return this.checkAttributeTypeBoolean(typeNamed, value);
+          return this.checkAttributeTypeBoolean(type, value);
         case TYPE_INTEGER:
-          return this.checkAttributeTypeInteger(typeNamed, value);
+          return this.checkAttributeTypeInteger(type, value);
         case TYPE_REAL:
-          return this.checkAttributeTypeReal(typeNamed, value);
+          return this.checkAttributeTypeReal(type, value);
         case TYPE_STRING:
-          return this.checkAttributeTypeString(typeNamed, value);
+          return this.checkAttributeTypeString(type, value);
         case TYPE_TIMESTAMP:
-          return this.checkAttributeTypeTimestamp(typeNamed, value);
+          return this.checkAttributeTypeTimestamp(type, value);
         case TYPE_URI:
-          return this.checkAttributeTypeURI(typeNamed, value);
+          return this.checkAttributeTypeURI(type, value);
         case TYPE_UUID:
-          return this.checkAttributeTypeUUID(typeNamed, value);
+          return this.checkAttributeTypeUUID(type, value);
       }
       throw new UnreachableCodeException();
     });
   }
 
   private Optional<AttributeValueUUID> checkAttributeTypeUUID(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -180,7 +180,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private Optional<AttributeValueURI> checkAttributeTypeURI(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -198,7 +198,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private Optional<AttributeValueTimestamp> checkAttributeTypeTimestamp(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -216,7 +216,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private Optional<AttributeValueString> checkAttributeTypeString(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -228,7 +228,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private Optional<AttributeValueInteger> checkAttributeTypeInteger(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -246,7 +246,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private Optional<AttributeValueReal> checkAttributeTypeReal(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -264,7 +264,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private Optional<AttributeValueBoolean> checkAttributeTypeBoolean(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute)
   {
     Preconditions.checkPrecondition(
@@ -319,7 +319,7 @@ final class MetaValidator implements MetaValidatorType
   }
 
   private MetaValidatorError errorValueTypeError(
-    final TypeQualifiedNamed type,
+    final TypeReferenceType type,
     final AttributeValueUntyped attribute,
     final Exception e)
   {

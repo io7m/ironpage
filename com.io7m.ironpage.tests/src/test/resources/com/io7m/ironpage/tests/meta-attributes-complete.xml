@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.complete"
+               versionMajor="1"
+               versionMinor="0">
+
+  <ms:Import id="com.io7m.basic"
+             versionMajor="1"
+             versionMinor="2"/>
+
+  <!-- INTEGER -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="integer_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="integer_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="integer_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="integer_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- BOOLEAN -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="boolean_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_BOOLEAN"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="boolean_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_BOOLEAN"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="boolean_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_BOOLEAN"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="boolean_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_BOOLEAN"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- REAL -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="real_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_REAL"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="real_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_REAL"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="real_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_REAL"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="real_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_REAL"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- STRING -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="string_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_STRING"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="string_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_STRING"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="string_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_STRING"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="string_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_STRING"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- TIMESTAMP -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="timestamp_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_TIMESTAMP"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="timestamp_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_TIMESTAMP"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="timestamp_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_TIMESTAMP"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="timestamp_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_TIMESTAMP"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- URI -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="uri_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_URI"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="uri_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_URI"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="uri_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_URI"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="uri_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_URI"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- UUID -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="uuid_c1">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_UUID"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_1"
+                       name="uuid_c01">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_UUID"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="uuid_c0n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_UUID"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="uuid_c1n">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_UUID"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <!-- Named -->
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="named">
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.basic"
+                    type="b"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+</ms:MetaSchema>

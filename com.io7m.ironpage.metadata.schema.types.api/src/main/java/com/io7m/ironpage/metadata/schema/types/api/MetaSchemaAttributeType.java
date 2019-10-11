@@ -39,7 +39,7 @@ public interface MetaSchemaAttributeType
    */
 
   @Value.Parameter
-  TypeQualifiedNamed type();
+  TypeReferenceType type();
 
   /**
    * @return The cardinality of the attribute.

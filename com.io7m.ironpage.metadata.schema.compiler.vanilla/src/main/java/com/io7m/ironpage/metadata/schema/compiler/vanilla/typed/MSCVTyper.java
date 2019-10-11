@@ -38,7 +38,6 @@ import com.io7m.ironpage.metadata.schema.types.api.TypeName;
 import com.io7m.ironpage.metadata.schema.types.api.TypeNameQualified;
 import com.io7m.ironpage.metadata.schema.types.api.TypeNamed;
 import com.io7m.ironpage.metadata.schema.types.api.TypePrimitive;
-import com.io7m.ironpage.metadata.schema.types.api.TypeQualifiedNamed;
 import com.io7m.ironpage.metadata.schema.types.api.TypeReferenceNamed;
 import com.io7m.ironpage.metadata.schema.types.api.TypeReferencePrimitive;
 import com.io7m.ironpage.metadata.schema.types.api.TypeReferenceType;
@@ -166,7 +165,7 @@ final class MSCVTyper implements MSchemaCompilerTyperType
     final var types =
       this.checkTypes(imports, this.schema.types());
     final var attributes =
-      this.checkAttributes(imports, this.schema.attributes());
+      this.checkAttributes(imports, types, this.schema.attributes());
 
     if (this.errors.isFailed()) {
       return Optional.empty();
@@ -286,11 +285,12 @@ final class MSCVTyper implements MSchemaCompilerTyperType
 
   private List<MetaSchemaAttribute> checkAttributes(
     final List<MetaSchemaIdentifier> imports,
+    final List<TypeNamed> types,
     final Map<String, MADeclAttribute<MSchemaBoundType>> attributes)
   {
     return attributes.values()
       .stream()
-      .map(attribute -> this.checkAttribute(imports, attribute))
+      .map(attribute -> this.checkAttribute(imports, types, attribute))
       .filter(Optional::isPresent)
       .map(Optional::get)
       .collect(Collectors.toUnmodifiableList());
@@ -298,33 +298,19 @@ final class MSCVTyper implements MSchemaCompilerTyperType
 
   private Optional<MetaSchemaAttribute> checkAttribute(
     final List<MetaSchemaIdentifier> imports,
+    final List<TypeNamed> types,
     final MADeclAttribute<MSchemaBoundType> attribute)
   {
     LOG.debug("checking attribute: {}", attribute.name());
 
-    final var currentSchemaId =
-      this.schema.data().name(MetaSchemaIdentifier.class);
-    final var attributeName =
-      attribute.data().name(AttributeName.class);
-    final var attributeTypeNameQ =
-      attribute.type().data().name(TypeNameQualified.class);
-
-    final var importDeclOpt =
-      findImportForType(imports, attributeTypeNameQ);
-
-    return importDeclOpt.flatMap(importDecl -> {
-      return this.loader.load(currentSchemaId, importDecl).flatMap(schemaLoaded -> {
-        final var typeName = attributeTypeNameQ.name();
-        final var typeValue = schemaLoaded.typesByName().get(typeName);
-        return Optional.ofNullable(typeValue).flatMap(type -> {
-          return Optional.of(
-            MetaSchemaAttribute.builder()
-              .setCardinality(checkAttributeCardinality(attribute.cardinality()))
-              .setName(attributeName)
-              .setType(TypeQualifiedNamed.of(attributeTypeNameQ.schema(), type))
-              .build());
-        });
-      });
+    final var attributeName = attribute.data().name(AttributeName.class);
+    return this.checkTypeReference(imports, types, attribute.type()).flatMap(type -> {
+      return Optional.of(
+        MetaSchemaAttribute.builder()
+          .setCardinality(checkAttributeCardinality(attribute.cardinality()))
+          .setName(attributeName)
+          .setType(type)
+          .build());
     });
   }
 

@@ -54,7 +54,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
    * @return The type against this value was checked
    */
 
-  TypeQualifiedNamed type();
+  TypeReferenceType type();
 
   /**
    * An integer value.
@@ -70,7 +70,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter
@@ -101,7 +101,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter
@@ -132,7 +132,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter
@@ -163,7 +163,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter
@@ -194,7 +194,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter
@@ -225,7 +225,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter
@@ -256,7 +256,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
 
     @Override
     @Value.Parameter
-    TypeQualifiedNamed type();
+    TypeReferenceType type();
 
     @Override
     @Value.Parameter

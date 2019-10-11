@@ -26,7 +26,7 @@ import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaName;
 import com.io7m.ironpage.metadata.schema.types.api.TypeName;
 import com.io7m.ironpage.metadata.schema.types.api.TypeNamed;
 import com.io7m.ironpage.metadata.schema.types.api.TypePrimitive;
-import com.io7m.ironpage.metadata.schema.types.api.TypeQualifiedNamed;
+import com.io7m.ironpage.metadata.schema.types.api.TypeReferenceNamed;
 import com.io7m.ironpage.metadata.schema.types.api.TypeReferencePrimitive;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -86,10 +86,10 @@ public final class MetaSchemaTest
   public void testDuplicateAttributes()
   {
     final var type =
-      TypeQualifiedNamed.of(
-        MetaSchemaName.of("z"),
-        TypeNamed.of(TypeName.of("y"), TypeReferencePrimitive.of(TypePrimitive.TYPE_INTEGER))
-      );
+      TypeReferenceNamed.of(
+        MetaSchemaIdentifier.of(MetaSchemaName.of("z"), ZERO, ONE),
+        TypeName.of("y"),
+        TypePrimitive.TYPE_INTEGER);
 
     final var attr =
       MetaSchemaAttribute.of(
