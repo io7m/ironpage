@@ -67,6 +67,11 @@
       <artifactId>com.io7m.ironpage.metadata.schema.compiler.vanilla</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.ironpage.metadata.attribute.validator.vanilla</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>commons-io</groupId>

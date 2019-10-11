@@ -25,6 +25,7 @@ module com.io7m.ironpage.metadata.schema.types.api
   requires static org.osgi.annotation.bundle;
 
   requires com.io7m.junreachable.core;
+  requires com.io7m.jlexing.core;
 
   exports com.io7m.ironpage.metadata.schema.types.api;
 }

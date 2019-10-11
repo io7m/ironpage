@@ -14,25 +14,42 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
 package com.io7m.ironpage.metadata.schema.types.api;
 
-import com.io7m.immutables.styles.ImmutablesStyleType;
-import com.io7m.jlexing.core.LexicalType;
-import org.immutables.value.Value;
+import com.io7m.junreachable.UnreachableCodeException;
 
-import java.net.URI;
+import java.math.BigInteger;
 
 /**
- * An untyped attribute value.
+ * Convenience functions over schema identifiers.
  */
 
-@ImmutablesStyleType
-@Value.Immutable
-public interface AttributeValueUntypedType extends AttributeValueType<String>, LexicalType<URI>
+public final class MetaSchemaIdentifiers
 {
-  @Override
-  AttributeNameQualified name();
+  private MetaSchemaIdentifiers()
+  {
+    throw new UnreachableCodeException();
+  }
 
-  @Override
-  String value();
+  /**
+   * Create a new schema identifier.
+   *
+   * @param name  The name
+   * @param major The major version
+   * @param minor The minor version
+   *
+   * @return A new schema identifier
+   */
+
+  public static MetaSchemaIdentifier create(
+    final String name,
+    final int major,
+    final int minor)
+  {
+    return MetaSchemaIdentifier.of(
+      MetaSchemaName.of(name),
+      BigInteger.valueOf(major),
+      BigInteger.valueOf(minor));
+  }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.cardinality"
+               versionMajor="1"
+               versionMinor="0">
+  <ms:DeclareAttribute cardinality="CARDINALITY_1_TO_N"
+                       name="a">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+</ms:MetaSchema>

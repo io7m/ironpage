@@ -246,7 +246,7 @@
       </xsd:annotation>
 
       <xsd:selector xpath=".//ms:Import"/>
-      <xsd:field xpath="@ms:id"/>
+      <xsd:field xpath="@id"/>
     </xsd:unique>
 
     <xsd:unique name="typesAreUnique">
@@ -256,8 +256,8 @@
         </xsd:documentation>
       </xsd:annotation>
 
-      <xsd:selector xpath=".//ms:Type"/>
-      <xsd:field xpath="@ms:name"/>
+      <xsd:selector xpath=".//ms:DeclareType"/>
+      <xsd:field xpath="@name"/>
     </xsd:unique>
 
     <xsd:unique name="attributesAreUnique">
@@ -267,8 +267,8 @@
         </xsd:documentation>
       </xsd:annotation>
 
-      <xsd:selector xpath=".//ms:Attribute"/>
-      <xsd:field xpath="@ms:name"/>
+      <xsd:selector xpath=".//ms:DeclareAttribute"/>
+      <xsd:field xpath="@name"/>
     </xsd:unique>
   </xsd:element>
 

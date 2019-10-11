@@ -35,8 +35,13 @@ public final class UnreachableTest
   public Stream<DynamicTest> testConstructors()
   {
     return Stream.of(
-      "com.io7m.ironpage.metadata.schema.compiler.vanilla.parser.v1_0.MSX1Constants")
-      .map(UnreachableTest::loadClass)
+      "com.io7m.ironpage.metadata.schema.compiler.vanilla.parser.v1_0.MSX1Constants",
+      "com.io7m.ironpage.metadata.schema.types.api.AttributeNames",
+      "com.io7m.ironpage.metadata.schema.types.api.AttributeValueUntypeds",
+      "com.io7m.ironpage.metadata.schema.types.api.MetaSchemaIdentifiers",
+      "com.io7m.ironpage.metadata.schema.types.api.MetaSchemaNames",
+      "com.io7m.ironpage.metadata.schema.types.api.TypeNames"
+      ).map(UnreachableTest::loadClass)
       .map(UnreachableTest::runClass);
   }
 

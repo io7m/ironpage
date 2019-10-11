@@ -41,11 +41,22 @@ public interface MetaValidatorType
    * An attribute does not exist within a schema.
    */
 
-  MetaValidatorErrorCode SCHEMA_ATTRIBUTE_NOT_FOUND =
+  MetaValidatorErrorCode ATTRIBUTE_NOT_FOUND =
     MetaValidatorErrorCode.of(
       new StringBuilder(64)
         .append(MetaValidatorType.class.getCanonicalName())
-        .append(":schemaAttributeNotFound")
+        .append(":attributeNotFound")
+        .toString());
+
+  /**
+   * The number of occurrences of a value does not match the cardinality declared in the schema.
+   */
+
+  MetaValidatorErrorCode ATTRIBUTE_CARDINALITY_ERROR =
+    MetaValidatorErrorCode.of(
+      new StringBuilder(64)
+        .append(MetaValidatorType.class.getCanonicalName())
+        .append(":attributeCardinalityError")
         .toString());
 
   /**

@@ -20,6 +20,10 @@ package com.io7m.ironpage.metadata.schema.types.api;
 import com.io7m.immutables.styles.ImmutablesStyleType;
 import org.immutables.value.Value;
 
+/**
+ * A reference to a type.
+ */
+
 public interface TypeReferenceType
 {
   String show();

@@ -17,6 +17,8 @@
 package com.io7m.ironpage.metadata.schema.types.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
+import com.io7m.jlexing.core.LexicalPosition;
+import com.io7m.jlexing.core.LexicalType;
 import org.immutables.value.Value;
 
 import java.math.BigInteger;
@@ -38,7 +40,7 @@ import static com.io7m.ironpage.metadata.schema.types.api.TypePrimitive.TYPE_UUI
  * @param <T> The type of the attribute value
  */
 
-public interface AttributeValueTypedType<T> extends AttributeValueType<T>
+public interface AttributeValueTypedType<T> extends AttributeValueType<T>, LexicalType<URI>
 {
   private static void checkType(
     final TypePrimitive receivedType,
@@ -64,6 +66,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   @Value.Immutable
   interface AttributeValueIntegerType extends AttributeValueTypedType<BigInteger>
   {
+    @Override
+    @Value.Parameter
+    LexicalPosition<URI> lexical();
+
     @Override
     @Value.Parameter
     AttributeNameQualified name();
@@ -97,6 +103,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   {
     @Override
     @Value.Parameter
+    LexicalPosition<URI> lexical();
+
+    @Override
+    @Value.Parameter
     AttributeNameQualified name();
 
     @Override
@@ -126,6 +136,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   @Value.Immutable
   interface AttributeValueStringType extends AttributeValueTypedType<String>
   {
+    @Override
+    @Value.Parameter
+    LexicalPosition<URI> lexical();
+
     @Override
     @Value.Parameter
     AttributeNameQualified name();
@@ -159,6 +173,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   {
     @Override
     @Value.Parameter
+    LexicalPosition<URI> lexical();
+
+    @Override
+    @Value.Parameter
     AttributeNameQualified name();
 
     @Override
@@ -188,6 +206,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   @Value.Immutable
   interface AttributeValueTimestampType extends AttributeValueTypedType<OffsetDateTime>
   {
+    @Override
+    @Value.Parameter
+    LexicalPosition<URI> lexical();
+
     @Override
     @Value.Parameter
     AttributeNameQualified name();
@@ -221,6 +243,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   {
     @Override
     @Value.Parameter
+    LexicalPosition<URI> lexical();
+
+    @Override
+    @Value.Parameter
     AttributeNameQualified name();
 
     @Override
@@ -250,6 +276,10 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>
   @Value.Immutable
   interface AttributeValueUUIDType extends AttributeValueTypedType<UUID>
   {
+    @Override
+    @Value.Parameter
+    LexicalPosition<URI> lexical();
+
     @Override
     @Value.Parameter
     AttributeNameQualified name();

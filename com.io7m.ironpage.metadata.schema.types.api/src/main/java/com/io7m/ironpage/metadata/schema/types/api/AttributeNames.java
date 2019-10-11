@@ -16,6 +16,8 @@
 
 package com.io7m.ironpage.metadata.schema.types.api;
 
+import com.io7m.junreachable.UnreachableCodeException;
+
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -34,7 +36,7 @@ public final class AttributeNames
 
   private AttributeNames()
   {
-
+    throw new UnreachableCodeException();
   }
 
   /**

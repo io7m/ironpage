@@ -16,59 +16,47 @@
 
 package com.io7m.ironpage.metadata.schema.types.api;
 
+import com.io7m.jlexing.core.LexicalPositions;
 import com.io7m.junreachable.UnreachableCodeException;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
- * Functions that define valid names.
+ * Convenience functions over untyped attribute values.
  */
 
-public final class TypeNames
+public final class AttributeValueUntypeds
 {
-  /**
-   * The pattern that defines a valid type name.
-   */
-
-  public static final Pattern VALID_TYPE_NAME_PATTERN =
-    Pattern.compile("[a-z][a-z0-9_]{0,127}");
-
-  private TypeNames()
+  private AttributeValueUntypeds()
   {
     throw new UnreachableCodeException();
   }
 
   /**
-   * @param name The name
+   * Create an untyped attribute value.
    *
-   * @return {@code true} if {@code name} is a valid type name
+   * @param schema The schema name
+   * @param name   The attribute name
+   * @param value  The value
+   *
+   * @return A value
    */
 
-  public static boolean isValidName(final String name)
+  public static AttributeValueUntyped untypedOf(
+    final String schema,
+    final String name,
+    final String value)
   {
+    Objects.requireNonNull(schema, "schema");
     Objects.requireNonNull(name, "name");
-    return VALID_TYPE_NAME_PATTERN.matcher(name).matches();
+    Objects.requireNonNull(value, "value");
+
+    return AttributeValueUntyped.builder()
+      .setLexical(LexicalPositions.zero())
+      .setName(AttributeNameQualified.of(MetaSchemaName.of(schema), AttributeName.of(name)))
+      .setValue(value)
+      .build();
   }
 
-  /**
-   * @param name The name
-   *
-   * @return {@code name} if {@code name} is a valid type name
-   */
-
-  public static String checkValidName(final String name)
-  {
-    if (!isValidName(name)) {
-      throw new IllegalArgumentException(
-        new StringBuilder(64)
-          .append("Not a valid type name: ")
-          .append(name)
-          .append(" (must match ")
-          .append(VALID_TYPE_NAME_PATTERN.pattern())
-          .append(")")
-          .toString());
-    }
-    return name;
-  }
 }
+

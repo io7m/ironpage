@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.types"
+               versionMajor="1"
+               versionMinor="0">
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="boolean">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_BOOLEAN"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="integer">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="real">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_REAL"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="string">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_STRING"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="timestamp">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_TIMESTAMP"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="uri">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_URI"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+  <ms:DeclareAttribute cardinality="CARDINALITY_0_TO_N"
+                       name="uuid">
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_UUID"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+</ms:MetaSchema>

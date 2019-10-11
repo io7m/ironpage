@@ -14,7 +14,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
 package com.io7m.ironpage.metadata.attribute.validator.vanilla;
 
 import com.io7m.ironpage.errors.api.ErrorSeverity;
@@ -59,7 +58,7 @@ final class MetaValidator implements MetaValidatorType
 {
   private static final Logger LOG = LoggerFactory.getLogger(MetaValidator.class);
 
-  private final MetaValidatorErrorReceiverType errors;
+  private final SafeErrorPublisher errors;
   private final MetaValidatorMessagesType messages;
   private final MetaValidatorRequest request;
   private final HashMap<AttributeNameQualified, CardinalityValidator> cardinalities;
@@ -91,7 +90,53 @@ final class MetaValidator implements MetaValidatorType
       final var result = this.checkAttribute(value);
       result.ifPresent(results::add);
     }
-    return Optional.empty();
+
+    this.checkCardinalitiesResults();
+    if (this.errors.isFailed()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(
+      MetaDocumentTyped.builder()
+        .addAllImports(document.imports())
+        .addAllAttributes(results)
+        .setUri(document.uri())
+        .build());
+  }
+
+  private void checkCardinalitiesResults()
+  {
+    for (final var cardinalityEntry : this.cardinalities.entrySet()) {
+      LOG.debug("checking cardinality {}", cardinalityEntry.getKey().show());
+
+      final var cardinalityRecord = cardinalityEntry.getValue();
+      switch (cardinalityRecord.attribute.cardinality()) {
+        case CARDINALITY_1: {
+          if (cardinalityRecord.count != 1) {
+            this.errors.receive(this.errorCardinality(
+              cardinalityRecord.attribute, cardinalityRecord.count));
+          }
+          break;
+        }
+        case CARDINALITY_0_TO_1: {
+          if (cardinalityRecord.count > 1) {
+            this.errors.receive(this.errorCardinality(
+              cardinalityRecord.attribute, cardinalityRecord.count));
+          }
+          break;
+        }
+        case CARDINALITY_0_TO_N: {
+          break;
+        }
+        case CARDINALITY_1_TO_N: {
+          if (cardinalityRecord.count < 1) {
+            this.errors.receive(this.errorCardinality(
+              cardinalityRecord.attribute, cardinalityRecord.count));
+          }
+          break;
+        }
+      }
+    }
   }
 
   private void checkInitializeCardinalities(
@@ -115,7 +160,7 @@ final class MetaValidator implements MetaValidatorType
         LOG.trace("initializing attribute {}", nameQ.show());
 
         Preconditions.checkPreconditionV(
-          this.cardinalities.containsKey(nameQ),
+          !this.cardinalities.containsKey(nameQ),
           "Only one qualified attribute name '%s' can be in scope",
           nameQ.show());
 
@@ -172,7 +217,8 @@ final class MetaValidator implements MetaValidatorType
 
     try {
       final var value = UUID.fromString(attribute.value());
-      return Optional.of(AttributeValueUUID.of(attribute.name(), type, value));
+      return Optional.of(
+        AttributeValueUUID.of(attribute.lexical(), attribute.name(), type, value));
     } catch (final Exception e) {
       this.errors.receive(this.errorValueTypeError(type, attribute, e));
       return Optional.empty();
@@ -190,7 +236,8 @@ final class MetaValidator implements MetaValidatorType
 
     try {
       final var value = new URI(attribute.value());
-      return Optional.of(AttributeValueURI.of(attribute.name(), type, value));
+      return Optional.of(
+        AttributeValueURI.of(attribute.lexical(), attribute.name(), type, value));
     } catch (final Exception e) {
       this.errors.receive(this.errorValueTypeError(type, attribute, e));
       return Optional.empty();
@@ -208,7 +255,8 @@ final class MetaValidator implements MetaValidatorType
 
     try {
       final var value = OffsetDateTime.parse(attribute.value());
-      return Optional.of(AttributeValueTimestamp.of(attribute.name(), type, value));
+      return Optional.of(
+        AttributeValueTimestamp.of(attribute.lexical(), attribute.name(), type, value));
     } catch (final Exception e) {
       this.errors.receive(this.errorValueTypeError(type, attribute, e));
       return Optional.empty();
@@ -224,7 +272,8 @@ final class MetaValidator implements MetaValidatorType
       type.basePrimitiveType() == TypePrimitive.TYPE_STRING,
       t -> "Type must be TYPE_STRING");
 
-    return Optional.of(AttributeValueString.of(attribute.name(), type, attribute.value()));
+    return Optional.of(
+      AttributeValueString.of(attribute.lexical(), attribute.name(), type, attribute.value()));
   }
 
   private Optional<AttributeValueInteger> checkAttributeTypeInteger(
@@ -238,7 +287,8 @@ final class MetaValidator implements MetaValidatorType
 
     try {
       final var value = new BigInteger(attribute.value());
-      return Optional.of(AttributeValueInteger.of(attribute.name(), type, value));
+      return Optional.of(
+        AttributeValueInteger.of(attribute.lexical(), attribute.name(), type, value));
     } catch (final Exception e) {
       this.errors.receive(this.errorValueTypeError(type, attribute, e));
       return Optional.empty();
@@ -256,7 +306,8 @@ final class MetaValidator implements MetaValidatorType
 
     try {
       final var value = Double.parseDouble(attribute.value());
-      return Optional.of(AttributeValueReal.of(attribute.name(), type, Double.valueOf(value)));
+      return Optional.of(
+        AttributeValueReal.of(attribute.lexical(), attribute.name(), type, Double.valueOf(value)));
     } catch (final Exception e) {
       this.errors.receive(this.errorValueTypeError(type, attribute, e));
       return Optional.empty();
@@ -276,9 +327,11 @@ final class MetaValidator implements MetaValidatorType
     final var name = attribute.name();
     switch (text) {
       case "true":
-        return Optional.of(AttributeValueBoolean.of(name, type, Boolean.TRUE));
+        return Optional.of(
+          AttributeValueBoolean.of(attribute.lexical(), name, type, Boolean.TRUE));
       case "false":
-        return Optional.of(AttributeValueBoolean.of(name, type, Boolean.FALSE));
+        return Optional.of(
+          AttributeValueBoolean.of(attribute.lexical(), name, type, Boolean.FALSE));
       default: {
         this.errors.receive(this.errorValueTypeError(type, attribute, new Exception()));
         return Optional.empty();
@@ -318,6 +371,28 @@ final class MetaValidator implements MetaValidatorType
     return schemaOpt;
   }
 
+  private MetaValidatorError errorCardinality(
+    final MetaSchemaAttribute attribute,
+    final int count)
+  {
+    final var errorAttributes = PresentableAttributes.of(
+      PresentableAttributes.entry(
+        this.messages.format("attribute"), attribute.name().show()),
+      PresentableAttributes.entry(
+        this.messages.format("cardinality"), attribute.cardinality().show()),
+      PresentableAttributes.entry(
+        this.messages.format("occurrences"), String.valueOf(count))
+    );
+
+    return MetaValidatorError.builder()
+      .setMessage(this.messages.format("errorAttributeCardinalityError"))
+      .setAttributes(errorAttributes)
+      .setSeverity(ErrorSeverity.SEVERITY_ERROR)
+      .setErrorCode(ATTRIBUTE_CARDINALITY_ERROR)
+      .build();
+  }
+
+
   private MetaValidatorError errorValueTypeError(
     final TypeReferenceType type,
     final AttributeValueUntyped attribute,
@@ -351,7 +426,7 @@ final class MetaValidator implements MetaValidatorType
       .setMessage(this.messages.format("errorSchemaAttributeNotFound"))
       .setAttributes(errorAttributes)
       .setSeverity(ErrorSeverity.SEVERITY_ERROR)
-      .setErrorCode(SCHEMA_ATTRIBUTE_NOT_FOUND)
+      .setErrorCode(ATTRIBUTE_NOT_FOUND)
       .build();
   }
 

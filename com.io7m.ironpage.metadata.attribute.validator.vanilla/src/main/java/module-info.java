@@ -26,6 +26,7 @@ module com.io7m.ironpage.metadata.attribute.validator.vanilla
   requires static org.osgi.service.component.annotations;
 
   requires com.io7m.ironpage.errors.api;
+  requires com.io7m.ironpage.l10n.api;
   requires com.io7m.ironpage.metadata.attribute.validator.api;
   requires com.io7m.ironpage.metadata.schema.types.api;
   requires com.io7m.jaffirm.core;

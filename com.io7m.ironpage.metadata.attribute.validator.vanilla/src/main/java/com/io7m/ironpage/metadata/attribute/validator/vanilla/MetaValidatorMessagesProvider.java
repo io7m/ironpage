@@ -14,25 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.io7m.ironpage.metadata.schema.types.api;
 
-import com.io7m.immutables.styles.ImmutablesStyleType;
-import com.io7m.jlexing.core.LexicalType;
-import org.immutables.value.Value;
+package com.io7m.ironpage.metadata.attribute.validator.vanilla;
 
-import java.net.URI;
+import com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorMessagesProviderType;
+import com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorMessagesType;
+
+import java.util.Locale;
 
 /**
- * An untyped attribute value.
+ * A provider of validator messages.
  */
 
-@ImmutablesStyleType
-@Value.Immutable
-public interface AttributeValueUntypedType extends AttributeValueType<String>, LexicalType<URI>
+public final class MetaValidatorMessagesProvider implements MetaValidatorMessagesProviderType
 {
-  @Override
-  AttributeNameQualified name();
+  /**
+   * Construct a message provider.
+   */
+
+  public MetaValidatorMessagesProvider()
+  {
+
+  }
 
   @Override
-  String value();
+  public MetaValidatorMessagesType createStrings(
+    final Locale locale)
+  {
+    return new MetaValidatorMessages(locale);
+  }
 }

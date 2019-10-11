@@ -16,6 +16,8 @@
 
 package com.io7m.ironpage.metadata.schema.types.api;
 
+import com.io7m.junreachable.UnreachableCodeException;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -35,7 +37,7 @@ public final class MetaSchemaNames
 
   private MetaSchemaNames()
   {
-
+    throw new UnreachableCodeException();
   }
 
   /**
