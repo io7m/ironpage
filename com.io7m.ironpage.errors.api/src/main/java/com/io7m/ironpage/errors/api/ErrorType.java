@@ -18,9 +18,9 @@
 package com.io7m.ironpage.errors.api;
 
 import com.io7m.ironpage.presentable.api.PresentableType;
-import io.vavr.collection.SortedMap;
 
 import java.util.Optional;
+import java.util.SortedMap;
 
 /**
  * The base type of errors.

@@ -24,7 +24,7 @@ import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
-import io.vavr.collection.TreeMap;
+import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
@@ -173,7 +173,7 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
               PagesDatabaseQueriesType.DATA_OWNER_NONEXISTENT,
               CoreMessages.localize("errorPageDataOwnerNonexistent"),
               e,
-              TreeMap.of(CoreMessages.localize("userID"), owner.toString()));
+              PresentableAttributes.one(CoreMessages.localize("userID"), owner.toString()));
           }
           case "BLOB_LABEL_REFERENCE": {
             throw new CDException(
@@ -181,7 +181,7 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
               CDLabelsQueriesType.LABEL_NONEXISTENT,
               CoreMessages.localize("errorLabelNonexistent"),
               e,
-              TreeMap.of(CoreMessages.localize("labelID"), Long.toString(securityLabel.id())));
+              PresentableAttributes.one(CoreMessages.localize("labelID"), Long.toString(securityLabel.id())));
           }
           default: {
             break;
@@ -230,7 +230,7 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
           PagesDatabaseQueriesType.DATA_ALREADY_EXISTS,
           CoreMessages.localize("errorPageDataAlreadyExists"),
           null,
-          TreeMap.of(CoreMessages.localize("dataHash"), hash));
+          PresentableAttributes.one(CoreMessages.localize("dataHash"), hash));
       }
     } catch (final DataAccessException e) {
       throw genericDatabaseException(e);
@@ -371,7 +371,7 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
           PagesDatabaseQueriesType.DATA_NONEXISTENT,
           CoreMessages.localize("errorPageDataNonexistent"),
           null,
-          TreeMap.of(CoreMessages.localize("dataHash"), id));
+          PresentableAttributes.one(CoreMessages.localize("dataHash"), id));
       }
     } catch (final DataAccessException e) {
       throw genericDatabaseException(e);

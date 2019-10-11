@@ -22,6 +22,7 @@ import com.io7m.ironpage.database.core.api.CDRolesQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 import static com.io7m.ironpage.database.core.api.CDRolesQueriesType.ROLE_ALREADY_EXISTS;
 import static com.io7m.ironpage.database.core.api.CDRolesQueriesType.ROLE_NONEXISTENT;
 
+@Tag("database")
 public abstract class RolesQueriesContract
 {
   private static final Logger LOG =
@@ -170,7 +172,7 @@ public abstract class RolesQueriesContract
       queries.roleCreate("admin0", "Administrators");
     final var role1 =
       role0.withName("admin1")
-        .withDescription( "Administrators updated");
+        .withDescription("Administrators updated");
 
     final var roleGet = queries.roleUpdate(role1);
     Assertions.assertEquals(role1, roleGet);

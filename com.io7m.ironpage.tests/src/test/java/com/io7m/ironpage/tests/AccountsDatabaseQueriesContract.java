@@ -26,6 +26,7 @@ import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ import static com.io7m.ironpage.database.core.api.CDAccountsQueriesType.NONEXIST
 import static com.io7m.ironpage.database.core.api.CDRolesQueriesType.ROLE_NONEXISTENT;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+@Tag("database")
 public abstract class AccountsDatabaseQueriesContract
 {
   private static final Logger LOG =

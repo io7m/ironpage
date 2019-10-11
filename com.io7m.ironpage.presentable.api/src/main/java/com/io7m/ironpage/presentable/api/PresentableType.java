@@ -16,9 +16,8 @@
 
 package com.io7m.ironpage.presentable.api;
 
-import io.vavr.collection.SortedMap;
-
 import java.util.List;
+import java.util.SortedMap;
 
 /**
  * The type of presentable values. A presentable value is a value that has been appropriately

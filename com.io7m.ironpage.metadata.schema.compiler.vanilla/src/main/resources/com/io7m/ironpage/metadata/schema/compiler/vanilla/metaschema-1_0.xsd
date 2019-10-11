@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  Copyright © 2019 Mark Raynsford <code@io7m.com> http://io7m.com
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+  IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+            elementFormDefault="qualified"
+            targetNamespace="urn:com.io7m.ironpage.metaschema:1:0">
+
+  <xsd:element name="Import">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "Import" element imports types from an external schema.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:attribute name="id"
+                     use="required"/>
+      <xsd:attribute name="versionMajor"
+                     type="xsd:nonNegativeInteger"
+                     use="required"/>
+      <xsd:attribute name="versionMinor"
+                     type="xsd:nonNegativeInteger"
+                     use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="Comment">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "Comment" element provides documentation for schema elements.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+  </xsd:element>
+
+  <xsd:simpleType name="TypePrimitiveType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The available set of primitive types.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="TYPE_BOOLEAN"/>
+      <xsd:enumeration value="TYPE_INTEGER"/>
+      <xsd:enumeration value="TYPE_REAL"/>
+      <xsd:enumeration value="TYPE_STRING"/>
+      <xsd:enumeration value="TYPE_TIMESTAMP"/>
+      <xsd:enumeration value="TYPE_URI"/>
+      <xsd:enumeration value="TYPE_UUID"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="TypePrimitive">
+    <xsd:complexType>
+      <xsd:attribute name="type"
+                     type="ms:TypePrimitiveType"
+                     use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="TypeNamed">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "TypeNamed" element declares a reference to a named type within a
+        schema.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:attribute name="schema"
+                     type="xsd:string"
+                     use="required"/>
+      <xsd:attribute name="type"
+                     type="xsd:string"
+                     use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="TypeReference">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "TypeReference" element declares a reference to a named or a
+        primitive type.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:choice minOccurs="1"
+                  maxOccurs="1">
+        <xsd:element ref="ms:TypeNamed"/>
+        <xsd:element ref="ms:TypePrimitive"/>
+      </xsd:choice>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="DeclareType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "DeclareType" element declares new types that may be used by
+        "DeclareAttribute" declarations. All type declarations are automatically
+        exported to any schema that imports this schema.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence minOccurs="1"
+                    maxOccurs="1">
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="1">
+          <xsd:element ref="ms:Comment"/>
+        </xsd:sequence>
+        <xsd:element ref="ms:TypeReference"/>
+      </xsd:sequence>
+      <xsd:attribute name="name"
+                     type="xsd:string"
+                     use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:simpleType name="CardinalityType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "CardinalityType" type describes the cardinality of an attribute.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="CARDINALITY_1">
+        <xsd:annotation>
+          <xsd:documentation>
+            The attribute must appear exactly once.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="CARDINALITY_0_TO_1">
+        <xsd:annotation>
+          <xsd:documentation>
+            The attribute is optional.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="CARDINALITY_0_TO_N">
+        <xsd:annotation>
+          <xsd:documentation>
+            The attribute may appear any number of times.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="CARDINALITY_1_TO_N">
+        <xsd:annotation>
+          <xsd:documentation>
+            The attribute must appear at least once.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:enumeration>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="DeclareAttribute">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "DeclareAttribute" element describes an attribute.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence minOccurs="1"
+                    maxOccurs="1">
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="1">
+          <xsd:element ref="ms:Comment"/>
+        </xsd:sequence>
+        <xsd:element ref="ms:TypeReference"/>
+      </xsd:sequence>
+      <xsd:attribute name="name"
+                     use="required"
+                     type="xsd:string"/>
+      <xsd:attribute name="cardinality"
+                     use="required"
+                     type="ms:CardinalityType"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="MetaSchema">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "MetaSchema" element describes the schema as a whole. A schema
+        carries an identifier, and a major and minor version.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence minOccurs="0"
+                    maxOccurs="1">
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="1">
+          <xsd:element ref="ms:Comment"/>
+        </xsd:sequence>
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="unbounded">
+          <xsd:element ref="ms:Import"/>
+        </xsd:sequence>
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="unbounded">
+          <xsd:choice>
+            <xsd:element ref="ms:DeclareAttribute"/>
+            <xsd:element ref="ms:DeclareType"/>
+          </xsd:choice>
+        </xsd:sequence>
+      </xsd:sequence>
+
+      <xsd:attribute name="id"
+                     use="required"
+                     type="xsd:string"/>
+      <xsd:attribute name="versionMajor"
+                     use="required"
+                     type="xsd:nonNegativeInteger"/>
+      <xsd:attribute name="versionMinor"
+                     use="required"
+                     type="xsd:nonNegativeInteger"/>
+    </xsd:complexType>
+
+    <xsd:unique name="schemasAreUnique">
+      <xsd:annotation>
+        <xsd:documentation>
+          No two "Import" elements may refer to the same schema.
+        </xsd:documentation>
+      </xsd:annotation>
+
+      <xsd:selector xpath=".//ms:Import"/>
+      <xsd:field xpath="@ms:id"/>
+    </xsd:unique>
+
+    <xsd:unique name="typesAreUnique">
+      <xsd:annotation>
+        <xsd:documentation>
+          No two "Type" elements may name the same type.
+        </xsd:documentation>
+      </xsd:annotation>
+
+      <xsd:selector xpath=".//ms:Type"/>
+      <xsd:field xpath="@ms:name"/>
+    </xsd:unique>
+
+    <xsd:unique name="attributesAreUnique">
+      <xsd:annotation>
+        <xsd:documentation>
+          No two "Attribute" elements may name the same attribute.
+        </xsd:documentation>
+      </xsd:annotation>
+
+      <xsd:selector xpath=".//ms:Attribute"/>
+      <xsd:field xpath="@ms:name"/>
+    </xsd:unique>
+  </xsd:element>
+
+</xsd:schema>

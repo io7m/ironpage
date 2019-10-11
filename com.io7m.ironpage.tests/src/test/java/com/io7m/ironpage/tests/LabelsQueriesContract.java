@@ -22,6 +22,7 @@ import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 import static com.io7m.ironpage.database.core.api.CDLabelsQueriesType.LABEL_ALREADY_EXISTS;
 import static com.io7m.ironpage.database.core.api.CDLabelsQueriesType.LABEL_NONEXISTENT;
 
+@Tag("database")
 public abstract class LabelsQueriesContract
 {
   private static final Logger LOG =
@@ -122,10 +124,10 @@ public abstract class LabelsQueriesContract
     final var ex =
       Assertions.assertThrows(CDException.class, () -> {
         queries.labelUpdate(CDSecurityLabelDTO.builder()
-                             .setId(32767L)
-                             .setName("high_security_t")
-                             .setDescription("High security data")
-                             .build());
+                              .setId(32767L)
+                              .setName("high_security_t")
+                              .setDescription("High security data")
+                              .build());
       });
     Assertions.assertEquals(LABEL_NONEXISTENT, ex.errorCode());
   }
@@ -170,7 +172,7 @@ public abstract class LabelsQueriesContract
       queries.labelCreate("high_security_t0", "High security data");
     final var label1 =
       label0.withName("high_security_t1")
-        .withDescription( "High security data updated");
+        .withDescription("High security data updated");
 
     final var labelGet = queries.labelUpdate(label1);
     Assertions.assertEquals(label1, labelGet);

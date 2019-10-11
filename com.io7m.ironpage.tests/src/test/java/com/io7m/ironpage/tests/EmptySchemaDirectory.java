@@ -16,13 +16,14 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.types.api.SchemaDeclaration;
-import com.io7m.ironpage.types.api.SchemaIdentifier;
-import com.io7m.ironpage.types.resolution.spi.SchemaDirectoryType;
+
+import com.io7m.ironpage.metadata.schema.types.api.MetaSchema;
+import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaIdentifier;
+import com.io7m.ironpage.types.resolution.spi.MetaSchemaDirectoryType;
 
 import java.util.Optional;
 
-public final class EmptySchemaDirectory implements SchemaDirectoryType
+public final class EmptySchemaDirectory implements MetaSchemaDirectoryType
 {
   public EmptySchemaDirectory()
   {
@@ -30,8 +31,8 @@ public final class EmptySchemaDirectory implements SchemaDirectoryType
   }
 
   @Override
-  public Optional<SchemaDeclaration> findSchema(
-    final SchemaIdentifier id)
+  public Optional<MetaSchema> findSchema(
+    final MetaSchemaIdentifier id)
     throws Exception
   {
     return Optional.empty();

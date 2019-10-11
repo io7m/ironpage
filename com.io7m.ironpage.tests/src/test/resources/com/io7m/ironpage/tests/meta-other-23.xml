@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.other"
+               versionMajor="2"
+               versionMinor="3"/>

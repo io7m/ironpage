@@ -16,11 +16,13 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.types.api.AttributeCardinality;
+import com.io7m.ironpage.metadata.schema.types.api.AttributeCardinality;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 
+@Tag("equals")
 public final class AttributeCardinalityTest
 {
   @Property

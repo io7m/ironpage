@@ -19,7 +19,7 @@ package com.io7m.ironpage.database.core.derby;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
-import io.vavr.collection.TreeMap;
+import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
 import org.jooq.Record3;
@@ -63,7 +63,7 @@ final class CoreLabelsQueries implements CDLabelsQueriesType
             LABEL_ALREADY_EXISTS,
             CoreMessages.localize("errorLabelAlreadyExists", name),
             e,
-            TreeMap.of(CoreMessages.localize("label"), name));
+            PresentableAttributes.one(CoreMessages.localize("label"), name));
         }
         default: {
           break;
@@ -177,7 +177,7 @@ final class CoreLabelsQueries implements CDLabelsQueriesType
           LABEL_NONEXISTENT,
           CoreMessages.localize("errorLabelNonexistent", idBox),
           null,
-          TreeMap.of(CoreMessages.localize("labelID"), idBox.toString())
+          PresentableAttributes.one(CoreMessages.localize("labelID"), idBox.toString())
         );
       }
       return label;

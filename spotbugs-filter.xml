@@ -93,6 +93,8 @@
       <Class name="com.io7m.ironpage.database.core.derby.CoreLabelsQueries"/>
       <Class name="com.io7m.ironpage.database.core.derby.CorePagesQueries"/>
       <Class name="com.io7m.ironpage.database.core.derby.CoreRolesQueries"/>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.MSCVCompiler"/>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.loader.MSCVLoader"/>
     </Or>
     <Or>
       <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
@@ -112,80 +114,137 @@
       <Class name="com.io7m.ironpage.database.core.api.CDUserDTO"/>
       <Class name="com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO"/>
       <Class name="com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeName"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeNameQualified"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeBoolean"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeInteger"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeName"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeNamed"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeNameQualified"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeReal"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeString"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeTimestamp"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeURI"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeUUID"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueBoolean"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueInteger"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueReal"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueString"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueTimestamp"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueUntyped"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueURI"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeValueUUID"/>
-      <Class name="com.io7m.ironpage.types.api.SchemaAttribute"/>
-      <Class name="com.io7m.ironpage.types.api.SchemaDeclaration"/>
-      <Class name="com.io7m.ironpage.types.api.SchemaIdentifier"/>
-      <Class name="com.io7m.ironpage.types.api.SchemaName"/>
-      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolvedSet"/>
-      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolvedSetEdge"/>
-      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolverError"/>
-      <Class name="com.io7m.ironpage.types.resolution.api.SchemaResolverErrorCode"/>
-      <Class name="com.io7m.ironpage.validator.api.SchemaValidationError"/>
-      <Class name="com.io7m.ironpage.validator.api.SchemaValidationErrorCode"/>
-      <Class name="com.io7m.ironpage.validator.api.SchemaValidationRequest"/>
+      <Class name="com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorError"/>
+      <Class name="com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorErrorCode"/>
+      <Class name="com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorRequest"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclAttribute"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclAttributeType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclComment"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclCommentType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclImport"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclImportType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclSchema"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclSchemaType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MADeclTypeType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MATypeReferenceNamed"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MATypeReferenceNamedType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MATypeReferencePrimitive"/>
+      <Class name="com.io7m.ironpage.metadata.schema.ast.MATypeReferencePrimitiveType"/>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.api.MSchemaCompilerError"/>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.api.MSchemaCompilerErrorCode"/>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.spi.MSchemaCompilerStream"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeName"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeNameQualified"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueBoolean"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueInteger"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueReal"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueString"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueTimestamp"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueUntyped"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueURI"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueUUID"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaDocumentTyped"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaDocumentUntyped"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaSchema"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaSchemaAttribute"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaSchemaIdentifier"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaSchemaName"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeName"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeNamed"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeNameQualified"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeQualifiedNamed"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeReferenceNamed"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeReferencePrimitive"/>
+      <Class name="com.io7m.ironpage.parser.api.ParserError"/>
+      <Class name="com.io7m.ironpage.types.resolution.api.MetaSchemaResolvedSet"/>
+      <Class name="com.io7m.ironpage.types.resolution.api.MetaSchemaResolverError"/>
     </Or>
     <Or>
       <Bug pattern="CFS_CONFUSING_FUNCTION_SEMANTICS"/>
       <Bug pattern="IMC_IMMATURE_CLASS_WRONG_FIELD_ORDER"/>
       <Bug pattern="MDM_BIGDECIMAL_EQUALS"/>
+      <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
       <Bug pattern="SE_NO_SERIALVERSIONID"/>
       <Bug pattern="SEO_SUBOPTIMAL_EXPRESSION_ORDER"/>
       <Bug pattern="SPP_EQUALS_ON_ENUM"/>
       <Bug pattern="UCPM_USE_CHARACTER_PARAMETERIZED_METHOD"/>
       <Bug pattern="UP_UNUSED_PARAMETER"/>
       <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+      <Bug pattern="WEM_WEAK_EXCEPTION_MESSAGING"/>
     </Or>
   </Match>
 
   <!-- These methods are part of a documented API. -->
   <Match>
     <Or>
-      <Class name="com.io7m.ironpage.types.api.AttributeNames"/>
-      <Class name="com.io7m.ironpage.types.api.AttributeTypeNames"/>
-      <Class name="com.io7m.ironpage.types.api.SchemaNames"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeNames"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeNames"/>
+      <Class name="com.io7m.ironpage.metadata.schema.types.api.MetaSchemaNames"/>
     </Or>
+    <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
+  </Match>
+
+  <!-- False positive: There's a call site less than ten lines away from the
+  definition -->
+  <Match>
+    <Class name="com.io7m.ironpage.metadata.schema.types.api.AttributeValueTypedType"/>
+    <Method name="checkType"/>
+    <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+  </Match>
+
+  <!-- False positive. -->
+  <Match>
+    <Class name="com.io7m.ironpage.presentable.api.PresentableAttributes"/>
     <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
   </Match>
 
   <!-- False positives. -->
   <Match>
-    <Class name="com.io7m.ironpage.types.resolution.vanilla.SchemaResolver$SchemaResolution"/>
+    <Class name="com.io7m.ironpage.types.resolution.vanilla.MetaSchemaResolver$SchemaResolution"/>
     <Or>
       <Bug pattern="FCBL_FIELD_COULD_BE_LOCAL"/>
       <Bug pattern="DMC_DUBIOUS_MAP_COLLECTION"/>
     </Or>
   </Match>
 
+  <!-- The API requires that we accept messages. -->
+  <Match>
+    <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.typed.MSCVTyper"/>
+    <Bug pattern="FCBL_FIELD_COULD_BE_LOCAL"/>
+  </Match>
+
+  <!-- We rethrow whatever is thrown. -->
+  <Match>
+    <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.loader.MSCVLoader"/>
+    <Bug pattern="REC_CATCH_EXCEPTION"/>
+  </Match>
+
+  <!-- The compiler implementation depends on the compiler implementation. -->
+  <Match>
+    <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.MSCVCompilers"/>
+    <Bug pattern="FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"/>
+  </Match>
+
   <!-- We specifically use JXE, which configures parsers to be secure -->
   <!-- against entity expansion attacks. -->
   <Match>
-    <Class name="com.io7m.ironpage.database.spi.DatabaseSchemaRevisionXML"/>
+    <Or>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.parser.MSCVParser"/>
+      <Class name="com.io7m.ironpage.database.spi.DatabaseSchemaRevisionXML"/>
+    </Or>
     <Bug pattern="XXE_XMLREADER"/>
+  </Match>
+
+  <Match>
+    <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.binder.MSCVBinder$BoundNothing"/>
+    <Method name="name"/>
+    <Bug pattern="WEM_WEAK_EXCEPTION_MESSAGING"/>
   </Match>
 
   <!-- Exposed to aid testing. -->
   <Match>
-    <Class name="com.io7m.ironpage.types.resolution.vanilla.SchemaResolversServiceLoader"/>
+    <Class name="com.io7m.ironpage.types.resolution.vanilla.MetaSchemaResolversServiceLoader"/>
     <Bug pattern="OPM_OVERLY_PERMISSIVE_METHOD"/>
   </Match>
 
@@ -200,11 +259,13 @@
     <Class name="com.io7m.ironpage.tests.arbitraries.IronArbitraries"/>
   </Match>
 
+  <!-- We don't care about any of these. -->
   <Match>
     <Or>
-      <Bug pattern="OCP_OVERLY_CONCRETE_PARAMETER"/>
-      <Bug pattern="IMC_IMMATURE_CLASS_NO_TOSTRING"/>
       <Bug pattern="CRLF_INJECTION_LOGS"/>
+      <Bug pattern="DRE_DECLARED_RUNTIME_EXCEPTION"/>
+      <Bug pattern="IMC_IMMATURE_CLASS_NO_TOSTRING"/>
+      <Bug pattern="OCP_OVERLY_CONCRETE_PARAMETER"/>
     </Or>
   </Match>
 

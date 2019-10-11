@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<s:statements xmlns:s="urn:com.io7m.ironpage.database.spi.statements:1:0">
-  <s:statement>STATEMENT 0</s:statement>
-  <s:statement>STATEMENT 1</s:statement>
-  <s:statement>STATEMENT 2</s:statement>
-</s:statements>
+<s:Statements xmlns:s="urn:com.io7m.ironpage.database.spi.statements:1:0">
+  <s:Statement>STATEMENT 0</s:Statement>
+  <s:Statement>STATEMENT 1</s:Statement>
+  <s:Statement>STATEMENT 2</s:Statement>
+</s:Statements>

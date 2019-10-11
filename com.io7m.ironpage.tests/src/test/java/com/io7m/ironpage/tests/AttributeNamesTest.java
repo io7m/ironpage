@@ -17,8 +17,8 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.types.api.AttributeName;
-import com.io7m.ironpage.types.api.AttributeNames;
+import com.io7m.ironpage.metadata.schema.types.api.AttributeName;
+import com.io7m.ironpage.metadata.schema.types.api.AttributeNames;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
@@ -27,11 +27,13 @@ import net.jqwik.api.Provide;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.stream.Stream;
 
+@Tag("equals")
 public final class AttributeNamesTest
 {
   @Property

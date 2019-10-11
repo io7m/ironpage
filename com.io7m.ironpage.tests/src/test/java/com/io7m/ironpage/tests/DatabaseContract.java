@@ -24,6 +24,7 @@ import com.io7m.ironpage.database.spi.DatabasePartitionProviderRegistryType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
+@Tag("database")
 public abstract class DatabaseContract
 {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseContract.class);

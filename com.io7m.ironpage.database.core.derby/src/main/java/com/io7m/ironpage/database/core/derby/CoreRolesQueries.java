@@ -19,7 +19,7 @@ package com.io7m.ironpage.database.core.derby;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDRolesQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
-import io.vavr.collection.TreeMap;
+import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
 import org.jooq.Record3;
@@ -63,7 +63,7 @@ final class CoreRolesQueries implements CDRolesQueriesType
             ROLE_ALREADY_EXISTS,
             CoreMessages.localize("errorRoleAlreadyExists", name),
             e,
-            TreeMap.of(CoreMessages.localize("role"), name));
+            PresentableAttributes.of(PresentableAttributes.entry(CoreMessages.localize("role"), name)));
         }
         default: {
           break;
@@ -177,7 +177,7 @@ final class CoreRolesQueries implements CDRolesQueriesType
           ROLE_NONEXISTENT,
           CoreMessages.localize("errorRoleNonexistent", idBox),
           null,
-          TreeMap.of(CoreMessages.localize("roleID"), idBox.toString())
+          PresentableAttributes.of(PresentableAttributes.entry(CoreMessages.localize("roleID"), idBox.toString()))
         );
       }
       return role;

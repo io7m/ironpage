@@ -14,7 +14,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import com.io7m.ironpage.types.resolution.vanilla.SchemaResolversServiceLoader;
+import com.io7m.ironpage.types.resolution.api.MetaSchemaResolverProviderType;
+import com.io7m.ironpage.types.resolution.spi.MetaSchemaDirectoryType;
+import com.io7m.ironpage.types.resolution.vanilla.MetaSchemaResolversServiceLoader;
 
 /**
  * Document database (Vanilla schema resolution)
@@ -31,8 +33,8 @@ module com.io7m.ironpage.types.resolution.vanilla
   requires com.io7m.jaffirm.core;
   requires org.slf4j;
 
-  provides com.io7m.ironpage.types.resolution.api.SchemaResolverProviderType
-    with SchemaResolversServiceLoader;
+  provides MetaSchemaResolverProviderType
+    with MetaSchemaResolversServiceLoader;
 
-  uses com.io7m.ironpage.types.resolution.spi.SchemaDirectoryType;
+  uses MetaSchemaDirectoryType;
 }

@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<statements xmlns="urn:com.io7m.ironpage.database.spi.statements:1:0">
-  <statement>
+<Statements xmlns="urn:com.io7m.ironpage.database.spi.statements:1:0">
+  <Statement>
     <![CDATA[
 create schema core
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The schema version table stores the current version of the database schema.
     Implementations are expected to query this table on connecting to the
     database in order to ensure that the calling code is compatible with the
     tables in the database.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.schema_version (
   version_lock      char(1) not null default 'X',
@@ -24,15 +24,15 @@ create table core.schema_version (
   constraint check_lock_locked check (version_lock = 'X')
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The audit table stores events relative to auditing. The audit_type column
     stores the type of audit event, and the rest of the columns store the fields
     of the event.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.audit (
   audit_time    timestamp not null,
@@ -43,16 +43,16 @@ create table core.audit (
   audit_arg3    varchar(256) not null
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The security_roles table stores the definitions of security roles within the
     system. The role_name column stores the user-visible name of the role (which
     must be unique), and the role_description column stores a humanly-readable
     description of the role's purpose.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.security_roles (
   role_id               bigint generated always as identity not null,
@@ -64,16 +64,16 @@ create table core.security_roles (
   constraint role_name_unique unique (role_name)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The security_labels table stores the definitions of security labels within
     the system. The label_name column stores the user-visible name of the label
     (which must be unique), and the label_description column stores a
     humanly-readable description of the label's purpose.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.security_labels (
   label_id               bigint generated always as identity not null,
@@ -85,9 +85,9 @@ create table core.security_labels (
   constraint label_name_unique unique (label_name)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The users table stores user accounts. Users are unambiguously identified by
     UUID values (stored here as ASCII due to various limitations in Jooq, Derby,
     and JDBC). Users have hashed passwords used to access their accounts, and
@@ -97,9 +97,9 @@ create table core.security_labels (
     do not need to be unique, and display names, which DO need to be unique.
     User accounts can also be locked (meaning that the user can no longer log
     in, and a reason must be specified for why the account is locked.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.users (
   user_id               char (36) not null,
@@ -117,14 +117,14 @@ create table core.users (
   constraint user_display_name_unique unique (user_display_name)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The user_roles table associates roles with users. A user may have any number
     of roles.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.user_roles (
   role_user_id    char (36) not null,
@@ -135,24 +135,24 @@ create table core.user_roles (
   constraint role_role_id_reference foreign key (role_role_id) references core.security_roles (role_id)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The sessions table stores user sessions. Once a user has successfully
     authenticated, a session is created and can then be reused repeatedly
     without the user going through a potentially expensive authentication
     process each time. The session_updated column is updated each time the
     session is used.
-  </comment>
+  </Comment>
 
-  <comment>
+  <Comment>
     Session IDs are intended to be randomly generated 36-character
     Base64-encoded strings. 27 random bytes will produce a 36-character Base64
     string, so this implies that session IDs provide around 216 bits of
     security.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.sessions (
   session_id         char (36) not null,
@@ -163,14 +163,14 @@ create table core.sessions (
   constraint session_user_reference foreign key (session_user_id) references core.users (user_id)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The redactions table stores a record of when and why a particular blob was
     redacted, and who redacted it.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.redactions (
   redaction_id        bigint generated always as identity not null,
@@ -182,17 +182,17 @@ create table core.redactions (
   constraint redaction_user foreign key (redaction_user) references core.users (user_id)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <comment>
+  <Comment>
     The blobs table stores opaque (but typed) blobs of data. Blobs are uniquely
     identified by their SHA-256 hash. Blobs carry an IANA media type, an owner,
     a possible redaction (see the redactions table), and a security label (see
     the security_labels table). Blobs that have been redacted have zero-length
     data fields.
-  </comment>
+  </Comment>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.blobs (
   blob_id                char (64) not null,
@@ -209,9 +209,9 @@ create table core.blobs (
   constraint blob_label_reference foreign key (blob_security_label) references core.security_labels (label_id)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.page_revisions (
   revision_id         bigint generated always as identity not null,
@@ -223,9 +223,9 @@ create table core.page_revisions (
   constraint revision_data_id_ref foreign key (revision_data_id) references core.blobs (blob_id)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <statement>
+  <Statement>
     <![CDATA[
 create table core.pages (
   page_id          char (36) not null,
@@ -236,11 +236,11 @@ create table core.pages (
   constraint page_revision_ref foreign key (page_revision) references core.page_revisions (revision_id)
 )
     ]]>
-  </statement>
+  </Statement>
 
-  <statement>
+  <Statement>
     <![CDATA[
 insert into core.schema_version (version_number) values (0)
     ]]>
-  </statement>
-</statements>
+  </Statement>
+</Statements>

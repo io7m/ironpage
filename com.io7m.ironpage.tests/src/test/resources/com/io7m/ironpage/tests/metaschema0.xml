@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.example"
+               versionMajor="1"
+               versionMinor="0">
+
+  <ms:Comment>A comment.</ms:Comment>
+
+  <ms:Import id="com.io7m.ironpage"
+             versionMajor="1"
+             versionMinor="0"/>
+
+  <ms:Import id="com.io7m.ironpage2"
+             versionMajor="2"
+             versionMinor="0"/>
+
+  <ms:DeclareType name="count">
+    <ms:Comment>A count type.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+
+  <ms:DeclareType name="flag">
+    <ms:Comment>A flag type.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_BOOLEAN"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+
+  <ms:DeclareType name="flag2">
+    <ms:Comment>Another flag type.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.example"
+                    type="flag"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+
+  <ms:DeclareAttribute name="count0"
+                       cardinality="CARDINALITY_1">
+    <ms:Comment>A count attribute.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.example"
+                    type="count"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute name="count1"
+                       cardinality="CARDINALITY_1">
+    <ms:Comment>A count attribute.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.example"
+                    type="count"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+</ms:MetaSchema>

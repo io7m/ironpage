@@ -20,6 +20,7 @@ import nl.jqno.equalsverifier.EqualsVerifier;
 import org.immutables.value.Value;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.function.Executable;
 import org.reflections.Reflections;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Tag("equals")
 public final class EqualsTest
 {
   private static final Logger LOG = LoggerFactory.getLogger(EqualsTest.class);
@@ -42,8 +44,8 @@ public final class EqualsTest
     final Class<?> clazz)
   {
     switch (clazz.getCanonicalName()) {
-      case "com.io7m.ironpage.validator.api.SchemaValidationRequest":
-      case "com.io7m.ironpage.types.resolution.api.SchemaResolvedSet": {
+      case "com.io7m.ironpage.validator.api.MetaSchemaValidationRequest":
+      case "com.io7m.ironpage.types.resolution.api.MetaSchemaResolvedSet": {
         return true;
       }
       default:
@@ -67,9 +69,10 @@ public final class EqualsTest
     final Class<?> clazz)
   {
     switch (clazz.getCanonicalName()) {
-      case "com.io7m.ironpage.types.api.SchemaAttribute":
+      case "com.io7m.ironpage.types.api.AttributeValueBoolean":
+      case "com.io7m.ironpage.types.api.MetaSchemaAttribute":
       case "com.io7m.ironpage.types.api.AttributeTypeNameQualified":
-      case "com.io7m.ironpage.types.api.AttributeTypeNamed": {
+      case "com.io7m.ironpage.types.api.TypeNamed": {
         return Set.of();
       }
       default: {
@@ -88,8 +91,8 @@ public final class EqualsTest
         .map(Field::getName)
         .collect(Collectors.toSet());
 
-    if (declaredFieldNames.contains("type")) {
-      transientFieldNames.add("type");
+    if (declaredFieldNames.contains("kind")) {
+      transientFieldNames.add("kind");
     }
 
     switch (clazz.getCanonicalName()) {
@@ -105,6 +108,43 @@ public final class EqualsTest
     }
 
     return transientFieldNames;
+  }
+
+  private static DynamicTest testForClass(final Class<?> clazz)
+  {
+    final var task = taskForClass(clazz);
+    return DynamicTest.dynamicTest(
+      "testEqualsReflectively: " + clazz.getCanonicalName(), task);
+  }
+
+  private static Executable taskForClass(
+    final Class<?> clazz)
+  {
+    return () -> {
+      final var nnFields = nonNullFieldsFor(clazz);
+      final var nnArray = new String[nnFields.size()];
+      nnFields.toArray(nnArray);
+
+      final var igFields = ignoreFieldsFor(clazz);
+      final var igArray = new String[igFields.size()];
+      igFields.toArray(igArray);
+
+      LOG.debug(
+        "checking: {} (nonnull {}, ignoring {})",
+        clazz.getCanonicalName(),
+        nnFields,
+        igFields);
+
+      try {
+        EqualsVerifier.forClass(clazz)
+          .withNonnullFields(nnArray)
+          .withIgnoredFields(igArray)
+          .verify();
+      } catch (final Throwable e) {
+        LOG.error("failed to verify {}: ", clazz, e);
+        throw e;
+      }
+    };
   }
 
   @TestFactory
@@ -147,37 +187,5 @@ public final class EqualsTest
       }
     }
     return executables.stream();
-  }
-
-  private static DynamicTest testForClass(final Class<?> clazz)
-  {
-    final var task = taskForClass(clazz);
-    return DynamicTest.dynamicTest(
-      "testEqualsReflectively: " + clazz.getCanonicalName(), task);
-  }
-
-  private static Executable taskForClass(
-    final Class<?> clazz)
-  {
-    return () -> {
-      final var nnFields = nonNullFieldsFor(clazz);
-      final var nnArray = new String[nnFields.size()];
-      nnFields.toArray(nnArray);
-
-      final var igFields = ignoreFieldsFor(clazz);
-      final var igArray = new String[igFields.size()];
-      igFields.toArray(igArray);
-
-      LOG.debug(
-        "checking: {} (nonnull {}, ignoring {})",
-        clazz.getCanonicalName(),
-        nnFields,
-        igFields);
-
-      EqualsVerifier.forClass(clazz)
-        .withNonnullFields(nnArray)
-        .withIgnoredFields(igArray)
-        .verify();
-    };
   }
 }

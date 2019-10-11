@@ -22,7 +22,5 @@ module com.io7m.ironpage.presentable.api
 {
   requires static org.osgi.annotation.bundle;
 
-  requires transitive io.vavr;
-
   exports com.io7m.ironpage.presentable.api;
 }

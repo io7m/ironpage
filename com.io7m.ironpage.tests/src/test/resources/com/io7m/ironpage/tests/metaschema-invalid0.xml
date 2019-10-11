@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.example"
+               versionMajor="1"
+               versionMinor="0">
+
+  <ms:Unknown/>
+
+  <ms:Import id="com.io7m.ironpage"
+             versionMajor="1"
+             versionMinor="0"/>
+
+  <ms:Import id="com.io7m.ironpage2"
+             versionMajor="2"
+             versionMinor="0"/>
+
+  <ms:Comment>A comment.</ms:Comment>
+
+  <ms:DeclareType name="count0">
+    <ms:Comment>A count type.</ms:Comment>
+    <ms:BaseType schema="com.io7m.ironpage"
+                 type="integer"/>
+    <ms:Unknown/>
+  </ms:DeclareType>
+
+  <ms:DeclareAttribute name="count0"
+                       cardinality="CARDINALITY_1">
+    <ms:Comment>A count attribute.</ms:Comment>
+    <ms:BaseType schema="com.io7m.ironpage"
+                 type="integer"/>
+    <ms:Unknown/>
+  </ms:DeclareAttribute>
+
+  <ms:DeclareAttribute name="count1"
+                       cardinality="CARDINALITY_1">
+    <ms:Comment>A count attribute.</ms:Comment>
+    <ms:BaseType schema="com.io7m.ironpage2"
+                 type="integer"/>
+    <ms:Unknown/>
+  </ms:DeclareAttribute>
+
+  <ms:Comment>A comment.</ms:Comment>
+
+  <ms:DeclareAttribute name="count2"
+                       cardinality="CARDINALITY_1">
+    <ms:Comment>A count attribute.</ms:Comment>
+    <ms:BaseType schema="com.io7m.ironpage"
+                 type="integer"/>
+    <ms:Unknown/>
+  </ms:DeclareAttribute>
+
+</ms:MetaSchema>

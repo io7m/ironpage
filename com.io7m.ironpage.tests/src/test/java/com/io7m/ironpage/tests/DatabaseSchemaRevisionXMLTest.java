@@ -19,6 +19,7 @@ package com.io7m.ironpage.tests;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.database.spi.DatabaseSchemaRevisionXML;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -32,6 +33,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Optional;
 
+@Tag("database")
 public final class DatabaseSchemaRevisionXMLTest
 {
   @Captor

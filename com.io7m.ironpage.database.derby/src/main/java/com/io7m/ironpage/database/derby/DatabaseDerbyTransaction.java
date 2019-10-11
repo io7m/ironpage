@@ -21,7 +21,7 @@ import com.io7m.ironpage.database.api.DatabaseTransactionType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
-import io.vavr.collection.TreeMap;
+import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +90,7 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
       ErrorSeverity.SEVERITY_ERROR,
       DatabaseMessages.localize("errorCreateQueriesUnavailable"),
       null,
-      TreeMap.of(DatabaseMessages.localize("queriesClass"), queriesClass.getCanonicalName())
+      PresentableAttributes.one(DatabaseMessages.localize("queriesClass"), queriesClass.getCanonicalName())
     );
   }
 }

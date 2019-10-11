@@ -16,7 +16,7 @@
 
 package com.io7m.ironpage.database.spi;
 
-import io.vavr.collection.TreeMap;
+import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import org.slf4j.Logger;
 
 import java.math.BigInteger;
@@ -149,9 +149,9 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
           SEVERITY_ERROR,
           this.localize("errorUnsupportedInstalledVersion"),
           null,
-          TreeMap.of(
-            this.localize("installedVersion"), installedVersion.toString(),
-            this.localize("supportedVersions"), availableVersions.keySet().toString()));
+          PresentableAttributes.of(
+            PresentableAttributes.entry(this.localize("installedVersion"), installedVersion.toString()),
+            PresentableAttributes.entry(this.localize("supportedVersions"), availableVersions.keySet().toString())));
       }
 
       return List.copyOf(availableVersions.tailMap(installedVersion, true).keySet());
@@ -219,7 +219,8 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
       SEVERITY_ERROR,
       this.localize("errorUnavailableQueries"),
       null,
-      TreeMap.of(this.localize("queryClass"), queriesClass.getCanonicalName()));
+      PresentableAttributes.of(
+        PresentableAttributes.entry(this.localize("queryClass"), queriesClass.getCanonicalName())));
   }
 
   @Override

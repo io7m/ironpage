@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<statements xmlns="urn:com.io7m.ironpage.database.spi.statements:1:0">
-  <statement>
+<Statements xmlns="urn:com.io7m.ironpage.database.spi.statements:1:0">
+  <Statement>
     <![CDATA[
 update core.schema_version set version_number = 1
     ]]>
-  </statement>
-</statements>
+  </Statement>
+</Statements>

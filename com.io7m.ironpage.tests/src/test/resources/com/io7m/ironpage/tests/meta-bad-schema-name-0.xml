@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="NOT A MODULE NAME"
+               versionMajor="1"
+               versionMinor="0">
+</ms:MetaSchema>

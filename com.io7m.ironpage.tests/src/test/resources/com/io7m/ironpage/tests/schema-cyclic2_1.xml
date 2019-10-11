@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<MetaSchema xmlns="urn:com.io7m.ironpage.metaschema:1:0"
+            id="com.io7m.cycle1"
+            versionMajor="1"
+            versionMinor="0">
+  <Import id="com.io7m.cycle2"
+          versionMajor="1"
+          versionMinor="0"/>
+</MetaSchema>

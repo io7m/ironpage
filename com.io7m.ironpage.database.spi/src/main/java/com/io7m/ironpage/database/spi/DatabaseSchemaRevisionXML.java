@@ -21,7 +21,6 @@ import com.io7m.jxe.core.JXEHardenedSAXParsers;
 import com.io7m.jxe.core.JXESchemaDefinition;
 import com.io7m.jxe.core.JXESchemaResolutionMappings;
 import com.io7m.jxe.core.JXEXInclude;
-import io.vavr.collection.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 
 import static com.io7m.ironpage.errors.api.ErrorSeverity.SEVERITY_ERROR;
 
@@ -56,7 +56,7 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
     JXESchemaDefinition.builder()
       .setFileIdentifier("statements.xsd")
       .setLocation(DatabaseSchemaRevisionXML.class.getResource(
-        "/com/io7m/ironpage/database/spi/statements.xsd"))
+        "/com/io7m/ironpage/database/spi/statements-1_0.xsd"))
       .setNamespace(URI.create("urn:com.io7m.ironpage.database.spi.statements:1:0"))
       .build();
 
@@ -128,7 +128,7 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
 
       if (errors.size() > 0) {
         throw new DatabaseException(
-          SEVERITY_ERROR, errors.get(0), null, TreeMap.empty(), List.copyOf(errors));
+          SEVERITY_ERROR, errors.get(0), null, new TreeMap<>(), List.copyOf(errors));
       }
 
       return new DatabaseSchemaRevisionXML(schemaPrevious, schemaCurrent, statements);
@@ -267,7 +267,7 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
       }
 
       LOG.trace("endElement: {}", localName);
-      this.inStatement = !Objects.equals(localName, "statement");
+      this.inStatement = !Objects.equals(localName, "Statement");
     }
 
     @Override
@@ -282,7 +282,7 @@ public final class DatabaseSchemaRevisionXML implements DatabaseSchemaRevisionTy
       }
 
       LOG.trace("startElement: {}", localName);
-      this.inStatement = Objects.equals(localName, "statement");
+      this.inStatement = Objects.equals(localName, "Statement");
     }
   }
 }

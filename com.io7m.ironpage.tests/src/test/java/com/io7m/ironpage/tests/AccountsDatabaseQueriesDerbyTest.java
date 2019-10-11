@@ -25,6 +25,7 @@ import com.io7m.ironpage.database.derby.DatabaseDerbyProvider;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,6 +34,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 
+@Tag("database")
 public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQueriesContract
 {
   private static final Instant NOW = Instant.parse("2000-01-01T00:00:00Z");

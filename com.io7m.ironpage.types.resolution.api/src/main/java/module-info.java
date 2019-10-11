@@ -25,7 +25,7 @@ module com.io7m.ironpage.types.resolution.api
   requires static org.osgi.annotation.bundle;
 
   requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.ironpage.types.api;
+  requires transitive com.io7m.ironpage.metadata.schema.types.api;
   requires transitive org.jgrapht.core;
 
   exports com.io7m.ironpage.types.resolution.api;

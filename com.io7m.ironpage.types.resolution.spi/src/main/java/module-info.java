@@ -23,7 +23,7 @@ module com.io7m.ironpage.types.resolution.spi
   requires static org.osgi.annotation.bundle;
   requires static org.osgi.annotation.versioning;
 
-  requires transitive com.io7m.ironpage.types.api;
+  requires transitive com.io7m.ironpage.metadata.schema.types.api;
 
   exports com.io7m.ironpage.types.resolution.spi;
 }

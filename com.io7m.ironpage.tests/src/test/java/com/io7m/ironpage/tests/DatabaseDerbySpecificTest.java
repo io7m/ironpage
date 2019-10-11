@@ -22,6 +22,7 @@ import com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
 import com.io7m.ironpage.database.derby.DatabaseDerbyProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
+@Tag("database")
 public final class DatabaseDerbySpecificTest
 {
   private static final Logger LOG = LoggerFactory.getLogger(DatabaseDerbySpecificTest.class);

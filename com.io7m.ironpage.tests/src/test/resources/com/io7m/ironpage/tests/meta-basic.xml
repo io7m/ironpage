@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.example"
+               versionMajor="1"
+               versionMinor="0">
+
+  <ms:Comment>Comment 0.</ms:Comment>
+
+  <ms:Import id="com.io7m.basic"
+             versionMajor="1"
+             versionMinor="2"/>
+
+  <ms:Import id="com.io7m.other"
+             versionMajor="2"
+             versionMinor="3"/>
+
+  <ms:DeclareType name="t">
+    <ms:Comment>A t.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypePrimitive type="TYPE_INTEGER"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+
+  <ms:DeclareType name="u">
+    <ms:Comment>A u.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.example"
+                    type="t"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+
+  <ms:DeclareType name="be">
+    <ms:Comment>A be.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.basic"
+                    type="b"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+
+  <ms:DeclareAttribute cardinality="CARDINALITY_1"
+                       name="a">
+    <ms:Comment>An a.</ms:Comment>
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.example"
+                    type="u"/>
+    </ms:TypeReference>
+  </ms:DeclareAttribute>
+
+</ms:MetaSchema>

@@ -16,16 +16,18 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.types.api.AttributeTypeName;
-import com.io7m.ironpage.types.api.AttributeTypeNameQualified;
-import com.io7m.ironpage.types.api.SchemaName;
+import com.io7m.ironpage.metadata.schema.types.api.MetaSchemaName;
+import com.io7m.ironpage.metadata.schema.types.api.TypeName;
+import com.io7m.ironpage.metadata.schema.types.api.TypeNameQualified;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 
+@Tag("equals")
 public final class AttributeTypeNameQualifiedTest
 {
   @Property
@@ -34,9 +36,9 @@ public final class AttributeTypeNameQualifiedTest
     @ForAll("probablyValid") final String text1)
   {
     final var show =
-      AttributeTypeNameQualified.of(
-        SchemaName.of(text0),
-        AttributeTypeName.of(text1)).show();
+      TypeNameQualified.of(
+        MetaSchemaName.of(text0),
+        TypeName.of(text1)).show();
 
     Assertions.assertTrue(show.contains(text0));
     Assertions.assertTrue(show.contains(text1));

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-  xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -32,15 +31,21 @@
     <module>com.io7m.ironpage.database.pages.api</module>
     <module>com.io7m.ironpage.database.spi</module>
     <module>com.io7m.ironpage.errors.api</module>
+    <module>com.io7m.ironpage.l10n.api</module>
+    <module>com.io7m.ironpage.metadata.attribute.validator.api</module>
+    <module>com.io7m.ironpage.metadata.attribute.validator.vanilla</module>
+    <module>com.io7m.ironpage.metadata.schema.ast</module>
+    <module>com.io7m.ironpage.metadata.schema.compiler.api</module>
+    <module>com.io7m.ironpage.metadata.schema.compiler.spi</module>
+    <module>com.io7m.ironpage.metadata.schema.compiler.vanilla</module>
+    <module>com.io7m.ironpage.metadata.schema.types.api</module>
+    <module>com.io7m.ironpage.parser.api</module>
     <module>com.io7m.ironpage.presentable.api</module>
+    <module>com.io7m.ironpage.tests.arbitraries</module>
     <module>com.io7m.ironpage.tests</module>
-    <module>com.io7m.ironpage.types.api</module>
     <module>com.io7m.ironpage.types.resolution.api</module>
     <module>com.io7m.ironpage.types.resolution.spi</module>
     <module>com.io7m.ironpage.types.resolution.vanilla</module>
-    <module>com.io7m.ironpage.validator.api</module>
-    <module>com.io7m.ironpage.validator.vanilla</module>
-    <module>com.io7m.ironpage.tests.arbitraries</module>
   </modules>
 
   <properties>
@@ -60,7 +65,8 @@
   <scm>
     <url>https://github.com/io7m/ironpage</url>
     <connection>scm:git:https://github.com/io7m/ironpage</connection>
-    <developerConnection>scm:git:https://github.com/io7m/ironpage</developerConnection>
+    <developerConnection>scm:git:https://github.com/io7m/ironpage
+    </developerConnection>
   </scm>
 
   <developers>
@@ -131,6 +137,11 @@
         <version>1.0.0</version>
       </dependency>
       <dependency>
+        <groupId>com.io7m.blackthorne</groupId>
+        <artifactId>com.io7m.blackthorne.api</artifactId>
+        <version>0.0.2</version>
+      </dependency>
+      <dependency>
         <groupId>com.io7m.immutables.style</groupId>
         <artifactId>com.io7m.immutables.style</artifactId>
         <version>0.0.1</version>
@@ -154,6 +165,11 @@
         <groupId>com.io7m.junreachable</groupId>
         <artifactId>com.io7m.junreachable.core</artifactId>
         <version>3.0.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.io7m.jlexing</groupId>
+        <artifactId>com.io7m.jlexing.core</artifactId>
+        <version>2.0.0</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.jxe</groupId>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<ms:MetaSchema xmlns:ms="urn:com.io7m.ironpage.metaschema:1:0"
+               id="com.io7m.example"
+               versionMajor="1"
+               versionMinor="0">
+
+  <ms:Import id="com.io7m.basic"
+             versionMajor="1"
+             versionMinor="2"/>
+
+  <ms:DeclareType name="t0">
+    <ms:TypeReference>
+      <ms:TypeNamed schema="com.io7m.basic"
+                    type="x"/>
+    </ms:TypeReference>
+  </ms:DeclareType>
+</ms:MetaSchema>

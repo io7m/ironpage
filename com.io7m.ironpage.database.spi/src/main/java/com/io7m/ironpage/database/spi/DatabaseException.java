@@ -18,12 +18,12 @@ package com.io7m.ironpage.database.spi;
 
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import com.io7m.ironpage.errors.api.ErrorType;
-import io.vavr.collection.SortedMap;
-import io.vavr.collection.TreeMap;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * The type of exceptions raised by databases.
@@ -67,7 +67,7 @@ public class DatabaseException extends Exception implements ErrorType
   public DatabaseException(
     final String message)
   {
-    this(ErrorSeverity.SEVERITY_ERROR, message, null, TreeMap.empty(), List.of());
+    this(ErrorSeverity.SEVERITY_ERROR, message, null, new TreeMap<>(), List.of());
   }
 
 
@@ -81,7 +81,7 @@ public class DatabaseException extends Exception implements ErrorType
     final String message,
     final Throwable cause)
   {
-    this(ErrorSeverity.SEVERITY_ERROR, message, cause, TreeMap.empty(), List.of());
+    this(ErrorSeverity.SEVERITY_ERROR, message, cause, new TreeMap<>(), List.of());
   }
 
   /**
@@ -117,7 +117,7 @@ public class DatabaseException extends Exception implements ErrorType
     final Throwable cause,
     final List<String> inMessageExtras)
   {
-    this(inSeverity, message, cause, TreeMap.empty(), inMessageExtras);
+    this(inSeverity, message, cause, new TreeMap<>(), inMessageExtras);
   }
 
   /**
@@ -133,7 +133,7 @@ public class DatabaseException extends Exception implements ErrorType
     final String message,
     final Throwable cause)
   {
-    this(inSeverity, message, cause, TreeMap.empty(), List.of());
+    this(inSeverity, message, cause, new TreeMap<>(), List.of());
   }
 
   @Override

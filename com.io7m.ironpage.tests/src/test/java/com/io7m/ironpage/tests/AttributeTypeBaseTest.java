@@ -16,17 +16,19 @@
 
 package com.io7m.ironpage.tests;
 
-import com.io7m.ironpage.types.api.AttributeTypeBase;
+import com.io7m.ironpage.metadata.schema.types.api.TypePrimitive;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 
+@Tag("equals")
 public final class AttributeTypeBaseTest
 {
   @Property
   public void testShow(
-    @ForAll final AttributeTypeBase type0,
-    @ForAll final AttributeTypeBase type1)
+    @ForAll final TypePrimitive type0,
+    @ForAll final TypePrimitive type1)
   {
     if (type0 == type1) {
       Assertions.assertEquals(type0.toString(), type1.toString());

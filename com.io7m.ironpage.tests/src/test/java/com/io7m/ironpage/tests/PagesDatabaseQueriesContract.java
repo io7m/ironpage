@@ -26,6 +26,7 @@ import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import java.util.UUID;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+@Tag("database")
 public abstract class PagesDatabaseQueriesContract
 {
   private static final Logger LOG =
@@ -155,14 +157,22 @@ public abstract class PagesDatabaseQueriesContract
       transaction.queries(PagesDatabaseQueriesType.class);
 
     final var hash =
-      queries.pageBlobPut(account.id(), "text/plain", "hello".getBytes(StandardCharsets.UTF_8), label);
+      queries.pageBlobPut(
+        account.id(),
+        "text/plain",
+        "hello".getBytes(StandardCharsets.UTF_8),
+        label);
 
     Assertions.assertEquals(
       "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
       hash);
 
     final var ex = Assertions.assertThrows(CDException.class, () -> {
-      queries.pageBlobPut(account.id(), "text/plain", "hello".getBytes(StandardCharsets.UTF_8), label);
+      queries.pageBlobPut(
+        account.id(),
+        "text/plain",
+        "hello".getBytes(StandardCharsets.UTF_8),
+        label);
     });
 
     Assertions.assertEquals(PagesDatabaseQueriesType.DATA_ALREADY_EXISTS, ex.errorCode());

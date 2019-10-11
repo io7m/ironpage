@@ -19,10 +19,10 @@ package com.io7m.ironpage.database.pages.api;
 import com.io7m.ironpage.database.core.api.CDErrorCode;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
-import io.vavr.collection.SortedMap;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.SortedMap;
 
 /**
  * The type of exceptions related to pages databases.

@@ -19,7 +19,9 @@ package com.io7m.ironpage.tests;
 import com.io7m.ironpage.database.api.DatabaseProviderType;
 import com.io7m.ironpage.database.derby.DatabaseDerbyProvider;
 import com.io7m.ironpage.database.spi.DatabasePartitionProviderRegistryType;
+import org.junit.jupiter.api.Tag;
 
+@Tag("database")
 public final class DatabaseDerbyTest extends DatabaseContract
 {
   @Override

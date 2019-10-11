@@ -24,8 +24,8 @@ import com.io7m.ironpage.database.core.api.CDSessionDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
+import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import com.io7m.jaffirm.core.Invariants;
-import io.vavr.collection.TreeMap;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
@@ -165,7 +165,7 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
           ROLE_NONEXISTENT,
           CoreMessages.localize("errorRoleNonexistent"),
           e,
-          TreeMap.of(CoreMessages.localize("displayName"), displayName));
+          PresentableAttributes.one(CoreMessages.localize("displayName"), displayName));
       }
       case "USER_DISPLAY_NAME_UNIQUE": {
         return new CDException(
@@ -173,7 +173,7 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
           DISPLAY_NAME_ALREADY_USED,
           CoreMessages.localize("errorUserDisplayNameConflict", displayName),
           e,
-          TreeMap.of(CoreMessages.localize("displayName"), displayName));
+          PresentableAttributes.one(CoreMessages.localize("displayName"), displayName));
       }
       case "USER_ID_KEY": {
         return new CDException(
@@ -181,7 +181,7 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
           ID_ALREADY_USED,
           CoreMessages.localize("errorUserIDConflict"),
           e,
-          TreeMap.of(CoreMessages.localize("userID"), id.toString()));
+          PresentableAttributes.one(CoreMessages.localize("userID"), id.toString()));
       }
       default: {
         return invalidDataException(e);
@@ -471,7 +471,7 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
           NONEXISTENT,
           CoreMessages.localize("errorUserNonexistent"),
           null,
-          TreeMap.of(CoreMessages.localize("userID"), userId.toString()));
+          PresentableAttributes.one(CoreMessages.localize("userID"), userId.toString()));
       }
 
       try (var roleQuery = this.dslContext.select(
@@ -593,7 +593,7 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
           NONEXISTENT,
           CoreMessages.localize("errorSessionNonexistent"),
           null,
-          TreeMap.of(CoreMessages.localize("sessionID"), session));
+          PresentableAttributes.one(CoreMessages.localize("sessionID"), session));
       }
 
       final var record = rows.get(0);
