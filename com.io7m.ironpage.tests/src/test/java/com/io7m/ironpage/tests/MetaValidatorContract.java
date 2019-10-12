@@ -47,6 +47,7 @@ import java.util.Optional;
 
 import static com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorType.ATTRIBUTE_CARDINALITY_ERROR;
 import static com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorType.ATTRIBUTE_NOT_FOUND;
+import static com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorType.SCHEMA_NOT_FOUND;
 import static com.io7m.ironpage.metadata.attribute.validator.api.MetaValidatorType.TYPE_ERROR;
 import static com.io7m.ironpage.metadata.schema.types.api.AttributeValueUntypeds.untypedOf;
 
@@ -401,6 +402,73 @@ public abstract class MetaValidatorContract
     Assertions.assertTrue(result.isEmpty());
     Assertions.assertEquals(1, this.validationErrors.size());
     Assertions.assertTrue(this.errorsContain(ATTRIBUTE_NOT_FOUND));
+  }
+
+  /**
+   * Undeclared schemas are disallowed.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public final void testAttributesUndeclared()
+    throws Exception
+  {
+    final var schema = this.schema(new BasicSource(), "meta-types0.xml");
+
+    final var document =
+      MetaDocumentUntyped.builder()
+        .setUri(URI.create("urn:document"))
+        .addImports(MetaSchemaIdentifiers.create("com.io7m.types", 1, 0))
+        .addAttributes(untypedOf("com.io7m.undeclared", "undeclared", "x"))
+        .build();
+
+    final var request =
+      MetaValidatorRequest.builder()
+        .addSchemas(schema)
+        .setDocument(document)
+        .build();
+
+    final var validator =
+      this.validator(this.showValidatorError(), request);
+
+    final var result = validator.execute();
+    Assertions.assertTrue(result.isEmpty());
+    Assertions.assertEquals(1, this.validationErrors.size());
+    Assertions.assertTrue(this.errorsContain(SCHEMA_NOT_FOUND));
+  }
+
+  /**
+   * Importing schemas that aren't available is an error.
+   *
+   * @throws Exception On errors
+   */
+
+  @Test
+  public final void testImportSchemaNonexistent()
+    throws Exception
+  {
+    final var schema = this.schema(new BasicSource(), "meta-types0.xml");
+
+    final var document =
+      MetaDocumentUntyped.builder()
+        .setUri(URI.create("urn:document"))
+        .addImports(MetaSchemaIdentifiers.create("com.io7m.nonexistent", 1, 0))
+        .build();
+
+    final var request =
+      MetaValidatorRequest.builder()
+        .addSchemas(schema)
+        .setDocument(document)
+        .build();
+
+    final var validator =
+      this.validator(this.showValidatorError(), request);
+
+    final var result = validator.execute();
+    Assertions.assertTrue(result.isEmpty());
+    Assertions.assertEquals(1, this.validationErrors.size());
+    Assertions.assertTrue(this.errorsContain(SCHEMA_NOT_FOUND));
   }
 
   protected abstract MetaValidatorType validator(
