@@ -48,6 +48,7 @@
     <module>com.io7m.ironpage.types.resolution.vanilla</module>
     <module>com.io7m.ironpage.security.api</module>
     <module>com.io7m.ironpage.security.vanilla</module>
+    <module>com.io7m.ironpage.events.api</module>
   </modules>
 
   <properties>
