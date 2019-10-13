@@ -18,8 +18,10 @@ package com.io7m.ironpage.database.core.derby;
 
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelCreated;
 import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
-import com.io7m.ironpage.events.api.EventType;
+import com.io7m.ironpage.database.core.api.CDSecurityLabelUpdated;
+import com.io7m.ironpage.database.spi.DatabaseEventType;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
@@ -42,12 +44,14 @@ import static com.io7m.ironpage.errors.api.ErrorSeverity.SEVERITY_ERROR;
 final class CoreLabelsQueries implements CDLabelsQueriesType
 {
   private final DSLContext dslContext;
+  private final Subject<DatabaseEventType> events;
 
   CoreLabelsQueries(
     final Clock inClock,
-    final Subject<? extends EventType> events,
+    final Subject<DatabaseEventType> inEvents,
     final Connection inConnection)
   {
+    this.events = Objects.requireNonNull(inEvents, "events");
     final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
@@ -115,7 +119,9 @@ final class CoreLabelsQueries implements CDLabelsQueriesType
       throw handleUpdateException(name, e);
     }
 
-    return this.labelGetForName(name).get();
+    final var dto = this.labelGetForName(name).get();
+    this.events.onNext(CDSecurityLabelCreated.of(dto));
+    return dto;
   }
 
   @Override
@@ -183,6 +189,8 @@ final class CoreLabelsQueries implements CDLabelsQueriesType
           PresentableAttributes.one(CoreMessages.localize("labelID"), idBox.toString())
         );
       }
+
+      this.events.onNext(CDSecurityLabelUpdated.of(label));
       return label;
     } catch (final DataAccessException e) {
       throw handleUpdateException(label.name(), e);

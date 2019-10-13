@@ -18,8 +18,10 @@ package com.io7m.ironpage.database.core.derby;
 
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDRolesQueriesType;
+import com.io7m.ironpage.database.core.api.CDSecurityRoleCreated;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
-import com.io7m.ironpage.events.api.EventType;
+import com.io7m.ironpage.database.core.api.CDSecurityRoleUpdated;
+import com.io7m.ironpage.database.spi.DatabaseEventType;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
@@ -42,12 +44,14 @@ import static com.io7m.ironpage.errors.api.ErrorSeverity.SEVERITY_ERROR;
 final class CoreRolesQueries implements CDRolesQueriesType
 {
   private final DSLContext dslContext;
+  private final Subject<DatabaseEventType> events;
 
   CoreRolesQueries(
     final Clock inClock,
-    final Subject<? extends EventType> events,
+    final Subject<DatabaseEventType> inEvents,
     final Connection inConnection)
   {
+    this.events = Objects.requireNonNull(inEvents, "events");
     final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
@@ -117,7 +121,9 @@ final class CoreRolesQueries implements CDRolesQueriesType
       throw handleUpdateException(name, e);
     }
 
-    return this.roleGetForName(name).get();
+    final var role = this.roleGetForName(name).get();
+    this.events.onNext(CDSecurityRoleCreated.of(role));
+    return role;
   }
 
   @Override
@@ -187,6 +193,8 @@ final class CoreRolesQueries implements CDRolesQueriesType
             idBox.toString()))
         );
       }
+
+      this.events.onNext(CDSecurityRoleUpdated.of(role));
       return role;
     } catch (final DataAccessException e) {
       throw handleUpdateException(role.name(), e);

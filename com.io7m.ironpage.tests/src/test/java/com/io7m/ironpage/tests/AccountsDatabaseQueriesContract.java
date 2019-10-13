@@ -25,6 +25,7 @@ import com.io7m.ironpage.database.core.api.CDAccountsQueriesType;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
 import com.io7m.ironpage.database.core.api.CDRolesQueriesType;
+import com.io7m.ironpage.database.core.api.CDSecurityRoleCreated;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
@@ -465,19 +466,37 @@ public abstract class AccountsDatabaseQueriesContract
     }
 
     {
-      final var event = this.events.get(0);
+      final var event = this.events.remove(0);
+      Assertions.assertEquals(CDSecurityRoleCreated.class, event.getClass());
+      Assertions.assertEquals(role0, ((CDSecurityRoleCreated) event).role());
+    }
+
+    {
+      final var event = this.events.remove(0);
+      Assertions.assertEquals(CDSecurityRoleCreated.class, event.getClass());
+      Assertions.assertEquals(role1, ((CDSecurityRoleCreated) event).role());
+    }
+
+    {
+      final var event = this.events.remove(0);
+      Assertions.assertEquals(CDSecurityRoleCreated.class, event.getClass());
+      Assertions.assertEquals(role2, ((CDSecurityRoleCreated) event).role());
+    }
+
+    {
+      final var event = this.events.remove(0);
       Assertions.assertEquals(CDAccountCreated.class, event.getClass());
       Assertions.assertEquals(account, ((CDAccountCreated) event).user());
     }
 
     {
-      final var event = this.events.get(1);
+      final var event = this.events.remove(0);
       Assertions.assertEquals(CDAccountUpdated.class, event.getClass());
       Assertions.assertEquals(account, ((CDAccountUpdated) event).existing());
       Assertions.assertEquals(updatedAccount, ((CDAccountUpdated) event).current());
     }
 
-    Assertions.assertEquals(2, this.events.size());
+    Assertions.assertEquals(0, this.events.size());
   }
 
   /**

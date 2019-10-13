@@ -17,6 +17,7 @@
 package com.io7m.ironpage.database.core.api;
 
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
+import com.io7m.ironpage.events.api.EventPublishedType;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -71,6 +72,7 @@ public interface CDRolesQueriesType extends DatabaseQueriesType
    * @throws CDException On errors
    */
 
+  @EventPublishedType(CDSecurityRoleCreated.class)
   CDSecurityRoleDTO roleCreate(
     String name,
     String description)
@@ -108,6 +110,7 @@ public interface CDRolesQueriesType extends DatabaseQueriesType
    * @throws CDException On errors
    */
 
+  @EventPublishedType(CDSecurityRoleUpdated.class)
   CDSecurityRoleDTO roleUpdate(CDSecurityRoleDTO role)
     throws CDException;
 
