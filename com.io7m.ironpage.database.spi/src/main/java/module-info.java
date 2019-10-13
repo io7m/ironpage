@@ -22,11 +22,13 @@ module com.io7m.ironpage.database.spi
 {
   requires static org.osgi.annotation.bundle;
 
+  requires transitive com.io7m.ironpage.events.api;
   requires transitive com.io7m.ironpage.errors.api;
   requires transitive java.sql;
 
   requires com.io7m.jaffirm.core;
   requires com.io7m.jxe.core;
+  requires io.reactivex.rxjava3;
   requires org.slf4j;
 
   exports com.io7m.ironpage.database.spi;

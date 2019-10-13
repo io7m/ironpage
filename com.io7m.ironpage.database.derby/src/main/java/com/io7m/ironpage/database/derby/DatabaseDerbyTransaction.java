@@ -83,14 +83,18 @@ final class DatabaseDerbyTransaction implements DatabaseTransactionType
 
     if (partitionProviderOpt.isPresent()) {
       final var partitionProvider = partitionProviderOpt.get();
-      return partitionProvider.queriesCreate(this.connection.sqlConnection(), queriesClass);
+      final var subject = database.eventSubject();
+      final var sqlConnection = this.connection.sqlConnection();
+      return partitionProvider.queriesCreate(sqlConnection, subject, queriesClass);
     }
 
     throw new DatabaseException(
       ErrorSeverity.SEVERITY_ERROR,
       DatabaseMessages.localize("errorCreateQueriesUnavailable"),
       null,
-      PresentableAttributes.one(DatabaseMessages.localize("queriesClass"), queriesClass.getCanonicalName())
+      PresentableAttributes.one(
+        DatabaseMessages.localize("queriesClass"),
+        queriesClass.getCanonicalName())
     );
   }
 }

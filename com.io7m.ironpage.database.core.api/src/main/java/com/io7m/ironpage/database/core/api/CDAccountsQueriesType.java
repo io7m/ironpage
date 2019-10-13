@@ -17,6 +17,7 @@
 package com.io7m.ironpage.database.core.api;
 
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
+import com.io7m.ironpage.events.api.EventPublishedType;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -96,6 +97,7 @@ public interface CDAccountsQueriesType extends DatabaseQueriesType
    * @throws CDException On errors
    */
 
+  @EventPublishedType(CDAccountCreated.class)
   CDUserDTO accountCreate(
     UUID id,
     String displayName,
@@ -115,6 +117,7 @@ public interface CDAccountsQueriesType extends DatabaseQueriesType
    * @throws CDException On errors
    */
 
+  @EventPublishedType(CDAccountUpdated.class)
   CDUserDTO accountUpdate(
     UUID caller,
     CDUserDTO account)

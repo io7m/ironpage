@@ -14,18 +14,20 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.database.core.api;
+
+import java.util.UUID;
+
 /**
- * Document database (Database API)
+ * The type of account events.
  */
 
-module com.io7m.ironpage.database.api
+public interface CDAccountEventType extends CDEventType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * @return The ID of the account
+   */
 
-  requires transitive com.io7m.ironpage.database.spi;
-  requires transitive io.reactivex.rxjava3;
-
-  exports com.io7m.ironpage.database.api;
+  UUID accountId();
 }

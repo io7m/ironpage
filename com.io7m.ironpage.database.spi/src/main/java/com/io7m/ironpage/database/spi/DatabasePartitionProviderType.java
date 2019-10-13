@@ -16,6 +16,8 @@
 
 package com.io7m.ironpage.database.spi;
 
+import io.reactivex.rxjava3.subjects.Subject;
+
 import java.math.BigInteger;
 import java.sql.Connection;
 import java.util.NavigableMap;
@@ -58,6 +60,7 @@ public interface DatabasePartitionProviderType
    * Create queries for a given connection.
    *
    * @param connection   The connection
+   * @param events       An event subject used to publish database events
    * @param queriesClass The queries class
    * @param <P>          The precise type of queries
    *
@@ -69,6 +72,7 @@ public interface DatabasePartitionProviderType
   <P extends DatabaseQueriesType>
   P queriesCreate(
     Connection connection,
+    Subject<DatabaseEventType> events,
     Class<P> queriesClass)
     throws DatabaseException;
 

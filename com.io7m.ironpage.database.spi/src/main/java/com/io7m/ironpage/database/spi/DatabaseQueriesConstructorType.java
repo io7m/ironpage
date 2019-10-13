@@ -17,6 +17,8 @@
 
 package com.io7m.ironpage.database.spi;
 
+import io.reactivex.rxjava3.subjects.Subject;
+
 import java.sql.Connection;
 import java.time.Clock;
 
@@ -24,5 +26,6 @@ public interface DatabaseQueriesConstructorType<T extends DatabaseQueriesType>
 {
   T create(
     Clock clock,
+    Subject<DatabaseEventType> events,
     Connection connection);
 }

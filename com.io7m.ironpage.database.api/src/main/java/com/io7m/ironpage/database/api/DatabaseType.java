@@ -16,7 +16,9 @@
 
 package com.io7m.ironpage.database.api;
 
+import com.io7m.ironpage.database.spi.DatabaseEventType;
 import com.io7m.ironpage.database.spi.DatabaseException;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.io.Closeable;
 
@@ -26,6 +28,12 @@ import java.io.Closeable;
 
 public interface DatabaseType extends Closeable
 {
+  /**
+   * @return A stream of events from the database
+   */
+
+  Observable<DatabaseEventType> events();
+
   /**
    * @return The SQL dialect of the underlying database
    */

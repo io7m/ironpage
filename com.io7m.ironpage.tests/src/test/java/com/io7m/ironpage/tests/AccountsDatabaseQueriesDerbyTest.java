@@ -23,6 +23,8 @@ import com.io7m.ironpage.database.api.DatabaseType;
 import com.io7m.ironpage.database.core.derby.CoreDatabasePartitionProviderDerby;
 import com.io7m.ironpage.database.derby.DatabaseDerbyProvider;
 import com.io7m.ironpage.database.spi.DatabaseException;
+import com.io7m.ironpage.events.api.EventType;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -33,6 +35,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.function.Consumer;
 
 @Tag("database")
 public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQueriesContract
@@ -66,6 +69,7 @@ public final class AccountsDatabaseQueriesDerbyTest extends AccountsDatabaseQuer
 
     this.database = databases.open(parameters);
     this.connection = this.database.openConnection();
+    this.onDatabaseAvailable(this.database);
   }
 
   @AfterEach

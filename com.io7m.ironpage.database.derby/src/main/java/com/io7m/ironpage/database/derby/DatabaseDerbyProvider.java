@@ -95,7 +95,7 @@ public final class DatabaseDerbyProvider implements DatabaseProviderType
         partitionProvider.upgradePartitionToLatest(connection);
       }
 
-      return new DatabaseDerby(this, dataSource, this.registry);
+      return new DatabaseDerby(dataSource, this.registry);
     } catch (final Exception e) {
       throw new DatabaseException(
         ErrorSeverity.SEVERITY_ERROR,

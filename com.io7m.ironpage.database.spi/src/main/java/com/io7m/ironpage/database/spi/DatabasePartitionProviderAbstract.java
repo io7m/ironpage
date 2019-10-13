@@ -17,6 +17,7 @@
 package com.io7m.ironpage.database.spi;
 
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.slf4j.Logger;
 
 import java.math.BigInteger;
@@ -150,8 +151,12 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
           this.localize("errorUnsupportedInstalledVersion"),
           null,
           PresentableAttributes.of(
-            PresentableAttributes.entry(this.localize("installedVersion"), installedVersion.toString()),
-            PresentableAttributes.entry(this.localize("supportedVersions"), availableVersions.keySet().toString())));
+            PresentableAttributes.entry(
+              this.localize("installedVersion"),
+              installedVersion.toString()),
+            PresentableAttributes.entry(
+              this.localize("supportedVersions"),
+              availableVersions.keySet().toString())));
       }
 
       return List.copyOf(availableVersions.tailMap(installedVersion, true).keySet());
@@ -208,11 +213,16 @@ public abstract class DatabasePartitionProviderAbstract implements DatabaseParti
   @Override
   public final <P extends DatabaseQueriesType> P queriesCreate(
     final Connection connection,
+    final Subject<DatabaseEventType> events,
     final Class<P> queriesClass)
     throws DatabaseException
   {
+    Objects.requireNonNull(connection, "connection");
+    Objects.requireNonNull(events, "events");
+    Objects.requireNonNull(queriesClass, "queriesClass");
+
     if (this.queryConstructors.has(queriesClass)) {
-      return this.queryConstructors.get(queriesClass).create(this.clock, connection);
+      return this.queryConstructors.get(queriesClass).create(this.clock, events, connection);
     }
 
     throw new DatabaseException(

@@ -17,7 +17,10 @@
 package com.io7m.ironpage.tests;
 
 import com.io7m.ironpage.database.api.DatabaseTransactionType;
+import com.io7m.ironpage.database.api.DatabaseType;
 import com.io7m.ironpage.database.audit.api.AuditDatabaseQueriesType;
+import com.io7m.ironpage.database.core.api.CDAccountCreated;
+import com.io7m.ironpage.database.core.api.CDAccountUpdated;
 import com.io7m.ironpage.database.core.api.CDAccountsQueriesType;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
@@ -25,7 +28,10 @@ import com.io7m.ironpage.database.core.api.CDRolesQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
+import com.io7m.ironpage.events.api.EventType;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -33,10 +39,12 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.io7m.ironpage.database.core.api.CDAccountsQueriesType.DISPLAY_NAME_ALREADY_USED;
@@ -58,6 +66,23 @@ public abstract class AccountsDatabaseQueriesContract
 
   protected abstract DatabaseTransactionType transaction()
     throws DatabaseException;
+
+  private List<EventType> events;
+  private Disposable eventSubscription;
+
+  public final void onDatabaseAvailable(
+    final DatabaseType database)
+  {
+    this.events = new ArrayList<>();
+    this.eventSubscription = database.events().subscribe(this::saveEvent);
+  }
+
+  private void saveEvent(
+    final EventType event)
+  {
+    LOG.debug("event: {}", event);
+    this.events.add(event);
+  }
 
   /**
    * Two users cannot be created with the same display name.
@@ -326,6 +351,14 @@ public abstract class AccountsDatabaseQueriesContract
     Assertions.assertEquals("PBKDF2WithHmacSHA256", account.passwordHash().algorithm());
     Assertions.assertArrayEquals(passwordHash, account.passwordHash().hash());
     Assertions.assertEquals("params", account.passwordHash().parameters());
+
+    {
+      final var event = this.events.get(0);
+      Assertions.assertEquals(CDAccountCreated.class, event.getClass());
+      Assertions.assertEquals(account, ((CDAccountCreated) event).user());
+    }
+
+    Assertions.assertEquals(1, this.events.size());
   }
 
   /**
@@ -430,6 +463,21 @@ public abstract class AccountsDatabaseQueriesContract
         Assertions.assertEquals("USER_MODIFIED_ROLES", event.eventType());
       }
     }
+
+    {
+      final var event = this.events.get(0);
+      Assertions.assertEquals(CDAccountCreated.class, event.getClass());
+      Assertions.assertEquals(account, ((CDAccountCreated) event).user());
+    }
+
+    {
+      final var event = this.events.get(1);
+      Assertions.assertEquals(CDAccountUpdated.class, event.getClass());
+      Assertions.assertEquals(account, ((CDAccountUpdated) event).existing());
+      Assertions.assertEquals(updatedAccount, ((CDAccountUpdated) event).current());
+    }
+
+    Assertions.assertEquals(2, this.events.size());
   }
 
   /**

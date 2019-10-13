@@ -16,16 +16,20 @@
 
 package com.io7m.ironpage.database.core.derby;
 
+import com.io7m.ironpage.database.core.api.CDAccountCreated;
+import com.io7m.ironpage.database.core.api.CDAccountUpdated;
 import com.io7m.ironpage.database.core.api.CDAccountsQueriesType;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDPasswordHashDTO;
 import com.io7m.ironpage.database.core.api.CDSecurityRoleDTO;
 import com.io7m.ironpage.database.core.api.CDSessionDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
+import com.io7m.ironpage.database.spi.DatabaseEventType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import com.io7m.jaffirm.core.Invariants;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
@@ -84,16 +88,19 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
   private final DSLContext dslContext;
   private final CoreAuditQueries audit;
   private final Clock clock;
+  private final Subject<DatabaseEventType> events;
 
   CoreAccountsQueries(
     final Clock inClock,
+    final Subject<DatabaseEventType> inEvents,
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "clock");
     final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
-    this.audit = new CoreAuditQueries(this.clock, connection);
+    this.audit = new CoreAuditQueries(this.clock, inEvents, connection);
+    this.events = Objects.requireNonNull(inEvents, "events");
   }
 
   private static CDException handleDataAccessException(
@@ -253,14 +260,19 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
       throw genericDatabaseException(e);
     }
 
-    return CDUserDTO.builder()
-      .setId(id)
-      .setDisplayName(displayName)
-      .setPasswordHash(password)
-      .setEmail(email)
-      .setLocked(lockedReason)
-      .setRoles(new TreeSet<>())
-      .build();
+
+    final var user =
+      CDUserDTO.builder()
+        .setId(id)
+        .setDisplayName(displayName)
+        .setPasswordHash(password)
+        .setEmail(email)
+        .setLocked(lockedReason)
+        .setRoles(new TreeSet<>())
+        .build();
+
+    this.events.onNext(CDAccountCreated.of(user));
+    return user;
   }
 
   @Override
@@ -282,6 +294,7 @@ final class CoreAccountsQueries implements CDAccountsQueriesType
     this.accountUpdateLogLocked(caller, account, existing);
     this.accountUpdateLogRoles(caller, account, existing);
 
+    this.events.onNext(CDAccountUpdated.of(existing, account));
     return account;
   }
 

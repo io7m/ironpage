@@ -24,7 +24,9 @@ import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
+import com.io7m.ironpage.events.api.EventType;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
@@ -57,13 +59,14 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
 
   CorePagesQueries(
     final Clock inClock,
+    final Subject<? extends EventType> events,
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "inClock");
     final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
-    this.audit = new CoreAuditQueries(this.clock, connection);
+    this.audit = new CoreAuditQueries(this.clock, events, connection);
   }
 
   private static PagesDatabaseRedactionDTO redactionFromRecord(
@@ -181,7 +184,9 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
               CDLabelsQueriesType.LABEL_NONEXISTENT,
               CoreMessages.localize("errorLabelNonexistent"),
               e,
-              PresentableAttributes.one(CoreMessages.localize("labelID"), Long.toString(securityLabel.id())));
+              PresentableAttributes.one(
+                CoreMessages.localize("labelID"),
+                Long.toString(securityLabel.id())));
           }
           default: {
             break;

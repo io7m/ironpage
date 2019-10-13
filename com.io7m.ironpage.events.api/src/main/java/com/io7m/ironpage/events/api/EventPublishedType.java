@@ -14,18 +14,27 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.events.api;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * Document database (Database API)
+ * An annotation that indicates that a method publishes the given type of events.
  */
 
-module com.io7m.ironpage.database.api
+@Documented
+@Retention(RetentionPolicy.CLASS)
+@Target(ElementType.METHOD)
+public @interface EventPublishedType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * @return The types of published event
+   */
 
-  requires transitive com.io7m.ironpage.database.spi;
-  requires transitive io.reactivex.rxjava3;
-
-  exports com.io7m.ironpage.database.api;
+  Class<? extends EventType>[] value();
 }

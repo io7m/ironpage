@@ -24,6 +24,7 @@ module com.io7m.ironpage.database.core.derby
   requires static org.osgi.service.component.annotations;
 
   requires com.io7m.jaffirm.core;
+  requires io.reactivex.rxjava3;
   requires org.apache.commons.codec;
   requires org.apache.derby.commons;
   requires org.jooq;

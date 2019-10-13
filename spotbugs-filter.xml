@@ -113,6 +113,8 @@
   <Match>
     <Or>
       <Class name="com.io7m.ironpage.database.api.DatabaseParameters"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDAccountCreated"/>
+      <Class name="com.io7m.ironpage.database.core.api.CDAccountUpdated"/>
       <Class name="com.io7m.ironpage.database.core.api.CDErrorCode"/>
       <Class name="com.io7m.ironpage.database.core.api.CDPasswordHashDTO"/>
       <Class name="com.io7m.ironpage.database.core.api.CDSecurityLabelDTO"/>

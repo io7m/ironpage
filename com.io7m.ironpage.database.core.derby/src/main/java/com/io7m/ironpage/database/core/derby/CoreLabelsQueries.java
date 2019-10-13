@@ -19,7 +19,9 @@ package com.io7m.ironpage.database.core.derby;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
+import com.io7m.ironpage.events.api.EventType;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.derby.shared.common.error.DerbySQLIntegrityConstraintViolationException;
 import org.jooq.DSLContext;
 import org.jooq.Record3;
@@ -43,6 +45,7 @@ final class CoreLabelsQueries implements CDLabelsQueriesType
 
   CoreLabelsQueries(
     final Clock inClock,
+    final Subject<? extends EventType> events,
     final Connection inConnection)
   {
     final var connection = Objects.requireNonNull(inConnection, "connection");

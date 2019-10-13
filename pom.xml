@@ -31,6 +31,7 @@
     <module>com.io7m.ironpage.database.pages.api</module>
     <module>com.io7m.ironpage.database.spi</module>
     <module>com.io7m.ironpage.errors.api</module>
+    <module>com.io7m.ironpage.events.api</module>
     <module>com.io7m.ironpage.l10n.api</module>
     <module>com.io7m.ironpage.metadata.attribute.validator.api</module>
     <module>com.io7m.ironpage.metadata.attribute.validator.vanilla</module>
@@ -41,14 +42,13 @@
     <module>com.io7m.ironpage.metadata.schema.types.api</module>
     <module>com.io7m.ironpage.parser.api</module>
     <module>com.io7m.ironpage.presentable.api</module>
+    <module>com.io7m.ironpage.security.api</module>
+    <module>com.io7m.ironpage.security.vanilla</module>
     <module>com.io7m.ironpage.tests.arbitraries</module>
     <module>com.io7m.ironpage.tests</module>
     <module>com.io7m.ironpage.types.resolution.api</module>
     <module>com.io7m.ironpage.types.resolution.spi</module>
     <module>com.io7m.ironpage.types.resolution.vanilla</module>
-    <module>com.io7m.ironpage.security.api</module>
-    <module>com.io7m.ironpage.security.vanilla</module>
-    <module>com.io7m.ironpage.events.api</module>
   </modules>
 
   <properties>
@@ -163,6 +163,11 @@
         <groupId>org.jgrapht</groupId>
         <artifactId>jgrapht-core</artifactId>
         <version>1.3.1</version>
+      </dependency>
+      <dependency>
+        <groupId>io.reactivex.rxjava3</groupId>
+        <artifactId>rxjava</artifactId>
+        <version>3.0.0-RC3</version>
       </dependency>
       <dependency>
         <groupId>com.io7m.junreachable</groupId>

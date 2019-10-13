@@ -14,18 +14,15 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.database.core.api;
+
+import com.io7m.ironpage.database.spi.DatabaseEventType;
+
 /**
- * Document database (Database API)
+ * The type of core database events.
  */
 
-module com.io7m.ironpage.database.api
+public interface CDEventType extends DatabaseEventType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
-
-  requires transitive com.io7m.ironpage.database.spi;
-  requires transitive io.reactivex.rxjava3;
-
-  exports com.io7m.ironpage.database.api;
+  // No extra methods
 }

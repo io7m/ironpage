@@ -14,18 +14,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.database.core.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
+
+import java.util.UUID;
+
 /**
- * Document database (Database API)
+ * A user account was created.
  */
 
-module com.io7m.ironpage.database.api
+@ImmutablesStyleType
+@Value.Immutable
+public interface CDAccountCreatedType extends CDAccountEventType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * @return The created user
+   */
 
-  requires transitive com.io7m.ironpage.database.spi;
-  requires transitive io.reactivex.rxjava3;
+  @Value.Parameter
+  CDUserDTO user();
 
-  exports com.io7m.ironpage.database.api;
+  @Override
+  default UUID accountId()
+  {
+    return this.user().id();
+  }
 }

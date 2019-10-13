@@ -20,6 +20,8 @@ import com.io7m.ironpage.database.audit.api.AuditDatabaseEventDTO;
 import com.io7m.ironpage.database.audit.api.AuditDatabaseQueriesType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
+import com.io7m.ironpage.events.api.EventType;
+import io.reactivex.rxjava3.subjects.Subject;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -60,6 +62,7 @@ final class CoreAuditQueries implements AuditDatabaseQueriesType
 
   CoreAuditQueries(
     final Clock inClock,
+    final Subject<? extends EventType> events,
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "clock");
