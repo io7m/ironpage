@@ -14,20 +14,20 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.security.api;
+
 /**
- * Document database (Common parser types API)
+ * A policy evaluator.
+ *
+ * @see SPolicyEvaluatorProviderType
  */
 
-module com.io7m.ironpage.parser.api
+public interface SPolicyEvaluatorType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * @return {@code true} if the evaluator permits the given inputs
+   */
 
-  requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  boolean permits();
 }

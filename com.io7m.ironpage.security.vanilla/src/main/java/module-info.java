@@ -15,19 +15,18 @@
  */
 
 /**
- * Document database (Common parser types API)
+ * Document database (Security vanilla implementation)
  */
 
-module com.io7m.ironpage.parser.api
+module com.io7m.ironpage.security.vanilla
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
   requires static org.osgi.annotation.bundle;
 
+  requires transitive com.io7m.ironpage.security.api;
+
   requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  requires com.io7m.jlexing.core;
+  requires com.io7m.junreachable.core;
+  requires com.io7m.jxe.core;
+  requires org.slf4j;
 }

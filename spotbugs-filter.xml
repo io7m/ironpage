@@ -75,6 +75,13 @@
     <Bug pattern="CE_CLASS_ENVY"/>
   </Match>
 
+  <!-- Simplest way to implement comments in the policy parser. -->
+  <Match>
+    <Class name="com.io7m.ironpage.security.vanilla.v1.SPP1TopLevelHandler"/>
+    <Method name="onChildValueProduced"/>
+    <Bug pattern="ITC_INHERITANCE_TYPE_CHECKING"/>
+  </Match>
+
   <!-- These classes are effectively nested in order to implement an API -->
   <Match>
     <Or>
@@ -157,6 +164,11 @@
       <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeReferenceNamed"/>
       <Class name="com.io7m.ironpage.metadata.schema.types.api.TypeReferencePrimitive"/>
       <Class name="com.io7m.ironpage.parser.api.ParserError"/>
+      <Class name="com.io7m.ironpage.security.api.SLabel"/>
+      <Class name="com.io7m.ironpage.security.api.SPermission"/>
+      <Class name="com.io7m.ironpage.security.api.SPolicy"/>
+      <Class name="com.io7m.ironpage.security.api.SPolicyRule"/>
+      <Class name="com.io7m.ironpage.security.api.SRole"/>
       <Class name="com.io7m.ironpage.types.resolution.api.MetaSchemaResolvedSet"/>
       <Class name="com.io7m.ironpage.types.resolution.api.MetaSchemaResolverError"/>
     </Or>
@@ -230,8 +242,9 @@
   <!-- against entity expansion attacks. -->
   <Match>
     <Or>
-      <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.parser.MSCVParser"/>
       <Class name="com.io7m.ironpage.database.spi.DatabaseSchemaRevisionXML"/>
+      <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.parser.MSCVParser"/>
+      <Class name="com.io7m.ironpage.security.vanilla.SPolicyParser"/>
     </Or>
     <Bug pattern="XXE_XMLREADER"/>
   </Match>
@@ -240,6 +253,12 @@
     <Class name="com.io7m.ironpage.metadata.schema.compiler.vanilla.binder.MSCVBinder$BoundNothing"/>
     <Method name="name"/>
     <Bug pattern="WEM_WEAK_EXCEPTION_MESSAGING"/>
+  </Match>
+
+  <!-- Only for debug logging. -->
+  <Match>
+    <Class name="com.io7m.ironpage.security.vanilla.SPolicyEvaluator"/>
+    <Bug pattern="FORMAT_STRING_MANIPULATION"/>
   </Match>
 
   <!-- Exposed to aid testing. -->

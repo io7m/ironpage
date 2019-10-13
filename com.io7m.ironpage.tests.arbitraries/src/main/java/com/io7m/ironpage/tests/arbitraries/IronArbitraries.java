@@ -26,6 +26,9 @@ import com.io7m.ironpage.database.core.api.CDSessionDTO;
 import com.io7m.ironpage.database.core.api.CDUserDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
+import com.io7m.ironpage.security.api.SLabel;
+import com.io7m.ironpage.security.api.SPermission;
+import com.io7m.ironpage.security.api.SRole;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.arbitraries.SizableArbitrary;
@@ -63,7 +66,10 @@ public final class IronArbitraries implements ArbitraryProvider
       Map.entry(Instant.class, IronArbitraries::instants),
       Map.entry(PagesDatabaseBlobDTO.class, IronArbitraries::pagesDatabaseBlobs),
       Map.entry(PagesDatabaseRedactionDTO.class, IronArbitraries::pagesDatabaseRedactions),
-      Map.entry(Path.class, IronArbitraries::paths)
+      Map.entry(Path.class, IronArbitraries::paths),
+      Map.entry(SLabel.class, IronArbitraries::securityLabels),
+      Map.entry(SPermission.class, IronArbitraries::securityPermissions),
+      Map.entry(SRole.class, IronArbitraries::securityRoles)
     );
 
   /**
@@ -514,6 +520,66 @@ public final class IronArbitraries implements ArbitraryProvider
           });
         });
       });
+    });
+  }
+
+  /**
+   * @return A generator of {@link SLabel} values
+   */
+
+  public static Arbitrary<SLabel> securityLabels()
+  {
+    return stringList().map(texts -> {
+      final var instance0 =
+        SLabel.builder()
+          .setLabel(texts.get(0))
+          .build();
+
+      final var instance1 =
+        instance0.withLabel(texts.get(2));
+      final var instance2 =
+        SLabel.builder().from(instance1).build();
+      return SLabel.copyOf(instance2);
+    });
+  }
+
+  /**
+   * @return A generator of {@link com.io7m.ironpage.security.api.SRole} values
+   */
+
+  public static Arbitrary<SRole> securityRoles()
+  {
+    return stringList().map(texts -> {
+      final var instance0 =
+        SRole.builder()
+          .setRole(texts.get(0))
+          .build();
+
+      final var instance1 =
+        instance0.withRole(texts.get(2));
+      final var instance2 =
+        SRole.builder().from(instance1).build();
+      return SRole.copyOf(instance2);
+    });
+  }
+
+  /**
+   * @return A generator of {@link com.io7m.ironpage.security.api.SPermission} values
+   */
+
+  public static Arbitrary<SPermission> securityPermissions()
+  {
+    return stringList().map(texts -> {
+      final var instance0 =
+        SPermission.builder()
+          .setPermission(texts.get(0))
+          .build();
+
+      final var instance1 =
+        instance0.withPermission(texts.get(2));
+      final var instance2 =
+        SPermission.builder().from(instance1).build();
+      return SPermission.copyOf(instance2);
     });
   }
 

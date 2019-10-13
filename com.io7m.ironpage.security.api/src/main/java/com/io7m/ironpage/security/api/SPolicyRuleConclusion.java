@@ -14,20 +14,36 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.security.api;
+
 /**
- * Document database (Common parser types API)
+ * The conclusion of a policy rule.
  */
 
-module com.io7m.ironpage.parser.api
+public enum SPolicyRuleConclusion
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * Permit access and continue evaluating rules.
+   */
 
-  requires com.io7m.blackthorne.api;
+  PERMIT,
 
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
+  /**
+   * Permit access and stop evaluating rules.
+   */
 
-  exports com.io7m.ironpage.parser.api;
+  PERMIT_QUICK,
+
+  /**
+   * Deny access and continue evaluating rules.
+   */
+
+  DENY,
+
+  /**
+   * Deny access and stop evaluating rules.
+   */
+
+  DENY_QUICK,
 }

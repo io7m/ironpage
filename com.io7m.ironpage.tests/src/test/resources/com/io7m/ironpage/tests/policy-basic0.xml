@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<SecurityPolicy xmlns="urn:com.io7m.ironpage.policy:1:0"
+                version="23">
+
+  <Comment>A basic security policy.</Comment>
+
+  <Rule conclusion="PERMIT_QUICK"
+        permission="write"
+        label="page">
+    <Comment>Anyone can write to ordinary pages.</Comment>
+  </Rule>
+
+  <Rule conclusion="PERMIT_QUICK"
+        permission="read"
+        label="page">
+    <Comment>Anyone can read from ordinary pages.</Comment>
+  </Rule>
+
+  <Rule conclusion="PERMIT_QUICK"
+        role="superuser"
+        permission="write"
+        label="adminPage">
+    <Comment>Superusers can write to administration pages.</Comment>
+  </Rule>
+
+  <Rule conclusion="PERMIT_QUICK"
+        role="superuser"
+        permission="read"
+        label="adminPage">
+    <Comment>Superusers can read from administration pages.</Comment>
+  </Rule>
+
+</SecurityPolicy>

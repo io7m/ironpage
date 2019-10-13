@@ -40,7 +40,8 @@ public final class UnreachableTest
       "com.io7m.ironpage.metadata.schema.types.api.AttributeValueUntypeds",
       "com.io7m.ironpage.metadata.schema.types.api.MetaSchemaIdentifiers",
       "com.io7m.ironpage.metadata.schema.types.api.MetaSchemaNames",
-      "com.io7m.ironpage.metadata.schema.types.api.TypeNames"
+      "com.io7m.ironpage.metadata.schema.types.api.TypeNames",
+      "com.io7m.ironpage.security.vanilla.v1.SPP1Constants"
       ).map(UnreachableTest::loadClass)
       .map(UnreachableTest::runClass);
   }

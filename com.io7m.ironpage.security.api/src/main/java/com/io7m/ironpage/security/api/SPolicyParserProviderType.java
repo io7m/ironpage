@@ -14,20 +14,32 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.security.api;
+
+import com.io7m.ironpage.parser.api.ParserProviderType;
+
+import java.io.InputStream;
+import java.net.URI;
+
 /**
- * Document database (Common parser types API)
+ * A provider of security policy parsers.
  */
 
-module com.io7m.ironpage.parser.api
+public interface SPolicyParserProviderType extends ParserProviderType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * Create a security policy parser.
+   *
+   * @param errors An error receiver
+   * @param uri    The URI of the input source
+   * @param stream The input stream
+   *
+   * @return A new policy parser
+   */
 
-  requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  SPolicyParserType create(
+    SPolicyParserErrorReceiverType errors,
+    URI uri,
+    InputStream stream);
 }

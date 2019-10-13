@@ -11,21 +11,16 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.ironpage.parser.api</artifactId>
+  <artifactId>com.io7m.ironpage.security.api</artifactId>
 
-  <name>com.io7m.ironpage.parser.api</name>
-  <description>Document database (Common parser API types)</description>
+  <name>com.io7m.ironpage.security.api</name>
+  <description>Document database (Security API)</description>
   <url>http://github.com/io7m/ironpage</url>
 
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.errors.api</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.presentable.api</artifactId>
+      <artifactId>com.io7m.ironpage.parser.api</artifactId>
       <version>${project.version}</version>
     </dependency>
 

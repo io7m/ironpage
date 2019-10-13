@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+  Copyright © 2019 Mark Raynsford <code@io7m.com> http://io7m.com
+
+  Permission to use, copy, modify, and/or distribute this software for any
+  purpose with or without fee is hereby granted, provided that the above
+  copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+  WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+  MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+  WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
+  IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:p="urn:com.io7m.ironpage.policy:1:0"
+            elementFormDefault="qualified"
+            targetNamespace="urn:com.io7m.ironpage.policy:1:0">
+
+  <xsd:simpleType name="RoleType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "RoleType" type defines the type of roles.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:NMTOKEN"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="PermissionType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "PermissionType" type defines the type of permissions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:NMTOKEN"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="LabelType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "LabelType" type defines the type of labels.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:NMTOKEN"/>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="RuleConclusionType">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "RuleConclusionType" type defines the possible rule conclusions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="PERMIT"/>
+      <xsd:enumeration value="PERMIT_QUICK"/>
+      <xsd:enumeration value="DENY"/>
+      <xsd:enumeration value="DENY_QUICK"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:element name="Comment">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "Comment" element defines documentation for elements.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:simpleType>
+      <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+  </xsd:element>
+
+  <xsd:element name="SecurityPolicy">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "SecurityPolicy" element defines a security policy.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence minOccurs="1"
+                    maxOccurs="1">
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="1">
+          <xsd:element ref="p:Comment"/>
+        </xsd:sequence>
+        <xsd:sequence minOccurs="0"
+                      maxOccurs="unbounded">
+          <xsd:element ref="p:Rule"/>
+        </xsd:sequence>
+      </xsd:sequence>
+      <xsd:attribute name="version"
+                     type="xsd:nonNegativeInteger"
+                     use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="Rule">
+    <xsd:annotation>
+      <xsd:documentation>
+        The "Rule" element defines a rule in a security policy.
+      </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:complexType>
+      <xsd:sequence minOccurs="0"
+                    maxOccurs="1">
+        <xsd:element ref="p:Comment"/>
+      </xsd:sequence>
+
+      <xsd:attribute name="conclusion"
+                     type="p:RuleConclusionType"
+                     use="required"/>
+      <xsd:attribute name="role"
+                     type="p:RoleType"
+                     use="optional"/>
+      <xsd:attribute name="permission"
+                     type="p:PermissionType"
+                     use="optional"/>
+      <xsd:attribute name="label"
+                     type="p:LabelType"
+                     use="optional"/>
+    </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

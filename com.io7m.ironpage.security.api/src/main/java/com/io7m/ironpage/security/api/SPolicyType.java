@@ -15,50 +15,52 @@
  */
 
 
-package com.io7m.ironpage.parser.api;
+package com.io7m.ironpage.security.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
-import com.io7m.ironpage.errors.api.ErrorSeverity;
-import com.io7m.ironpage.errors.api.ErrorType;
 import com.io7m.jlexing.core.LexicalPosition;
+import com.io7m.jlexing.core.LexicalPositions;
 import com.io7m.jlexing.core.LexicalType;
 import org.immutables.value.Value;
 
+import java.math.BigInteger;
 import java.net.URI;
-import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.List;
 
 /**
- * An error that occurred during parsing.
+ * A security policy.
  */
 
 @ImmutablesStyleType
 @Value.Immutable
-public interface ParserErrorType extends ErrorType, LexicalType<URI>
+public interface SPolicyType extends LexicalType<URI>
 {
   @Override
-  ErrorSeverity severity();
-
-  @Override
-  LexicalPosition<URI> lexical();
-
-  /**
-   * @return The parser error code
-   */
-
-  ParserErrorCode errorCode();
-
-  @Override
   @Value.Default
-  default SortedMap<String, String> attributes()
+  default LexicalPosition<URI> lexical()
   {
-    return new TreeMap<>();
+    return LexicalPositions.zero();
   }
 
-  @Override
-  String message();
+  /**
+   * @return The policy comment
+   */
 
-  @Override
-  Optional<Exception> exception();
+  @Value.Default
+  default String comment()
+  {
+    return "";
+  }
+
+  /**
+   * @return The security policy version
+   */
+
+  BigInteger version();
+
+  /**
+   * @return The policy rules, in declaration order
+   */
+
+  List<SPolicyRule> rules();
 }

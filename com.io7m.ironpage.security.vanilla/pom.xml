@@ -11,13 +11,18 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>com.io7m.ironpage.parser.api</artifactId>
+  <artifactId>com.io7m.ironpage.security.vanilla</artifactId>
 
-  <name>com.io7m.ironpage.parser.api</name>
-  <description>Document database (Common parser API types)</description>
+  <name>com.io7m.ironpage.security.vanilla</name>
+  <description>Document database (Security vanilla implementation)</description>
   <url>http://github.com/io7m/ironpage</url>
 
   <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>com.io7m.ironpage.security.api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>com.io7m.ironpage.errors.api</artifactId>
@@ -25,28 +30,34 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>com.io7m.ironpage.presentable.api</artifactId>
+      <artifactId>com.io7m.ironpage.parser.api</artifactId>
       <version>${project.version}</version>
     </dependency>
 
     <dependency>
+      <groupId>com.io7m.blackthorne</groupId>
+      <artifactId>com.io7m.blackthorne.api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.jxe</groupId>
+      <artifactId>com.io7m.jxe.core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.io7m.jlexing</groupId>
       <artifactId>com.io7m.jlexing.core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.io7m.junreachable</groupId>
+      <artifactId>com.io7m.junreachable.core</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.annotation.bundle</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.io7m.immutables.style</groupId>
-      <artifactId>com.io7m.immutables.style</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>

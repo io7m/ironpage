@@ -14,20 +14,33 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.security.api;
+
 /**
- * Document database (Common parser types API)
+ * A provider of policy evaluators.
+ *
+ * A <i>policy evaluator</i> takes a security policy as input, and a tuple {@code (role, permission,
+ * label)}, and determines whether or not the policy permits the subject {@code role} to perform
+ * {@code permission} on subject {@code label}.
  */
 
-module com.io7m.ironpage.parser.api
+public interface SPolicyEvaluatorProviderType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * Create a policy evaluator.
+   *
+   * @param policy     The policy
+   * @param role       The input role
+   * @param permission The input permission
+   * @param label      The input label
+   *
+   * @return A new policy evaluator
+   */
 
-  requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  SPolicyEvaluatorType create(
+    SPolicy policy,
+    SRole role,
+    SPermission permission,
+    SLabel label);
 }

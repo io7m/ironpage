@@ -14,20 +14,22 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.security.api;
+
+import com.io7m.ironpage.parser.api.ParserError;
+
 /**
- * Document database (Common parser types API)
+ * A security policy parser error receiver.
  */
 
-module com.io7m.ironpage.parser.api
+public interface SPolicyParserErrorReceiverType
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * Receive an error.
+   *
+   * @param error The error
+   */
 
-  requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  void receive(ParserError error);
 }

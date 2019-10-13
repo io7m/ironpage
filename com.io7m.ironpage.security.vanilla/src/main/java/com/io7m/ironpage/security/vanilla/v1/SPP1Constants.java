@@ -14,20 +14,28 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+
+package com.io7m.ironpage.security.vanilla.v1;
+
+import com.io7m.junreachable.UnreachableCodeException;
+
+import java.net.URI;
+
 /**
- * Document database (Common parser types API)
+ * Constants related to the 1.0 schema format.
  */
 
-module com.io7m.ironpage.parser.api
+public final class SPP1Constants
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
+  /**
+   * The 1.0 namespace.
+   */
 
-  requires com.io7m.blackthorne.api;
+  public static final URI POLICY_1_0_NAMESPACE =
+    URI.create("urn:com.io7m.ironpage.policy:1:0");
 
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  private SPP1Constants()
+  {
+    throw new UnreachableCodeException();
+  }
 }

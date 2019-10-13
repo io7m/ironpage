@@ -14,20 +14,16 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Document database (Common parser types API)
- */
+package com.io7m.ironpage.tests;
 
-module com.io7m.ironpage.parser.api
+import com.io7m.ironpage.security.api.SPolicyEvaluatorProviderType;
+import com.io7m.ironpage.security.vanilla.SPolicyEvaluators;
+
+public final class SPolicyEvaluatorTest extends SPolicyEvaluatorContract
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
-
-  requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  @Override
+  protected SPolicyEvaluatorProviderType evaluators()
+  {
+    return new SPolicyEvaluators();
+  }
 }

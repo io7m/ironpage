@@ -14,20 +14,20 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/**
- * Document database (Common parser types API)
- */
+package com.io7m.ironpage.tests;
 
-module com.io7m.ironpage.parser.api
+import com.io7m.ironpage.security.api.SPolicyParserType;
+import com.io7m.ironpage.security.vanilla.SPolicyParsers;
+
+import java.io.InputStream;
+import java.net.URI;
+
+public final class SPolicyParsersTest extends SPolicyParsersContract
 {
-  requires static com.io7m.immutables.style;
-  requires static org.immutables.value;
-  requires static org.osgi.annotation.bundle;
-
-  requires com.io7m.blackthorne.api;
-
-  requires transitive com.io7m.ironpage.errors.api;
-  requires transitive com.io7m.jlexing.core;
-
-  exports com.io7m.ironpage.parser.api;
+  @Override
+  protected SPolicyParserType parser(
+    final InputStream stream)
+  {
+    return new SPolicyParsers().create(super::showError, URI.create("urn:test"), stream);
+  }
 }

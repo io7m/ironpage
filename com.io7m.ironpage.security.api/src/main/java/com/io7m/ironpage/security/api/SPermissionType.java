@@ -14,51 +14,23 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-package com.io7m.ironpage.parser.api;
+package com.io7m.ironpage.security.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
-import com.io7m.ironpage.errors.api.ErrorSeverity;
-import com.io7m.ironpage.errors.api.ErrorType;
-import com.io7m.jlexing.core.LexicalPosition;
-import com.io7m.jlexing.core.LexicalType;
 import org.immutables.value.Value;
 
-import java.net.URI;
-import java.util.Optional;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 /**
- * An error that occurred during parsing.
+ * The type of permissions.
  */
 
 @ImmutablesStyleType
 @Value.Immutable
-public interface ParserErrorType extends ErrorType, LexicalType<URI>
+public interface SPermissionType
 {
-  @Override
-  ErrorSeverity severity();
-
-  @Override
-  LexicalPosition<URI> lexical();
-
   /**
-   * @return The parser error code
+   * @return The raw permission name
    */
 
-  ParserErrorCode errorCode();
-
-  @Override
-  @Value.Default
-  default SortedMap<String, String> attributes()
-  {
-    return new TreeMap<>();
-  }
-
-  @Override
-  String message();
-
-  @Override
-  Optional<Exception> exception();
+  @Value.Parameter
+  String permission();
 }
