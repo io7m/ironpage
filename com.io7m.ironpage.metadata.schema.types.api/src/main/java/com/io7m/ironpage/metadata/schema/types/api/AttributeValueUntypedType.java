@@ -17,6 +17,7 @@
 package com.io7m.ironpage.metadata.schema.types.api;
 
 import com.io7m.immutables.styles.ImmutablesStyleType;
+import com.io7m.jlexing.core.LexicalPosition;
 import com.io7m.jlexing.core.LexicalType;
 import org.immutables.value.Value;
 
@@ -30,6 +31,10 @@ import java.net.URI;
 @Value.Immutable
 public interface AttributeValueUntypedType extends AttributeValueType<String>, LexicalType<URI>
 {
+  @Override
+  @Value.Auxiliary
+  LexicalPosition<URI> lexical();
+
   @Override
   AttributeNameQualified name();
 

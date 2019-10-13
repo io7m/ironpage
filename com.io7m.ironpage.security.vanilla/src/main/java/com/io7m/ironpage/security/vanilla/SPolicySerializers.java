@@ -14,16 +14,37 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+package com.io7m.ironpage.security.vanilla;
 
-package com.io7m.ironpage.parser.api;
+import com.io7m.ironpage.security.api.SPolicy;
+import com.io7m.ironpage.security.api.SPolicySerializerProviderType;
+import com.io7m.ironpage.security.api.SPolicySerializerType;
 
-import java.io.Closeable;
+import java.io.OutputStream;
+import java.util.Objects;
 
 /**
- * The type of serializers.
+ * A provider of security policy serializers.
  */
 
-public interface SerializerType extends Closeable
+public final class SPolicySerializers implements SPolicySerializerProviderType
 {
-  // No extra methods
+  /**
+   * Construct a serializer provider.
+   */
+
+  public SPolicySerializers()
+  {
+
+  }
+
+  @Override
+  public SPolicySerializerType create(
+    final SPolicy policy,
+    final OutputStream output)
+  {
+    Objects.requireNonNull(policy, "policy");
+    Objects.requireNonNull(output, "output");
+    return new SPolicySerializer(policy, output);
+  }
 }

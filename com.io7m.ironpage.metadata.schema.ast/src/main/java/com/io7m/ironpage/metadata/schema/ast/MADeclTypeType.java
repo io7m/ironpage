@@ -35,6 +35,7 @@ import java.util.Optional;
 public interface MADeclTypeType<T> extends MAElementType<T>
 {
   @Override
+  @Value.Auxiliary
   LexicalPosition<URI> lexical();
 
   @Override

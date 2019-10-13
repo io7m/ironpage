@@ -81,6 +81,7 @@ public interface MATypeReferenceType<T> extends MAElementType<T>
     }
 
     @Override
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     /**
@@ -108,6 +109,7 @@ public interface MATypeReferenceType<T> extends MAElementType<T>
     }
 
     @Override
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     /**

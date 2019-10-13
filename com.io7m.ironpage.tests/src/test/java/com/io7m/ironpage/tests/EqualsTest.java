@@ -94,6 +94,9 @@ public final class EqualsTest
     if (declaredFieldNames.contains("kind")) {
       transientFieldNames.add("kind");
     }
+    if (declaredFieldNames.contains("lexical")) {
+      transientFieldNames.add("lexical");
+    }
 
     switch (clazz.getCanonicalName()) {
       case "com.io7m.ironpage.database.core.api.CDSecurityRoleDTO":

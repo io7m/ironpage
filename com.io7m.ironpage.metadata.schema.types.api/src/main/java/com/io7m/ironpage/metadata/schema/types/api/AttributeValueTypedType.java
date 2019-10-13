@@ -68,6 +68,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override
@@ -103,6 +104,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override
@@ -138,6 +140,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override
@@ -173,6 +176,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override
@@ -208,6 +212,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override
@@ -243,6 +248,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override
@@ -278,6 +284,7 @@ public interface AttributeValueTypedType<T> extends AttributeValueType<T>, Lexic
   {
     @Override
     @Value.Parameter
+    @Value.Auxiliary
     LexicalPosition<URI> lexical();
 
     @Override

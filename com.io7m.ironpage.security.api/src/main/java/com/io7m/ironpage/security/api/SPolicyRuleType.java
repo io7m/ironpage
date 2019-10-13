@@ -34,8 +34,16 @@ import java.util.Optional;
 @Value.Immutable
 public interface SPolicyRuleType extends LexicalType<URI>
 {
+  private static <T> boolean checkMatches(
+    final Optional<T> thisX,
+    final T inputX)
+  {
+    return thisX.map(x -> Boolean.valueOf(x.equals(inputX))).orElse(Boolean.TRUE).booleanValue();
+  }
+
   @Override
   @Value.Default
+  @Value.Auxiliary
   default LexicalPosition<URI> lexical()
   {
     return LexicalPositions.zero();
@@ -102,12 +110,5 @@ public interface SPolicyRuleType extends LexicalType<URI>
     return checkMatches(this.role(), inputRole)
       && checkMatches(this.permission(), inputPermission)
       && checkMatches(this.label(), inputLabel);
-  }
-
-  private static <T> boolean checkMatches(
-    final Optional<T> thisX,
-    final T inputX)
-  {
-    return thisX.map(x -> Boolean.valueOf(x.equals(inputX))).orElse(Boolean.TRUE).booleanValue();
   }
 }

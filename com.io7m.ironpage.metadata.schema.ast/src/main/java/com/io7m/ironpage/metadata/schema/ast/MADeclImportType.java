@@ -34,6 +34,7 @@ import java.net.URI;
 public interface MADeclImportType<T> extends MAElementType<T>
 {
   @Override
+  @Value.Auxiliary
   LexicalPosition<URI> lexical();
 
   @Override

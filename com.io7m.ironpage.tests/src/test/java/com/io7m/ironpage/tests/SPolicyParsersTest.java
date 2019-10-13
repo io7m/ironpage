@@ -16,10 +16,14 @@
 
 package com.io7m.ironpage.tests;
 
+import com.io7m.ironpage.security.api.SPolicy;
 import com.io7m.ironpage.security.api.SPolicyParserType;
+import com.io7m.ironpage.security.api.SPolicySerializerType;
 import com.io7m.ironpage.security.vanilla.SPolicyParsers;
+import com.io7m.ironpage.security.vanilla.SPolicySerializers;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 
 public final class SPolicyParsersTest extends SPolicyParsersContract
@@ -29,5 +33,13 @@ public final class SPolicyParsersTest extends SPolicyParsersContract
     final InputStream stream)
   {
     return new SPolicyParsers().create(super::showError, URI.create("urn:test"), stream);
+  }
+
+  @Override
+  protected SPolicySerializerType serializer(
+    final SPolicy policy,
+    final OutputStream outputStream)
+  {
+    return new SPolicySerializers().create(policy, outputStream);
   }
 }

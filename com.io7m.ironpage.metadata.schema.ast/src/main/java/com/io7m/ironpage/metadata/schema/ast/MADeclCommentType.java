@@ -34,6 +34,7 @@ import java.net.URI;
 public interface MADeclCommentType<T> extends MAElementType<T>
 {
   @Override
+  @Value.Auxiliary
   LexicalPosition<URI> lexical();
 
   @Override

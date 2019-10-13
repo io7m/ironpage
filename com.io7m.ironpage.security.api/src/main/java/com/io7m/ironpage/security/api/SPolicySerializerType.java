@@ -17,51 +17,20 @@
 
 package com.io7m.ironpage.security.api;
 
-import com.io7m.immutables.styles.ImmutablesStyleType;
-import com.io7m.jlexing.core.LexicalPosition;
-import com.io7m.jlexing.core.LexicalPositions;
-import com.io7m.jlexing.core.LexicalType;
-import org.immutables.value.Value;
-
-import java.math.BigInteger;
-import java.net.URI;
-import java.util.List;
+import com.io7m.ironpage.parser.api.SerializerType;
 
 /**
- * A security policy.
+ * A security policy serializers.
  */
 
-@ImmutablesStyleType
-@Value.Immutable
-public interface SPolicyType extends LexicalType<URI>
+public interface SPolicySerializerType extends SerializerType
 {
-  @Override
-  @Value.Default
-  @Value.Auxiliary
-  default LexicalPosition<URI> lexical()
-  {
-    return LexicalPositions.zero();
-  }
-
   /**
-   * @return The policy comment
+   * Execute the serializer.
+   *
+   * @throws Exception On errors
    */
 
-  @Value.Default
-  default String comment()
-  {
-    return "";
-  }
-
-  /**
-   * @return The security policy version
-   */
-
-  BigInteger version();
-
-  /**
-   * @return The policy rules, in declaration order
-   */
-
-  List<SPolicyRule> rules();
+  void execute()
+    throws Exception;
 }

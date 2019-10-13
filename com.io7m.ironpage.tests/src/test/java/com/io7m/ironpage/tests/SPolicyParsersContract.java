@@ -21,17 +21,23 @@ import com.io7m.ironpage.parser.api.ParserError;
 import com.io7m.ironpage.parser.api.ParserErrorCode;
 import com.io7m.ironpage.security.api.SLabel;
 import com.io7m.ironpage.security.api.SPermission;
+import com.io7m.ironpage.security.api.SPolicy;
 import com.io7m.ironpage.security.api.SPolicyParserType;
+import com.io7m.ironpage.security.api.SPolicySerializerType;
 import com.io7m.ironpage.security.api.SRole;
 import org.apache.commons.io.input.BrokenInputStream;
+import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -70,7 +76,12 @@ public abstract class SPolicyParsersContract
     return this.errors.stream().anyMatch(e -> e.errorCode().equals(code));
   }
 
-  protected abstract SPolicyParserType parser(InputStream stream);
+  protected abstract SPolicyParserType parser(
+    InputStream stream);
+
+  protected abstract SPolicySerializerType serializer(
+    SPolicy policy,
+    OutputStream outputStream);
 
   @BeforeEach
   public final void testSetup()
@@ -149,6 +160,8 @@ public abstract class SPolicyParsersContract
       Assertions.assertEquals(1L, policy.version().longValue());
       Assertions.assertEquals("", policy.comment());
       Assertions.assertEquals(0L, (long) policy.rules().size());
+
+      this.checkReserialization(policy);
     }
   }
 
@@ -204,6 +217,25 @@ public abstract class SPolicyParsersContract
         Assertions.assertEquals(Optional.of(SPermission.of("read")), rule.permission());
         Assertions.assertEquals(Optional.of(SLabel.of("adminPage")), rule.label());
         Assertions.assertEquals("Superusers can read from administration pages.", rule.comment());
+      }
+
+      this.checkReserialization(policy);
+    }
+  }
+
+  private void checkReserialization(
+    final SPolicy policy)
+    throws Exception
+  {
+    try (final var outputStream = new ByteArrayOutputStream()) {
+      try (var serializer = this.serializer(policy, outputStream)) {
+        serializer.execute();
+      }
+      try (final var inputStream = new ByteArrayInputStream(outputStream.toByteArray())) {
+        try (var afterParser = this.parser(inputStream)) {
+          final var afterPolicy = afterParser.execute().get();
+          Assertions.assertEquals(policy, afterPolicy);
+        }
       }
     }
   }

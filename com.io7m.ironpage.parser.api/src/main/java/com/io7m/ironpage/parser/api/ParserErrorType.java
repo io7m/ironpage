@@ -41,6 +41,7 @@ public interface ParserErrorType extends ErrorType, LexicalType<URI>
   ErrorSeverity severity();
 
   @Override
+  @Value.Auxiliary
   LexicalPosition<URI> lexical();
 
   /**

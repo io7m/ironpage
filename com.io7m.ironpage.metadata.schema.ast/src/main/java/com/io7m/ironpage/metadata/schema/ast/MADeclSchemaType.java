@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 public interface MADeclSchemaType<T> extends MAElementType<T>
 {
   @Override
+  @Value.Auxiliary
   LexicalPosition<URI> lexical();
 
   @Override
