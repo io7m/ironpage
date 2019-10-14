@@ -25,6 +25,7 @@ module com.io7m.ironpage.database.pages.api
   requires static org.osgi.annotation.bundle;
 
   requires transitive com.io7m.ironpage.database.core.api;
+  requires transitive com.io7m.ironpage.events.api;
 
   requires com.io7m.ironpage.database.spi;
 

@@ -26,17 +26,46 @@ import org.immutables.value.Value;
 
 public interface TypeReferenceType
 {
+  /**
+   * @return A humanly-readable representation of the type
+   */
+
   String show();
+
+  /**
+   * @return The kind of type reference
+   */
 
   Kind kind();
 
+  /**
+   * @return The evaluated base primitive type
+   */
+
   TypePrimitive basePrimitiveType();
+
+  /**
+   * The kind of type references.
+   */
 
   enum Kind
   {
+    /**
+     * The reference refers to a named type.
+     */
+
     TYPE_REFERENCE_NAMED,
+
+    /**
+     * The reference refers to a primitive type.
+     */
+
     TYPE_REFERENCE_PRIMITIVE
   }
+
+  /**
+   * The type of references to named types.
+   */
 
   @ImmutablesStyleType
   @Value.Immutable
@@ -48,12 +77,21 @@ public interface TypeReferenceType
       return Kind.TYPE_REFERENCE_NAMED;
     }
 
+    /**
+     * @return The schema of the referenced type
+     */
+
     @Value.Parameter
     MetaSchemaIdentifier schema();
+
+    /**
+     * @return The name of the referenced type
+     */
 
     @Value.Parameter
     TypeName name();
 
+    @Override
     @Value.Parameter
     TypePrimitive basePrimitiveType();
 
@@ -63,6 +101,10 @@ public interface TypeReferenceType
       return String.format("%s:%s", this.schema().name().show(), this.name().show());
     }
   }
+
+  /**
+   * The type of references to primitive types.
+   */
 
   @ImmutablesStyleType
   @Value.Immutable
@@ -74,6 +116,7 @@ public interface TypeReferenceType
       return Kind.TYPE_REFERENCE_PRIMITIVE;
     }
 
+    @Override
     @Value.Parameter
     TypePrimitive basePrimitiveType();
 

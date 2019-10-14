@@ -15,13 +15,20 @@
  */
 
 
-package com.io7m.ironpage.database.spi;
+package com.io7m.ironpage.database.pages.api;
+
+import com.io7m.immutables.styles.ImmutablesStyleType;
+import org.immutables.value.Value;
 
 /**
- * A marker interface used as the common supertype of database query interfaces.
+ * A blob was redacted.
  */
 
-public interface DatabaseQueriesType
+@ImmutablesStyleType
+@Value.Immutable
+public interface PagesDatabaseBlobRedactedType extends PagesDatabaseBlobEventType
 {
-  // No extra methods
+  @Override
+  @Value.Parameter
+  String id();
 }

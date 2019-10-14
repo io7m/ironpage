@@ -22,8 +22,24 @@ import io.reactivex.rxjava3.subjects.Subject;
 import java.sql.Connection;
 import java.time.Clock;
 
+/**
+ * The type of functions that construct database queries.
+ *
+ * @param <T> The precise type of queries
+ */
+
 public interface DatabaseQueriesConstructorType<T extends DatabaseQueriesType>
 {
+  /**
+   * Construct queries.
+   *
+   * @param clock      The clock used for time-based operations
+   * @param events     The event subject used to publish events
+   * @param connection The SQL database connection
+   *
+   * @return A new set of queries
+   */
+
   T create(
     Clock clock,
     Subject<DatabaseEventType> events,

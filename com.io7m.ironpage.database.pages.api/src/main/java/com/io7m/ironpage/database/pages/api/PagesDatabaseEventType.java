@@ -15,13 +15,15 @@
  */
 
 
-package com.io7m.ironpage.database.spi;
+package com.io7m.ironpage.database.pages.api;
+
+import com.io7m.ironpage.database.spi.DatabaseEventType;
 
 /**
- * A marker interface used as the common supertype of database query interfaces.
+ * The type of page database events.
  */
 
-public interface DatabaseQueriesType
+public interface PagesDatabaseEventType extends DatabaseEventType
 {
   // No extra methods
 }

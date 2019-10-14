@@ -15,13 +15,17 @@
  */
 
 
-package com.io7m.ironpage.database.spi;
+package com.io7m.ironpage.database.pages.api;
 
 /**
- * A marker interface used as the common supertype of database query interfaces.
+ * The type of page database events related to blobs.
  */
 
-public interface DatabaseQueriesType
+public interface PagesDatabaseBlobEventType extends PagesDatabaseEventType
 {
-  // No extra methods
+  /**
+   * @return The ID of the blob
+   */
+
+  String id();
 }

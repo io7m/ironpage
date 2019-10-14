@@ -22,8 +22,28 @@ import com.io7m.ironpage.metadata.schema.compiler.loader.api.MSchemaCompilerLoad
 import java.io.InputStream;
 import java.net.URI;
 
+/**
+ * A provider of schema compilers.
+ *
+ * A schema compiler represents an instance of an entire schema compilation pipeline: Parsing,
+ * binding analysis, type checking. A compiler instance is expected to be used once and then
+ * discarded.
+ */
+
 public interface MSchemaCompilerProviderType
 {
+  /**
+   * Create a new compiler instance.
+   *
+   * @param errors   An error receiver
+   * @param messages A provider of localized messages
+   * @param loader   A schema loader
+   * @param uri      The URI of the input
+   * @param stream   A stream representing a schema
+   *
+   * @return A new compiler instance
+   */
+
   MSchemaCompilerType createCompiler(
     MSchemaCompilerErrorConsumerType errors,
     MSchemaCompilerMessagesType messages,

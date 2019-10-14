@@ -19,12 +19,14 @@ package com.io7m.ironpage.database.core.derby;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDLabelsQueriesType;
 import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
+import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobCreated;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobDTO;
+import com.io7m.ironpage.database.pages.api.PagesDatabaseBlobRedacted;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseQueriesType;
 import com.io7m.ironpage.database.pages.api.PagesDatabaseRedactionDTO;
+import com.io7m.ironpage.database.spi.DatabaseEventType;
 import com.io7m.ironpage.database.spi.DatabaseException;
 import com.io7m.ironpage.errors.api.ErrorSeverity;
-import com.io7m.ironpage.events.api.EventType;
 import com.io7m.ironpage.presentable.api.PresentableAttributes;
 import io.reactivex.rxjava3.subjects.Subject;
 import org.apache.commons.codec.binary.Hex;
@@ -56,17 +58,19 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
   private final DSLContext dslContext;
   private final CoreAuditQueries audit;
   private final Clock clock;
+  private final Subject<DatabaseEventType> events;
 
   CorePagesQueries(
     final Clock inClock,
-    final Subject<? extends EventType> events,
+    final Subject<DatabaseEventType> inEvents,
     final Connection inConnection)
   {
     this.clock = Objects.requireNonNull(inClock, "inClock");
+    this.events = Objects.requireNonNull(inEvents, "inEvents");
     final var connection = Objects.requireNonNull(inConnection, "connection");
     final var settings = new Settings().withRenderNameStyle(RenderNameStyle.AS_IS);
     this.dslContext = DSL.using(connection, SQLDialect.DERBY, settings);
-    this.audit = new CoreAuditQueries(this.clock, events, connection);
+    this.audit = new CoreAuditQueries(this.clock, inEvents, connection);
   }
 
   private static PagesDatabaseRedactionDTO redactionFromRecord(
@@ -216,6 +220,7 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
       throw genericDatabaseException(e);
     }
 
+    this.events.onNext(PagesDatabaseBlobCreated.of(hash));
     return hash;
   }
 
@@ -381,5 +386,7 @@ final class CorePagesQueries implements PagesDatabaseQueriesType
     } catch (final DataAccessException e) {
       throw genericDatabaseException(e);
     }
+
+    this.events.onNext(PagesDatabaseBlobRedacted.of(id));
   }
 }

@@ -20,6 +20,7 @@ import com.io7m.ironpage.database.core.api.CDErrorCode;
 import com.io7m.ironpage.database.core.api.CDException;
 import com.io7m.ironpage.database.core.api.CDSecurityLabelDTO;
 import com.io7m.ironpage.database.spi.DatabaseQueriesType;
+import com.io7m.ironpage.events.api.EventPublishedType;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -99,6 +100,7 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * @see "https://www.iana.org/assignments/media-types/media-types.xhtml"
    */
 
+  @EventPublishedType(PagesDatabaseBlobCreated.class)
   String pageBlobPut(
     UUID owner,
     String mediaType,
@@ -130,6 +132,7 @@ public interface PagesDatabaseQueriesType extends DatabaseQueriesType
    * @throws CDException On database errors
    */
 
+  @EventPublishedType(PagesDatabaseBlobRedacted.class)
   void pageBlobRedact(
     UUID owner,
     String id,
